@@ -1,0 +1,23 @@
+h1= title
+p Welcome to #{title}
+
+form#post(action='javascript:void(0)', method='POST')
+  label(for='name') * name 
+  input#name(type='text', name='name')
+  br
+  label(for='title') * title 
+  input(type='text', name='title')
+  br
+  label(for='body') body 
+  input(type='text', name='body')
+  br
+  input(type='submit', name='GO!')
+
+div#list
+//   table
+//     each post in posts
+//       tr
+//         td= post.name
+//         td= post.title
+//         td= post.body
+  
