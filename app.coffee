@@ -1,22 +1,37 @@
+
+###
+ Include libraries.
+###
 express = require("express")
 mongoose = require("mongoose")
 _ = require("underscore")
+url = require('url')
+querystring = require('querystring')
+https = require('https')
 
-PostSchema = new mongoose.Schema(
-  name: String
-  title: String
-  body: String
+
+
+###
+ Setting DB.
+###
+WordSchema = new mongoose.Schema(
+  content: String
+  createdBy: String
   createdAt: Date
 )
+mongoose.model('WordModel', WordSchema)
+mongoose.connect('mongodb://localhost/lastFirstDB')
+WordModel = mongoose.model('WordModel')
 
-mongoose.model('Post', PostSchema)
-
-mongoose.connect('mongodb://localhost/ndb')
-
-Post = mongoose.model('Post')
+findOptions =
+  sort: [['createdAt', 'descending']]
+  limit: 5
 
 
 
+###
+ App initialize.
+###
 app = module.exports = express.createServer()
 io = require('socket.io').listen(app)
 app.configure ->
@@ -26,12 +41,10 @@ app.configure ->
   app.use express.methodOverride()
   app.use app.router
   app.use express.static(__dirname + "/public")
-
 app.configure "development", ->
-  app.use express.errorHandler(
+  app.use express.errorHandler
     dumpExceptions: true
     showStack: true
-  )
 app.configure "production", ->
   app.use express.errorHandler()
 
@@ -40,34 +53,160 @@ app.configure "production", ->
 
 
 
+###
+ Class for user.
+###
+class User
+  socket: null
+  id: ''
+  token: ''
+  isValid: false
 
-# socket emitting
-updateOptions =
-  sort: [['createdAt', 'descending']]
-  limit: 5
-emitUpdateTo = (socket) ->
-  Post.find {},[],updateOptions, (err, docs) ->
-    socket.emit 'update', docs.reverse()
+  constructor: (@socket) ->
+  setToken: (@token) ->
+  validate: () ->
+    return false if !@socket or !@token
+    options =
+      host: 'www.googleapis.com'
+      path: '/oauth2/v1/tokeninfo?access_token=' + @token
+    https.get options, (res) =>
+      res.on 'data', (data) =>
+        json = JSON.parse(data.toString())
+        if !json.error
+          console.log json
+          @id = json.user_id
+          @isValid = true
+          @socket.emit 'validated nicely!',
+            user_id: @id
+          updateWords(@socket)
+        else
+          @socket.emit 'validation fail',
+            error: 'too bad.'
+  
 
-# sockets listening
+
+###
+ Singleton class for managing users.
+###
+class Users
+  constructor: (@id, @token) ->
+  users_: []
+  # @param {User} user
+  add: (user) ->
+    @users_.push(user)
+  remove: (id) ->
+    _.find @users_, (user) ->
+      if user.id is id
+        @users_[_i].splice()
+        return true
+  # @param {String} idOrToken
+  # @return {Boolean}
+  has: (idOrToken) ->
+    _.find @users_, (user) ->
+      user.id is idOrToken or user.token is idOrToken
+users = new Users()
+
+
+
+
+
+###
+ Class for word.
+###
+class Word
+  content: null
+  lastLetter: null
+  createdBy: null
+  createdAt: null
+  model_: null
+  isSaved: false
+
+  constructor: (post) ->
+    if _.keys(post).length is 3 and
+        post.content and post.createdBy and post.createdAt
+      @model_ = new WordModel()
+      @model_ = _.extend(@model_, post)
+      @lastLetter = _.last(post)
+    else
+      console.log 'something goes wrong..'
+  save: (fn) ->
+    @model_.save(fn)
+    @isSaved = true
+    
+  
+  
+
+
+# fn get `err' and `docs' argument
+findRecentWords = (fn) ->
+  WordModel.find {},[],findOptions, fn
+
+# could be `io.socket'
+updateWords = (socket) ->
+  findRecentWords (err,docs) ->
+    socket.emit 'update', docs
+
+sendBadBoyMessage = (socket) ->
+  socket.emit 'bad boy',
+    error: 'you bad body.'
+  
+
+  
+
+###
+ Socket IO listening.
+###
+# user.user_id
+# user.socket
 io.sockets.on 'connection', (socket) ->
-  emitUpdateTo(socket)
-  socket.on 'post', (data) ->
-    post = new Post()
-    data.body = '(empty body)' if _.isNull(data.body)
-    post = _.extend(post, data)
-    post.save (err) ->
-      if not err
-        emitUpdateTo(io.sockets)
+  user = new User(socket)
+  updateWords(socket)
 
+  socket.on 'got token', (data) ->
+    token = data.token
+    if !users.has(token)
+      user.setToken(token)
+      users.add(user)
+      user.validate()
+
+  socket.on 'post word', (post) ->
+    if not user.isValid
+      sendBadBoyMessage(socket)
+      return
+    word = new Word(post)
+    word.save (err) ->
+      unless err
+        socket.emit 'posted successfully', post
+        updateWords(io.sockets)
+    
     
 
-    
 
-# get 
+
+
+
+# HTTP request listening.
+oathScopes = [
+  'https://www.googleapis.com/auth/userinfo.profile'
+]
+oathQuery =
+  response_type: 'token'
+  scope: oathScopes.join('+')
+  redirect_uri: 'http://localhost:3000/oauth2callback'
+  client_id: '381639783208.apps.googleusercontent.com'
+oathUrl = 'https://accounts.google.com/o/oauth2/auth?' +
+    querystring.stringify(oathQuery)
+
 app.get "/", (req, res) ->
   res.render "index",
-    title: "Express"
+    title: "LastFirstApp"
+    oathUrl: oathUrl
+
+app.get "/oauth2callback", (req, res) ->
+  token = req.query.code
+  res.render "oauth2callback"
+    layout: false
+    title: "LastFirstApp"
 
 app.listen 3000
 

@@ -1,23 +1,21 @@
 h1= title
 p Welcome to #{title}
 
-form#post(action='javascript:void(0)', method='POST')
-  label(for='name') * name 
-  input#name(type='text', name='name')
-  br
-  label(for='title') * title 
-  input(type='text', name='title')
-  br
-  label(for='body') body 
-  input(type='text', name='body')
-  br
-  input(type='submit', name='GO!')
 
-div#list
-//   table
-//     each post in posts
-//       tr
-//         td= post.name
-//         td= post.title
-//         td= post.body
+
+- var onclick = 'javascript:window.open("' + oathUrl + '", "oauth", "width=700, height=400, top=200, left=600, menubar=no, toolbar=no, scrollbars=yes");'
+
+div#login-link
+  a(href='javascript:void(0)', onclick=onclick) to post, please login with google.
+
+div#post-form(style='display:none')
+  form#post(action='javascript:void(0)', method='POST')
+    label(for='name') * しりとり、どうぞ
+    input(type='text', name='word')
+    input(type='submit', name='GO!')
+
+div#word-list
+  table
   
+div#msg-box(style='display:none',title="close this message")
+  | whoo..

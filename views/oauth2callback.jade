@@ -1,0 +1,11 @@
+!!!
+html
+  head
+    title= title
+    script
+      window.opener._.parseToken(window.location.hash)
+      setTimeout(function () {
+        window.close();
+      },888);
+  body
+    | wait a second ...
