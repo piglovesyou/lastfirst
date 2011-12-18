@@ -259,7 +259,7 @@
   /*
    Sockets init
   */
-  socket = io.connect('http://localhost');
+  socket = io.connect(location.protocol + '//' + location.host);
   socket.on('update', function(docs) {
     var $list, doc, html, _i, _len, _results;
     currentDocs_ = docs;
@@ -269,6 +269,9 @@
     for (_i = 0, _len = docs.length; _i < _len; _i++) {
       doc = docs[_i];
       html = "<tr><td>" + doc.content + "</td>";
+      if (_i === 0) {
+        html += "<td>&lt;-last post!</td>";
+      }
       if (doc.createdBy === _.getUserId()) {
         html += "<td>&lt;-your post!</td>";
       }

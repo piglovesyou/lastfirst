@@ -209,13 +209,14 @@ _.mixin
 ###
  Sockets init
 ###
-socket = io.connect('http://localhost')
+socket = io.connect(location.protocol + '//' + location.host)
 socket.on 'update', (docs) ->
   currentDocs_ = docs
   $list = $list_ or ($list_ = $('#word-list'))
   $list.empty()
   for doc in docs
     html = "<tr><td>#{doc.content}</td>"
+    html += "<td>&lt;-last post!</td>" if _i is 0
     html += "<td>&lt;-your post!</td>" if doc.createdBy is _.getUserId()
     html += "</tr>"
     $list.append html
