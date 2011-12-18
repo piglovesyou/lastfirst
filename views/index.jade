@@ -5,7 +5,10 @@ p Welcome to #{title}
 
 - var onclick = 'javascript:window.open("' + oathUrl + '", "oauth", "width=700, height=400, top=200, left=600, menubar=no, toolbar=no, scrollbars=yes");'
 
-div#login-link
+div#wait-sec-message
+  | Wait for a sec...
+
+div#login-link(style='display:none')
   a(href='javascript:void(0)', onclick=onclick) to post, please login with google.
 
 div#post-form(style='display:none')

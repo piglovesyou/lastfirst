@@ -2,21 +2,29 @@
   /*
    Include libraries.
   */
-  var User, Users, Word, WordModel, WordSchema, app, express, findOptions, findRecentWords, https, io, mongoose, oathQuery, oathScopes, oathUrl, postLocked, querystring, updateWords, url, users, _;
+  var User, Word, WordModel, WordSchema, app, c, express, findOptions, findRecentWords, getLastDoc, https, io, lastDoc_, mongoose, oathQuery, oathScopes, oathUrl, postLocked, querystring, updateWords, url, _;
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+  c = console.log;
+  _ = require("underscore");
+  require('./underscore_extention');
   express = require("express");
   mongoose = require("mongoose");
-  _ = require("underscore");
   url = require('url');
   querystring = require('querystring');
   https = require('https');
+  c('"""""""""""""""""""""""""""""""""""""""""""');
+  c(_.isValidLastFirst('あひる', 'るびい'));
   /*
-   Setting DB.
+   DB setting.
   */
   WordSchema = new mongoose.Schema({
     content: String,
     createdBy: String,
-    createdAt: Date
+    createdAt: Date,
+    nice: {
+      type: Number,
+      "default": 0
+    }
   });
   mongoose.model('WordModel', WordSchema);
   mongoose.connect('mongodb://localhost/lastFirstDB');
@@ -64,28 +72,29 @@
     User.prototype.validate = function() {
       var options;
       if (!this.socket || !this.token) {
-        return false;
+        return;
       }
       options = {
         host: 'www.googleapis.com',
         path: '/oauth2/v1/tokeninfo?access_token=' + this.token
       };
+      c('before https.get');
       return https.get(options, __bind(function(res) {
         return res.on('data', __bind(function(data) {
           var json;
           json = JSON.parse(data.toString());
+          c('got res from https.get', json);
           if (!json.error) {
-            console.log(json);
+            c('validate successfully.');
             this.id = json.user_id;
             this.isValid = true;
             this.socket.emit('validated nicely!', {
-              user_id: this.id
+              userId: this.id
             });
             return updateWords(this.socket);
           } else {
-            return this.socket.emit('validation fail', {
-              error: 'too bad.'
-            });
+            c('need login.');
+            return this.socket.emit('need login');
           }
         }, this));
       }, this));
@@ -95,31 +104,6 @@
   /*
    Singleton class for managing users.
   */
-  Users = (function() {
-    function Users(id, token) {
-      this.id = id;
-      this.token = token;
-    }
-    Users.prototype.users_ = [];
-    Users.prototype.add = function(user) {
-      return this.users_.push(user);
-    };
-    Users.prototype.remove = function(id) {
-      return _.find(this.users_, function(user) {
-        if (user.id === id) {
-          this.users_[_i].splice();
-          return true;
-        }
-      });
-    };
-    Users.prototype.has = function(idOrToken) {
-      return _.find(this.users_, function(user) {
-        return user.id === idOrToken || user.token === idOrToken;
-      });
-    };
-    return Users;
-  })();
-  users = new Users();
   /*
    Class for word.
   */
@@ -131,25 +115,33 @@
     Word.prototype.model_ = null;
     Word.prototype.isSaved = false;
     function Word(post) {
-      if (_.keys(post).length === 3 && post.content && post.createdBy && post.createdAt) {
+      if (_.keys(post).length === 2 && post.content && post.createdBy) {
         this.model_ = new WordModel();
+        this.model_.createdAt = new Date();
         this.model_ = _.extend(this.model_, post);
         this.lastLetter = _.last(post);
       } else {
-        console.log('something goes wrong..');
+        c('something goes wrong..');
       }
     }
     Word.prototype.save = function(fn) {
-      this.model_.save(fn);
-      return this.isSaved = true;
+      if (this.model_) {
+        this.model_.save(fn);
+        return this.isSaved = true;
+      }
     };
     return Word;
   })();
   findRecentWords = function(fn) {
     return WordModel.find({}, [], findOptions, fn);
   };
+  lastDoc_ = {};
+  getLastDoc = function() {
+    return lastDoc_ || {};
+  };
   updateWords = function(socket) {
     return findRecentWords(function(err, docs) {
+      lastDoc_ = docs[0];
       return socket.emit('update', docs);
     });
   };
@@ -163,32 +155,42 @@
     updateWords(socket);
     socket.on('got token', function(data) {
       var token;
+      c('got token!!!!!!! from client');
       token = data.token;
-      if (!users.has(token)) {
-        user.setToken(token);
-        users.add(user);
-        return user.validate();
-      }
+      user.setToken(token);
+      return user.validate();
     });
     return socket.on('post word', function(post) {
       var word;
-      if (postLocked) {
-        socket.emit('error', {
-          error: 'post conflicted with someones post!'
+      console.log('--------------------------------------');
+      console.log(getLastDoc().content);
+      if (!user.isValid) {
+        return socket.emit('error message', {
+          message: 'you bad boy.'
         });
-      } else if (!user.isValid) {
-        socket.emit('error', {
-          error: 'you bad boy.'
+      } else if (postLocked) {
+        return socket.emit('error message', {
+          message: 'post conflicted with someones post!'
         });
-        return;
+      } else if (!_.isValidWord(post.content)) {
+        return socket.emit('error message', {
+          message: 'Do you speak japanese?'
+        });
+      } else if (!_.isValidLastFirst(getLastDoc().content, post.content)) {
+        return socket.emit('error message', {
+          message: 'I\'m not sure it\'s being Last and First.'
+        });
+      } else {
+        postLocked = true;
+        word = new Word(post);
+        return word.save(function(err) {
+          postLocked = false;
+          if (!err) {
+            socket.emit('posted successfully', post);
+            return updateWords(io.sockets);
+          }
+        });
       }
-      word = new Word(post);
-      return word.save(function(err) {
-        if (!err) {
-          socket.emit('posted successfully', post);
-          return updateWords(io.sockets);
-        }
-      });
     });
   });
   oathScopes = ['https://www.googleapis.com/auth/userinfo.profile'];
@@ -203,6 +205,11 @@
     return res.render("index", {
       title: "LastFirstApp",
       oathUrl: oathUrl
+    });
+  });
+  app.get("/dev", function(req, res) {
+    return res.render("dev", {
+      title: "dev"
     });
   });
   app.get("/oauth2callback", function(req, res) {

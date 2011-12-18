@@ -1,43 +1,10 @@
 (function() {
+  var $indicator_, $list_, $msgBox_, c, currentDocs_, delayTimerId_, getFirstLetter_, getLastLetter_, postLocked_, socket, userId_;
+  c = console.log;
   /*
-   util
+   Utils.
+   Depends on underscore.js
   */
-  var $indicator_, $list_, $msgBox_, currentDocs_, delayTimerId_, getFirstLetter_, getLastLetter_, postLocked_, socket, token_, userId_;
-  _.mixin({
-    parseParamString: function(str, sep) {
-      var pairArr, pairStr, result, _i, _len, _ref;
-      if (sep == null) {
-        sep = '&';
-      }
-      result = {};
-      _ref = str.split(sep);
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        pairStr = _ref[_i];
-        pairArr = pairStr.split('=');
-        result[pairArr[0]] = pairArr[1];
-      }
-      return result;
-    },
-    isValidWord: function(str) {
-      if (_.isString(str) && /^[あ-ん|ー]+$/.test(str) && /^[^を]+$/.test(str)) {
-        return _.all(str.split(''), function(letter, index, array) {
-          if (index === 0) {
-            return /^[^ゃ-ょ|^っ]$/.test(letter);
-          } else {
-            if (/^[ゃ-ょ]$/.test(letter)) {
-              return /^[きしちにひみりぎじぢび]$/.test(array[index - 1]);
-            }
-            if (letter === 'っ') {
-              return /^[^っ]$/.test(array[index - 1]);
-            }
-            return true;
-          }
-        });
-      } else {
-        return false;
-      }
-    }
-  });
   getFirstLetter_ = function(str) {
     var count, len;
     count = 1;
@@ -69,23 +36,95 @@
     }
   };
   _.mixin({
+    isValidWord: function(str) {
+      if (_.isString(str) && /^[あ-ん|ー]+$/.test(str) && /^[^を]+$/.test(str)) {
+        return _.all(str.split(''), function(letter, index, array) {
+          if (index === 0) {
+            return /^[^ゃ-ょ|^っ]$/.test(letter);
+          } else {
+            if (/^[ゃ-ょ]$/.test(letter)) {
+              return /^[きしちにひみりぎじぢび]$/.test(array[index - 1]);
+            }
+            if (letter === 'っ') {
+              return /^[^っ]$/.test(array[index - 1]);
+            }
+            return true;
+          }
+        });
+      } else {
+        return false;
+      }
+    }
+  });
+  _.mixin({
     isValidLastFirst: function(last, first) {
       console.log(last, first);
       return getLastLetter_(last) === getFirstLetter_(first);
     }
   });
+  _.mixin({
+    parseParamString: function(str, sep) {
+      var pairArr, pairStr, result, _i, _len, _ref;
+      if (sep == null) {
+        sep = '&';
+      }
+      result = {};
+      _ref = str.split(sep);
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        pairStr = _ref[_i];
+        pairArr = pairStr.split('=');
+        result[pairArr[0]] = pairArr[1];
+      }
+      return result;
+    },
+    stringifyParam: function(paramObj, sep) {
+      var key, keys, lastIndex, result, _i, _len;
+      if (sep == null) {
+        sep = '&';
+      }
+      result = '';
+      keys = _.keys(paramObj);
+      lastIndex = keys.length - 1;
+      for (_i = 0, _len = keys.length; _i < _len; _i++) {
+        key = keys[_i];
+        result += key + '=' + paramObj[key];
+        if (_i !== lastIndex) {
+          result += sep;
+        }
+      }
+      return result;
+    },
+    now: function() {
+      return Date.now() || +new Date();
+    },
+    getCookies: function() {
+      return _.parseParamString(document.cookie, '; ');
+    },
+    setCookies: function(keyValuePairs) {
+      var key, _results;
+      _results = [];
+      for (key in keyValuePairs) {
+        _results.push(document.cookie = key + '=' + keyValuePairs[key]);
+      }
+      return _results;
+    }
+  });
   /*
    global accessor to the base info
   */
-  token_ = '';
-  userId_ = '';
   currentDocs_ = [];
+  userId_ = '';
   _.mixin({
-    setToken: function(token) {
-      return token_ = token;
+    setToken: function(token, expires) {
+      return _.setCookies({
+        token: token,
+        expires: expires
+      });
     },
     getToken: function() {
-      return token_;
+      var cookies;
+      cookies = _.getCookies();
+      return cookies.token;
     },
     setUserId: function(userId) {
       return userId_ = userId;
@@ -97,13 +136,15 @@
       return currentDocs_[0] || null;
     },
     parseToken: function(hashStr) {
-      var params, token;
+      var expires, params, token;
       hashStr = hashStr.replace(/^#/, '');
       params = _.parseParamString(hashStr);
       console.log('parseToken', params);
       token = params.access_token || '';
-      if (token) {
-        _.setToken(token);
+      expires = params.expires_in;
+      if (token && expires) {
+        expires = new Date(_.now() + expires * 1000).toString();
+        _.setToken(token, expires);
         return socket.emit('got token', {
           token: token
         });
@@ -115,6 +156,50 @@
   /*
    jQuery init
   */
+  $(function() {
+    var $form, $list, $list_, token;
+    token = _.getToken();
+    console.log('token?', token);
+    if (token) {
+      socket.emit('got token', {
+        token: token
+      });
+    } else {
+      _.showLoginLink();
+    }
+    $list = $list_ || ($list_ = $('#word-list'));
+    $form = $('#post');
+    return $form.submit(function(e) {
+      var content, id, lastDoc;
+      if (_.isLocked()) {
+        return;
+      }
+      _.setLock(true);
+      id = _.getUserId();
+      content = $('input[name="content"]', $form).val();
+      if (_.isEmpty(content)) {
+        return;
+      }
+      if (id && content && _.isValidWord(content)) {
+        lastDoc = _.getLastDoc();
+        if (id === lastDoc.createdBy) {
+          _.showMessage('You can post only once a turn.');
+          return _.setLock(false);
+        } else if (_.isValidLastFirst(lastDoc.content, content)) {
+          return socket.emit('post word', {
+            content: content,
+            createdBy: id
+          });
+        } else {
+          _.showMessage('I\'m not sure it\'s being Last and First.');
+          return _.setLock(false);
+        }
+      } else {
+        _.showMessage('Do you speak japanese?');
+        return _.setLock(false);
+      }
+    });
+  });
   $list_ = null;
   $msgBox_ = null;
   postLocked_ = false;
@@ -136,49 +221,22 @@
       return postLocked_ = lock;
     }
   });
-  $(function() {
-    var $form, $list;
-    $list = $list_ || ($list_ = $('#word-list'));
-    $form = $('#post');
-    $form.submit(function(e) {
-      var content, id, lastDoc;
-      if (_.isLocked()) {
-        return;
-      }
-      _.setLock(true);
-      id = _.getUserId();
-      content = $('input[name="content"]', $form).val();
-      if (_.isEmpty(content)) {
-        return;
-      }
-      if (id && content && _.isValidWord(content)) {
-        lastDoc = _.getLastDoc();
-        if (id === lastDoc.createdBy) {
-          _.showMessage('You can post only once a turn.');
-          return _.setLock(false);
-        } else if (_.isValidLastFirst(lastDoc.content, content)) {
-          return socket.emit('post word', {
-            content: content,
-            createdBy: id,
-            createdAt: new Date()
-          });
-        } else {
-          _.showMessage('I\'m not sure it\'s Last and First.');
-          return _.setLock(false);
-        }
-      } else {
-        _.showMessage('Do you speak japanese?');
-        return _.setLock(false);
-      }
-    });
-    return $("#login-link > a").click();
-  });
   delayTimerId_ = null;
   _.mixin({
+    hideWaitSecMessage: function() {
+      return $('#wait-sec-message').hide();
+    }
+  });
+  _.mixin({
+    showLoginLink: function() {
+      _.hideWaitSecMessage();
+      return $('#login-link').show();
+    },
     hideLoginLink: function() {
       return $('#login-link').hide();
     },
     showPostForm: function() {
+      _.hideWaitSecMessage();
       return $('#post-form').show();
     },
     setUserIdToHiddenInput: function() {
@@ -219,17 +277,22 @@
     }
     return _results;
   });
+  socket.on('need login', function() {
+    _.showMessage('Expired. Need another login.');
+    return _.showLoginLink();
+  });
   socket.on('validated nicely!', function(data) {
     var id;
     console.log('validated good.', data);
-    id = data.user_id;
+    id = data.userId;
+    console.log('id,,,', id);
     _.setUserId(id);
     _.setUserIdToHiddenInput(id);
-    _.showMessage('logged in. thank you.');
+    _.showMessage('logged in.');
     _.hideLoginLink();
     return _.showPostForm();
   });
-  socket.on('error', function(data) {
+  socket.on('error message', function(data) {
     _.showMessage(data.message);
     return _.setLock(false);
   });

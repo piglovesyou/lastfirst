@@ -1,3 +1,12 @@
+@font-face {
+  font-family: 'Dingbats2SamplerOT';
+  src: url('Dingbats2SamplerOT.otf') format('opentype');
+}
+
+
+
+
+
 body {
   padding: 0 50px;
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
@@ -29,4 +38,9 @@ a {
 }
 #post-form #indicator.loading {
   background: url(/images/loading.gif) scroll 0 0 no-repeat;
+}
+
+
+.i {
+  font-family: 'Dingbats2SamplerOT';
 }
