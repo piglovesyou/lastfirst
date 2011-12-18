@@ -2,9 +2,10 @@
   /*
    Include libraries.
   */
-  var User, Word, WordModel, WordSchema, app, c, express, findOptions, findRecentWords, getLastDoc, https, io, lastDoc_, mongoose, oathQuery, oathScopes, oathUrl, postLocked, querystring, updateWords, url, _;
+  var SECRET, User, Word, WordModel, WordSchema, app, c, express, findOptions, findRecentWords, getLastDoc, https, io, lastDoc_, mongoose, oathQuery, oathScopes, oathUrl, postLocked, querystring, updateWords, url, _;
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
   c = console.log;
+  SECRET = require('secret-strings').LAST_FIRST;
   _ = require("underscore");
   require('./underscore_extention');
   express = require("express");
@@ -198,7 +199,7 @@
     response_type: 'token',
     scope: oathScopes.join('+'),
     redirect_uri: 'http://localhost:3000/oauth2callback',
-    client_id: '381639783208.apps.googleusercontent.com'
+    client_id: SECRET.GOOGLE_OAUTH_CLIENT_IE
   };
   oathUrl = 'https://accounts.google.com/o/oauth2/auth?' + querystring.stringify(oathQuery);
   app.get("/", function(req, res) {

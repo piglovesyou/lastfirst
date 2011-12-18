@@ -4,6 +4,7 @@
 ###
 c = console.log
 
+SECRET = require('secret-strings').LAST_FIRST
 _ = require("underscore")
 require('./underscore_extention')
 express = require("express")
@@ -219,7 +220,7 @@ oathQuery =
   response_type: 'token'
   scope: oathScopes.join('+')
   redirect_uri: 'http://localhost:3000/oauth2callback'
-  client_id: '381639783208.apps.googleusercontent.com'
+  client_id: SECRET.GOOGLE_OAUTH_CLIENT_IE
 oathUrl = 'https://accounts.google.com/o/oauth2/auth?' +
     querystring.stringify(oathQuery)
 
