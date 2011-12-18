@@ -240,5 +240,5 @@ app.get "/oauth2callback", (req, res) ->
     layout: false
     title: "LastFirstApp"
 
-app.listen 3000
+app.listen SECRET.PORT
 

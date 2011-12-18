@@ -221,5 +221,5 @@
       title: "LastFirstApp"
     });
   });
-  app.listen(3000);
+  app.listen(SECRET.PORT);
 }).call(this);
