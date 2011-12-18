@@ -2,7 +2,7 @@
   /*
    Include libraries.
   */
-  var User, Users, Word, WordModel, WordSchema, app, express, findOptions, findRecentWords, https, io, mongoose, oathQuery, oathScopes, oathUrl, querystring, sendBadBoyMessage, updateWords, url, users, _;
+  var User, Users, Word, WordModel, WordSchema, app, express, findOptions, findRecentWords, https, io, mongoose, oathQuery, oathScopes, oathUrl, postLocked, querystring, updateWords, url, users, _;
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
   express = require("express");
   mongoose = require("mongoose");
@@ -153,14 +153,10 @@
       return socket.emit('update', docs);
     });
   };
-  sendBadBoyMessage = function(socket) {
-    return socket.emit('bad boy', {
-      error: 'you bad body.'
-    });
-  };
   /*
    Socket IO listening.
   */
+  postLocked = false;
   io.sockets.on('connection', function(socket) {
     var user;
     user = new User(socket);
@@ -176,8 +172,14 @@
     });
     return socket.on('post word', function(post) {
       var word;
-      if (!user.isValid) {
-        sendBadBoyMessage(socket);
+      if (postLocked) {
+        socket.emit('error', {
+          error: 'post conflicted with someones post!'
+        });
+      } else if (!user.isValid) {
+        socket.emit('error', {
+          error: 'you bad boy.'
+        });
         return;
       }
       word = new Word(post);

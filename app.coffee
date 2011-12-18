@@ -18,6 +18,7 @@ WordSchema = new mongoose.Schema(
   content: String
   createdBy: String
   createdAt: Date
+  nice: Number
 )
 mongoose.model('WordModel', WordSchema)
 mongoose.connect('mongodb://localhost/lastFirstDB')
@@ -80,8 +81,8 @@ class User
             user_id: @id
           updateWords(@socket)
         else
-          @socket.emit 'validation fail',
-            error: 'too bad.'
+          @socket.emit 'error',
+            message: 'Validation fails. Too bad.'
   
 
 
@@ -146,9 +147,6 @@ updateWords = (socket) ->
   findRecentWords (err,docs) ->
     socket.emit 'update', docs
 
-sendBadBoyMessage = (socket) ->
-  socket.emit 'bad boy',
-    error: 'you bad body.'
   
 
   
@@ -158,6 +156,7 @@ sendBadBoyMessage = (socket) ->
 ###
 # user.user_id
 # user.socket
+postLocked = false
 io.sockets.on 'connection', (socket) ->
   user = new User(socket)
   updateWords(socket)
@@ -170,11 +169,18 @@ io.sockets.on 'connection', (socket) ->
       user.validate()
 
   socket.on 'post word', (post) ->
-    if not user.isValid
-      sendBadBoyMessage(socket)
-      return
+    if postLocked
+      socket.emit 'error',
+        message: 'post conflicted with someones post!'
+        return
+    else if not user.isValid
+      socket.emit 'error',
+        message: 'you bad boy.'
+        return
+    postLocked = true
     word = new Word(post)
     word.save (err) ->
+      postLocked = false
       unless err
         socket.emit 'posted successfully', post
         updateWords(io.sockets)

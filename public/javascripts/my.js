@@ -2,7 +2,7 @@
   /*
    util
   */
-  var $list_, $msgBox_, currentDocs_, delayTimerId_, getFirstLetter_, getLastLetter_, socket, token_, userId_;
+  var $indicator_, $list_, $msgBox_, currentDocs_, delayTimerId_, getFirstLetter_, getLastLetter_, postLocked_, socket, token_, userId_;
   _.mixin({
     parseParamString: function(str, sep) {
       var pairArr, pairStr, result, _i, _len, _ref;
@@ -79,6 +79,7 @@
   */
   token_ = '';
   userId_ = '';
+  currentDocs_ = [];
   _.mixin({
     setToken: function(token) {
       return token_ = token;
@@ -91,10 +92,7 @@
     },
     getUserId: function() {
       return userId_;
-    }
-  });
-  currentDocs_ = [];
-  _.mixin({
+    },
     getLastDoc: function() {
       return currentDocs_[0] || null;
     },
@@ -119,18 +117,45 @@
   */
   $list_ = null;
   $msgBox_ = null;
+  postLocked_ = false;
+  $indicator_ = null;
+  _.mixin({
+    isLocked: function() {
+      return postLocked_;
+    },
+    setLock: function(lock) {
+      var $indicator;
+      $indicator = $indicator_ || ($indicator_ = $('#post-form #indicator'));
+      if ($indicator) {
+        if (lock) {
+          $indicator.addClass('loading');
+        } else {
+          $indicator.removeClass('loading');
+        }
+      }
+      return postLocked_ = lock;
+    }
+  });
   $(function() {
     var $form, $list;
     $list = $list_ || ($list_ = $('#word-list'));
     $form = $('#post');
     $form.submit(function(e) {
       var content, id, lastDoc;
-      content = $('input[name="word"]', this).val();
+      if (_.isLocked()) {
+        return;
+      }
+      _.setLock(true);
       id = _.getUserId();
+      content = $('input[name="content"]', $form).val();
+      if (_.isEmpty(content)) {
+        return;
+      }
       if (id && content && _.isValidWord(content)) {
         lastDoc = _.getLastDoc();
         if (id === lastDoc.createdBy) {
-          return _.showMessage('You can post only once a turn.');
+          _.showMessage('You can post only once a turn.');
+          return _.setLock(false);
         } else if (_.isValidLastFirst(lastDoc.content, content)) {
           return socket.emit('post word', {
             content: content,
@@ -138,10 +163,12 @@
             createdAt: new Date()
           });
         } else {
-          return _.showMessage('I\'m not sure it\'s Last and First.');
+          _.showMessage('I\'m not sure it\'s Last and First.');
+          return _.setLock(false);
         }
       } else {
-        return _.showMessage('Do you speak japanese?');
+        _.showMessage('Do you speak japanese?');
+        return _.setLock(false);
       }
     });
     return $("#login-link > a").click();
@@ -202,10 +229,12 @@
     _.hideLoginLink();
     return _.showPostForm();
   });
-  socket.on('validation fail', function(data) {
-    return console.log('too bad.', data);
+  socket.on('error', function(data) {
+    _.showMessage(data.message);
+    return _.setLock(false);
   });
   socket.on('posted successfully', function(post) {
-    return _.showMessage('"' + post.content + '" is posted successfully!');
+    _.showMessage('"' + post.content + '" is posted successfully!');
+    return _.setLock(false);
   });
 }).call(this);

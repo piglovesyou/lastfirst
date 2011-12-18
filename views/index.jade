@@ -10,9 +10,10 @@ div#login-link
 
 div#post-form(style='display:none')
   form#post(action='javascript:void(0)', method='POST')
-    label(for='name') * しりとり、どうぞ
-    input(type='text', name='word')
+    label(for='content') * しりとり、どうぞ
+    input(type='text', name='content')
     input(type='submit', name='GO!')
+    img#indicator(src='/images/spacer.gif',width='16',height='16')
 
 div#word-list
   table

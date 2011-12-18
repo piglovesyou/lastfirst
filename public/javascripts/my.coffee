@@ -25,12 +25,7 @@ _.mixin
           true
     else
       false
-
-
-
-
-
-# Needs gaguarantee
+# Needs guaranteed as a valid word
 getFirstLetter_ = (str) ->
   count = 1
   len = str.length
@@ -40,7 +35,6 @@ getFirstLetter_ = (str) ->
     else
       count = 2
   str.slice(0,count)
-
 getLastLetter_ = (str) ->
   count = 1
   len = str.length
@@ -52,7 +46,6 @@ getLastLetter_ = (str) ->
       count = 2
   str = _.last(str, count)
   str = str.join('') if _.isArray(str)
-  
 _.mixin
   isValidLastFirst: (last, first) ->
     console.log last, first
@@ -70,6 +63,7 @@ _.mixin
 ###
 token_ = ''
 userId_ = ''
+currentDocs_ = []
 _.mixin
   setToken: (token) ->
     token_ = token
@@ -79,8 +73,6 @@ _.mixin
     userId_ = userId
   getUserId: () ->
     userId_
-currentDocs_ = []
-_.mixin
   getLastDoc: () ->
     currentDocs_[0] || null
   # Called from oauth window.
@@ -107,17 +99,36 @@ _.mixin
 # variables of DOM/jQuery manipulation
 $list_ = null
 $msgBox_ = null
+postLocked_ = false
+$indicator_ = null
+_.mixin
+  isLocked: () ->
+    postLocked_
+  setLock: (lock) ->
+    $indicator = $indicator_ ||
+        ($indicator_ = $('#post-form #indicator'))
+    if $indicator
+      if lock
+        $indicator.addClass('loading')
+      else
+        $indicator.removeClass('loading')
+    postLocked_ = lock
 # init
 $(->
   $list = $list_ or ($list_ = $('#word-list'))
   $form = $('#post')
   $form.submit (e) ->
-    content = $('input[name="word"]', this).val()
+    return if _.isLocked()
+    _.setLock(true)
     id = _.getUserId()
+    content = $('input[name="content"]',$form).val()
+    return if _.isEmpty(content)
+
     if id and content and _.isValidWord(content)
       lastDoc = _.getLastDoc()
       if id is lastDoc.createdBy
         _.showMessage('You can post only once a turn.')
+        _.setLock(false)
       else if _.isValidLastFirst(lastDoc.content, content)
         socket.emit 'post word',
           content: content
@@ -125,8 +136,10 @@ $(->
           createdAt: new Date()
       else
         _.showMessage('I\'m not sure it\'s Last and First.')
+        _.setLock(false)
     else
       _.showMessage('Do you speak japanese?')
+      _.setLock(false)
   # for dev
   $("#login-link > a").click()
 )
@@ -175,9 +188,10 @@ socket.on 'validated nicely!', (data) ->
   _.hideLoginLink()
   _.showPostForm()
 
-socket.on 'validation fail', (data) ->
-  console.log 'too bad.', data
-  # show 
+socket.on 'error', (data) ->
+  _.showMessage(data.message)
+  _.setLock(false)
 
 socket.on 'posted successfully', (post) ->
   _.showMessage('"' + post.content + '" is posted successfully!')
+  _.setLock(false)

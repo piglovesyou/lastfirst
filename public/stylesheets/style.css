@@ -23,3 +23,10 @@ a {
 #msg-box:hover {
   background-color: #fff;
 }
+
+#post-form #indicator {
+  vertical-align: middle;
+}
+#post-form #indicator.loading {
+  background: url(/images/loading.gif) scroll 0 0 no-repeat;
+}
