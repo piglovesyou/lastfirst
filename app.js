@@ -13,8 +13,6 @@
   url = require('url');
   querystring = require('querystring');
   https = require('https');
-  c('"""""""""""""""""""""""""""""""""""""""""""');
-  c(_.isValidLastFirst('あひる', 'るびい'));
   /*
    DB setting.
   */
@@ -198,7 +196,7 @@
   oathQuery = {
     response_type: 'token',
     scope: oathScopes.join('+'),
-    redirect_uri: 'http://localhost:3000/oauth2callback',
+    redirect_uri: 'http://' + SECRET.HOST + ':' + SECRET.PORT + '/oauth2callback',
     client_id: SECRET.GOOGLE_OAUTH_CLIENT_IE
   };
   oathUrl = 'https://accounts.google.com/o/oauth2/auth?' + querystring.stringify(oathQuery);
