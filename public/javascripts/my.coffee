@@ -225,8 +225,12 @@ socket.on 'update', (docs) ->
   $list = $list_ or ($list_ = $('#word-list'))
   $list.empty()
   for doc in docs
-    html = "<tr><td>#{doc.content}</td>"
-    html += "<td>&lt;-last post!</td>" if _i is 0
+    postfix = ''
+    if _.isEndsN(doc.content)
+      postfix = '<span class="warn">*</span>'
+    html = "<tr>"
+    html += "<td>#{doc.content}#{postfix} </td>"
+    html += "<td>&lt;-last post </td>" if _i is 0
     html += "<td>&lt;-your post!</td>" if doc.createdBy is _.getUserId()
     html += "</tr>"
     $list.append html
@@ -254,6 +258,7 @@ socket.on 'posted successfully', (post) ->
 
 socket.on 'got penalty', (data) ->
   _.showMessage(data.message)
+  _.disableForm(true)
   _.showIndicator(false)
 
 socket.on 'release penalty', (data) ->

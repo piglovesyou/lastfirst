@@ -82,7 +82,7 @@ class User
 
   constructor: (@socket) ->
   setToken: (@token) ->
-  validate: () ->
+  validate: (fn) ->
     return if not @socket or not @token
     options =
       host: 'www.googleapis.com'
@@ -99,32 +99,12 @@ class User
           @socket.emit 'validated nicely!',
             userId: @id
           updateWords(@socket)
+          fn()
         else
           c 'need login.'
           @socket.emit 'need login'
   
 
-
-###
- Singleton class for managing users.
-###
-# class Users
-#   constructor: (@id, @token) ->
-#   users_: []
-#   # @param {User} user
-#   add: (user) ->
-#     @users_.push(user)
-#   remove: (id) ->
-#     _.find @users_, (user) ->
-#       if user.id is id
-#         @users_[_i].splice()
-#         return true
-#   # @param {String} idOrToken
-#   # @return {Boolean}
-#   has: (idOrToken) ->
-#     _.find @users_, (user) ->
-#       user.id is idOrToken or user.token is idOrToken
-# users = new Users()
 
 
 
@@ -196,14 +176,43 @@ updateWords = (socket) ->
 # user.user_id
 # user.socket
 
+# user that has id (validated).
+users = {}
+
 penaltyUserIds = []
 setPenaltyUser = (user) ->
   penaltyUserIds.push(user.id)
   _.delay () ->
     penaltyUserIds = _.without(penaltyUserIds, user.id)
-    user.socket.emit 'release penalty',
-      message: 'Now you can post.'
-  , 5 * 1000
+    user = users[user.id]
+    if user
+      user.socket.emit 'release penalty',
+        message: 'Now you can post.'
+  , 10 * 1000
+# need above to manage
+# - validated users
+# - penalty users
+
+###
+ Singleton class for managing users.
+###
+# class Users
+#   constructor: (@id, @token) ->
+#   users_: []
+#   # @param {User} user
+#   add: (user) ->
+#     @users_.push(user)
+#   remove: (id) ->
+#     _.find @users_, (user) ->
+#       if user.id is id
+#         @users_[_i].splice()
+#         return true
+#   # @param {String} idOrToken
+#   # @return {Boolean}
+#   has: (idOrToken) ->
+#     _.find @users_, (user) ->
+#       user.id is idOrToken or user.token is idOrToken
+# users = new Users()
   
 io.sockets.on 'connection', (socket) ->
   user = new User(socket)
@@ -212,8 +221,11 @@ io.sockets.on 'connection', (socket) ->
     c 'got token!!!!!!! from client'
     token = data.token
     user.setToken(token)
-    user.validate()
-
+    user.validate () ->
+      users[user.id] = user
+      if _.include(penaltyUserIds, user.id)
+        socket.emit 'got penalty',
+          message: 'ん! you can\'t post for a while.'
   socket.on 'post word', (post) ->
     console.log getLastDoc().content
     if not user.isValid()
@@ -251,6 +263,9 @@ io.sockets.on 'connection', (socket) ->
           updateWords(io.sockets)
 
   socket.on 'disconnect', () ->
+    if users[user.id]
+      delete users[user.id]
+    
     
     
     

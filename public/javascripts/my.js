@@ -278,16 +278,21 @@
   */
   socket = io.connect(location.protocol + '//' + location.host);
   socket.on('update', function(docs) {
-    var $list, doc, html, _i, _len, _results;
+    var $list, doc, html, postfix, _i, _len, _results;
     currentDocs_ = docs;
     $list = $list_ || ($list_ = $('#word-list'));
     $list.empty();
     _results = [];
     for (_i = 0, _len = docs.length; _i < _len; _i++) {
       doc = docs[_i];
-      html = "<tr><td>" + doc.content + "</td>";
+      postfix = '';
+      if (_.isEndsN(doc.content)) {
+        postfix = '<span class="warn">*</span>';
+      }
+      html = "<tr>";
+      html += "<td>" + doc.content + postfix + " </td>";
       if (_i === 0) {
-        html += "<td>&lt;-last post!</td>";
+        html += "<td>&lt;-last post </td>";
       }
       if (doc.createdBy === _.getUserId()) {
         html += "<td>&lt;-your post!</td>";
@@ -321,6 +326,7 @@
   });
   socket.on('got penalty', function(data) {
     _.showMessage(data.message);
+    _.disableForm(true);
     return _.showIndicator(false);
   });
   socket.on('release penalty', function(data) {

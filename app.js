@@ -2,7 +2,7 @@
   /*
    Include libraries.
   */
-  var SECRET, User, Word, WordModel, WordSchema, app, c, express, findOptions, findRecentWords, getInitialWord, getLastDoc, https, io, lastDoc_, mongoose, oathQuery, oathScopes, oathUrl, penaltyUserIds, querystring, saveInitialWord, setPenaltyUser, updateWords, updateWords_, url, _;
+  var SECRET, User, Word, WordModel, WordSchema, app, c, express, findOptions, findRecentWords, getInitialWord, getLastDoc, https, io, lastDoc_, mongoose, oathQuery, oathScopes, oathUrl, penaltyUserIds, querystring, saveInitialWord, setPenaltyUser, updateWords, updateWords_, url, users, _;
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
   c = console.log;
   SECRET = require('secret-strings').LAST_FIRST;
@@ -74,7 +74,7 @@
     User.prototype.setToken = function(token) {
       this.token = token;
     };
-    User.prototype.validate = function() {
+    User.prototype.validate = function(fn) {
       var options;
       if (!this.socket || !this.token) {
         return;
@@ -96,7 +96,8 @@
             this.socket.emit('validated nicely!', {
               userId: this.id
             });
-            return updateWords(this.socket);
+            updateWords(this.socket);
+            return fn();
           } else {
             c('need login.');
             return this.socket.emit('need login');
@@ -106,9 +107,6 @@
     };
     return User;
   })();
-  /*
-   Singleton class for managing users.
-  */
   /*
    Class for word.
   */
@@ -177,16 +175,23 @@
   /*
    Socket IO listening.
   */
+  users = {};
   penaltyUserIds = [];
   setPenaltyUser = function(user) {
     penaltyUserIds.push(user.id);
     return _.delay(function() {
       penaltyUserIds = _.without(penaltyUserIds, user.id);
-      return user.socket.emit('release penalty', {
-        message: 'Now you can post.'
-      });
-    }, 5 * 1000);
+      user = users[user.id];
+      if (user) {
+        return user.socket.emit('release penalty', {
+          message: 'Now you can post.'
+        });
+      }
+    }, 10 * 1000);
   };
+  /*
+   Singleton class for managing users.
+  */
   io.sockets.on('connection', function(socket) {
     var user;
     user = new User(socket);
@@ -196,7 +201,14 @@
       c('got token!!!!!!! from client');
       token = data.token;
       user.setToken(token);
-      return user.validate();
+      return user.validate(function() {
+        users[user.id] = user;
+        if (_.include(penaltyUserIds, user.id)) {
+          return socket.emit('got penalty', {
+            message: 'ん! you can\'t post for a while.'
+          });
+        }
+      });
     });
     socket.on('post word', function(post) {
       var postLocked, word, word1;
@@ -247,7 +259,11 @@
         });
       }
     });
-    return socket.on('disconnect', function() {});
+    return socket.on('disconnect', function() {
+      if (users[user.id]) {
+        return delete users[user.id];
+      }
+    });
   });
   oathScopes = ['https://www.googleapis.com/auth/userinfo.profile'];
   oathQuery = {
