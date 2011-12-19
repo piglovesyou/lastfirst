@@ -36,7 +36,7 @@ a {
 #post-form #indicator {
   vertical-align: middle;
 }
-#post-form #indicator.loading {
+.loading {
   background: url(/images/loading.gif) scroll 0 0 no-repeat;
 }
 

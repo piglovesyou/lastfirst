@@ -9,18 +9,19 @@ _ = require("underscore")
 getFirstLetter_ = (str) ->
   count = 1
   len = str.length
-  if len >= 2 and /^[ゃ-ょ|っ]$/.test(str[1])
-    if len >= 3 and /^[っ]$/.test(str[2])
+  if len >= 2 and /^[ゃ-ょ|ー]$/.test(str[1])
+    if len >= 3 and /^[ー]$/.test(str[2])
       count = 3
     else
       count = 2
   str.slice(0,count)
+
 getLastLetter_ = (str) ->
   count = 1
   len = str.length
   lastIndex = len - 1
-  if len >= 2 and /^[ゃ-ょ|っ]$/.test(str[lastIndex])
-    if len >= 3 and  /^[ゃ-ょ]$/.test(str[lastIndex-1])
+  if len >= 2 and /^[ゃ-ょ|ー]$/.test(str[lastIndex])
+    if len >= 3 and  /^[ー]$/.test(str[lastIndex-1])
       count = 3
     else
       count = 2
@@ -42,6 +43,9 @@ _.mixin
           true
     else
       false
+  isEndsN: (str) ->
+    return /ん$/.test(str)
   isValidLastFirst: (last, first) ->
+    console.log last, first
     getLastLetter_(last) is getFirstLetter_(first)
 

@@ -9,8 +9,8 @@
     var count, len;
     count = 1;
     len = str.length;
-    if (len >= 2 && /^[ゃ-ょ|っ]$/.test(str[1])) {
-      if (len >= 3 && /^[っ]$/.test(str[2])) {
+    if (len >= 2 && /^[ゃ-ょ|ー]$/.test(str[1])) {
+      if (len >= 3 && /^[ー]$/.test(str[2])) {
         count = 3;
       } else {
         count = 2;
@@ -23,8 +23,8 @@
     count = 1;
     len = str.length;
     lastIndex = len - 1;
-    if (len >= 2 && /^[ゃ-ょ|っ]$/.test(str[lastIndex])) {
-      if (len >= 3 && /^[ゃ-ょ]$/.test(str[lastIndex - 1])) {
+    if (len >= 2 && /^[ゃ-ょ|ー]$/.test(str[lastIndex])) {
+      if (len >= 3 && /^[ー]$/.test(str[lastIndex - 1])) {
         count = 3;
       } else {
         count = 2;
@@ -54,9 +54,10 @@
       } else {
         return false;
       }
-    }
-  });
-  _.mixin({
+    },
+    isEndsN: function(str) {
+      return /ん$/.test(str);
+    },
     isValidLastFirst: function(last, first) {
       console.log(last, first);
       return getLastLetter_(last) === getFirstLetter_(first);

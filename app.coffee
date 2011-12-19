@@ -67,7 +67,18 @@ class User
   socket: null
   id: ''
   token: ''
-  isValid: false
+  isValid_: false
+  isValid: () ->
+    @isValid_
+  setValid: (valid) ->
+    @isValid_ = valid
+  gotPenalty: () ->
+    @isValid_ = false
+    _.delay () =>
+      @socket.emit 'release penalty'
+        message: 'Penalty released.'
+      @isValid_ = true
+    , 3 * 1000
 
   constructor: (@socket) ->
   setToken: (@token) ->
@@ -84,7 +95,7 @@ class User
         if !json.error
           c 'validate successfully.'
           @id = json.user_id
-          @isValid = true
+          @isValid_ = true
           @socket.emit 'validated nicely!',
             userId: @id
           updateWords(@socket)
@@ -144,22 +155,37 @@ class Word
       @model_.save(fn)
       @isSaved = true
     
-  
-  
+getInitialWord = () ->
+  obj =
+    content: 'しりとり'
+    createdAt: new Date()
+    createdBy: 'default first post'
 
+saveInitialWord = (fn) ->
+  console.log 'saveInitialWord'
+  word = new WordModel()
+  word = _.extend word, getInitialWord()
+  word.save(fn)
 
-# fn get `err' and `docs' argument
 findRecentWords = (fn) ->
-  WordModel.find {},[],findOptions, fn
+  WordModel.find {},[],findOptions,fn
 
 lastDoc_ = {}
 getLastDoc = () ->
   lastDoc_ or {}
+
 # could be `io.socket'
+updateWords_ = (err, docs) ->
+  return  if err
+  lastDoc_ = docs[0]
+  socket.emit 'update', docs
+
 updateWords = (socket) ->
   findRecentWords (err,docs) ->
-    lastDoc_ = docs[0]
-    socket.emit 'update', docs
+    if _.isEmpty(docs)
+      saveInitialWord(updateWords_.bind(@, socket))
+    else
+      updateWords_(socket, err, docs)
 
   
 
@@ -182,9 +208,8 @@ io.sockets.on 'connection', (socket) ->
     user.validate()
 
   socket.on 'post word', (post) ->
-    console.log '--------------------------------------'
     console.log getLastDoc().content
-    if not user.isValid
+    if not user.isValid()
       socket.emit 'error message',
         message: 'you bad boy.'
     else if postLocked
@@ -192,10 +217,21 @@ io.sockets.on 'connection', (socket) ->
         message: 'post conflicted with someones post!'
     else if not _.isValidWord(post.content)
       socket.emit 'error message',
-        message: 'Do you speak japanese?'
+        message: 'Please enter a Japanese word in HIRAGANA.'
     else if not _.isValidLastFirst(getLastDoc().content, post.content)
       socket.emit 'error message',
         message: 'I\'m not sure it\'s being Last and First.'
+    else if _.isEndsN(post.content)
+      user.gotPenalty()
+      word1 = new WordModel(post)
+      word1.save () ->
+        console.log 'penalty word saved===============', post.content
+        word2 = new WordModel(getInitialWord())
+        word2.save () ->
+          c 'saved both........................'
+          updateWords(io.sockets)
+          socket.emit 'got penalty',
+            message: 'ん! you can\'t port for a while'
     else
       postLocked = true
       word = new Word(post)
@@ -211,7 +247,7 @@ io.sockets.on 'connection', (socket) ->
 
 
 
-# HTTP request listening.
+# GET requests. 
 oathScopes = [
   'https://www.googleapis.com/auth/userinfo.profile'
 ]
@@ -226,6 +262,11 @@ oathUrl = 'https://accounts.google.com/o/oauth2/auth?' +
 app.get "/", (req, res) ->
   res.render "index",
     title: "LastFirstApp"
+    oathUrl: oathUrl
+
+app.get "/about", (req, res) ->
+  res.render "about",
+    title: "LastFirstApp - about"
     oathUrl: oathUrl
 
 # dev
