@@ -3,8 +3,6 @@
  Include libraries.
 ###
 
-c = console.log
-
 SECRET = require('secret-strings').LAST_FIRST
 _ = require("underscore")
 require('./underscore_extention')
@@ -87,13 +85,10 @@ class User
     options =
       host: 'www.googleapis.com'
       path: '/oauth2/v1/tokeninfo?access_token=' + @token
-    c 'before https.get'
     https.get options, (res) =>
       res.on 'data', (data) =>
         json = JSON.parse(data.toString())
-        c 'got res from https.get', json
         if !json.error
-          c 'validate successfully.'
           @id = json.user_id
           @isValid_ = true
           @socket.emit 'validated nicely!',
@@ -101,7 +96,6 @@ class User
           updateWords(@socket)
           fn()
         else
-          c 'need login.'
           @socket.emit 'need login'
   
 
@@ -129,9 +123,7 @@ class Word
       @model_ = _.extend(@model_, post)
       @lastLetter = _.last(post)
     else
-      c 'something goes wrong..'
   save: (fn) ->
-    console.log '@model_', @model_
     if @model_
       @model_.save(fn)
       @isSaved = true
@@ -188,7 +180,7 @@ setPenaltyUser = (user) ->
     if user
       user.socket.emit 'release penalty',
         message: 'Now you can post.'
-  , 10 * 1000
+  , 60 * 60 * 1000
 # need above to manage
 # - validated users
 # - penalty users
@@ -218,7 +210,6 @@ io.sockets.on 'connection', (socket) ->
   user = new User(socket)
   updateWords(socket)
   socket.on 'got token', (data) ->
-    c 'got token!!!!!!! from client'
     token = data.token
     user.setToken(token)
     user.validate () ->
@@ -227,7 +218,6 @@ io.sockets.on 'connection', (socket) ->
         socket.emit 'got penalty',
           message: 'ん! you can\'t post for a while.'
   socket.on 'post word', (post) ->
-    console.log getLastDoc().content
     if not user.isValid()
       socket.emit 'error message',
         message: 'you bad boy.'

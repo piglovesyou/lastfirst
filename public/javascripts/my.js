@@ -3,7 +3,7 @@
    Utils.
    Depends on underscore.js
   */
-  var $indicator_, $inputs_, $list_, $msgBox_, currentDocs_, delayTimerId_, postLocked_, socket, userId_;
+  var $indicator_, $inputs_, $list_, $msgBox_, currentDocs_, delayTimerId_, postLocked_, renderPastWord, socket, userId_;
   window.getFirstLetter_ = function(str) {
     var count, len, result;
     count = 1;
@@ -142,7 +142,6 @@
       var expires, params, token;
       hashStr = hashStr.replace(/^#/, '');
       params = _.parseParamString(hashStr);
-      console.log('parseToken', params);
       token = params.access_token || '';
       expires = params.expires_in;
       if (token && expires) {
@@ -276,8 +275,7 @@
   /*
    Sockets init
   */
-  socket = io.connect(location.protocol + '//' + location.host);
-  socket.on('update', function(docs) {
+  renderPastWord = function(docs) {
     var $list, doc, html, postfix, _i, _len, _results;
     currentDocs_ = docs;
     $list = $list_ || ($list_ = $('#word-list'));
@@ -301,6 +299,10 @@
       _results.push($list.append(html));
     }
     return _results;
+  };
+  socket = io.connect(location.protocol + '//' + location.host);
+  socket.on('update', function(docs) {
+    return renderPastWord(docs);
   });
   socket.on('need login', function() {
     _.showMessage('Expired. Need another login.');
@@ -308,7 +310,6 @@
   });
   socket.on('validated nicely!', function(data) {
     var id;
-    console.log('validated good.', data);
     id = data.userId;
     _.setUserId(id);
     _.setUserIdToHiddenInput(id);

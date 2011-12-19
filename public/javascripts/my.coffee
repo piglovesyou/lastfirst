@@ -104,7 +104,6 @@ _.mixin
   parseToken: (hashStr) ->
     hashStr = hashStr.replace(/^#/,'')
     params = _.parseParamString(hashStr)
-    console.log 'parseToken', params
     token = params.access_token or ''
     expires = params.expires_in
     if token and expires
@@ -219,8 +218,7 @@ _.mixin
 ###
  Sockets init
 ###
-socket = io.connect(location.protocol + '//' + location.host)
-socket.on 'update', (docs) ->
+renderPastWord = (docs) ->
   currentDocs_ = docs
   $list = $list_ or ($list_ = $('#word-list'))
   $list.empty()
@@ -235,12 +233,15 @@ socket.on 'update', (docs) ->
     html += "</tr>"
     $list.append html
 
+socket = io.connect(location.protocol + '//' + location.host)
+socket.on 'update', (docs) ->
+  renderPastWord(docs)
+
 socket.on 'need login', () ->
   _.showMessage('Expired. Need another login.')
   _.showLoginLink()
 
 socket.on 'validated nicely!', (data) ->
-  console.log 'validated good.', data
   id = data.userId
   _.setUserId(id)
   _.setUserIdToHiddenInput(id)
@@ -264,3 +265,4 @@ socket.on 'got penalty', (data) ->
 socket.on 'release penalty', (data) ->
   _.showMessage(data.message)
   _.disableForm(false)
+

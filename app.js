@@ -2,9 +2,8 @@
   /*
    Include libraries.
   */
-  var SECRET, User, Word, WordModel, WordSchema, app, c, express, findOptions, findRecentWords, getInitialWord, getLastDoc, https, io, lastDoc_, mongoose, oathQuery, oathScopes, oathUrl, penaltyUserIds, querystring, saveInitialWord, setPenaltyUser, updateWords, updateWords_, url, users, _;
+  var SECRET, User, Word, WordModel, WordSchema, app, express, findOptions, findRecentWords, getInitialWord, getLastDoc, https, io, lastDoc_, mongoose, oathQuery, oathScopes, oathUrl, penaltyUserIds, querystring, saveInitialWord, setPenaltyUser, updateWords, updateWords_, url, users, _;
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
-  c = console.log;
   SECRET = require('secret-strings').LAST_FIRST;
   _ = require("underscore");
   require('./underscore_extention');
@@ -83,14 +82,11 @@
         host: 'www.googleapis.com',
         path: '/oauth2/v1/tokeninfo?access_token=' + this.token
       };
-      c('before https.get');
       return https.get(options, __bind(function(res) {
         return res.on('data', __bind(function(data) {
           var json;
           json = JSON.parse(data.toString());
-          c('got res from https.get', json);
           if (!json.error) {
-            c('validate successfully.');
             this.id = json.user_id;
             this.isValid_ = true;
             this.socket.emit('validated nicely!', {
@@ -99,7 +95,6 @@
             updateWords(this.socket);
             return fn();
           } else {
-            c('need login.');
             return this.socket.emit('need login');
           }
         }, this));
@@ -124,11 +119,10 @@
         this.model_ = _.extend(this.model_, post);
         this.lastLetter = _.last(post);
       } else {
-        c('something goes wrong..');
+
       }
     }
     Word.prototype.save = function(fn) {
-      console.log('@model_', this.model_);
       if (this.model_) {
         this.model_.save(fn);
         return this.isSaved = true;
@@ -187,7 +181,7 @@
           message: 'Now you can post.'
         });
       }
-    }, 10 * 1000);
+    }, 60 * 60 * 1000);
   };
   /*
    Singleton class for managing users.
@@ -198,7 +192,6 @@
     updateWords(socket);
     socket.on('got token', function(data) {
       var token;
-      c('got token!!!!!!! from client');
       token = data.token;
       user.setToken(token);
       return user.validate(function() {
@@ -212,7 +205,6 @@
     });
     socket.on('post word', function(post) {
       var postLocked, word, word1;
-      console.log(getLastDoc().content);
       if (!user.isValid()) {
         socket.emit('error message', {
           message: 'you bad boy.'
