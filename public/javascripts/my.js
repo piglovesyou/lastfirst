@@ -197,7 +197,7 @@
           return _.disableForm(false);
         }
       } else {
-        _.showMessage('Do you speak japanese?');
+        _.showMessage('Please enter a word in HIRAGANA.');
         return _.disableForm(false);
       }
     });

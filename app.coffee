@@ -223,9 +223,9 @@ io.sockets.on 'connection', (socket) ->
     else if _.isEndsN(post.content)
       # user.gotPenalty()
       console.log 'penalty word saved===============', post
-      word1 = new WordModel(post)
+      word1 = new Word(post)
       word1.save () ->
-        word2 = new WordModel(getInitialWord())
+        word2 = new Word(getInitialWord())
         word2.save () ->
           c 'saved both........................'
           updateWords(io.sockets)

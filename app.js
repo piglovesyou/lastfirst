@@ -210,10 +210,10 @@
         });
       } else if (_.isEndsN(post.content)) {
         console.log('penalty word saved===============', post);
-        word1 = new WordModel(post);
+        word1 = new Word(post);
         return word1.save(function() {
           var word2;
-          word2 = new WordModel(getInitialWord());
+          word2 = new Word(getInitialWord());
           return word2.save(function() {
             c('saved both........................');
             updateWords(io.sockets);

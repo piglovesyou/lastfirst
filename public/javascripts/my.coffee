@@ -155,7 +155,7 @@ $(->
         _.showMessage('I\'m not sure it\'s being Last and First.')
         _.disableForm(false)
     else
-      _.showMessage('Do you speak japanese?')
+      _.showMessage('Please enter a word in HIRAGANA.')
       _.disableForm(false)
   # for dev
   # $("#login-link > a").click()
