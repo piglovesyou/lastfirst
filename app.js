@@ -2,7 +2,7 @@
   /*
    Include libraries.
   */
-  var SECRET, User, Word, WordModel, WordSchema, app, c, express, findOptions, findRecentWords, getLastDoc, https, io, lastDoc_, mongoose, oathQuery, oathScopes, oathUrl, postLocked, querystring, updateWords, url, _;
+  var SECRET, User, Word, WordModel, WordSchema, app, c, express, findOptions, findRecentWords, getInitialWord, getLastDoc, https, io, lastDoc_, mongoose, oathQuery, oathScopes, oathUrl, postLocked, querystring, saveInitialWord, updateWords, updateWords_, url, _;
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
   c = console.log;
   SECRET = require('secret-strings').LAST_FIRST;
@@ -61,7 +61,13 @@
     User.prototype.socket = null;
     User.prototype.id = '';
     User.prototype.token = '';
-    User.prototype.isValid = false;
+    User.prototype.isValid_ = false;
+    User.prototype.isValid = function() {
+      return this.isValid_;
+    };
+    User.prototype.setValid = function(valid) {
+      return this.isValid_ = valid;
+    };
     function User(socket) {
       this.socket = socket;
     }
@@ -86,7 +92,7 @@
           if (!json.error) {
             c('validate successfully.');
             this.id = json.user_id;
-            this.isValid = true;
+            this.isValid_ = true;
             this.socket.emit('validated nicely!', {
               userId: this.id
             });
@@ -124,6 +130,7 @@
       }
     }
     Word.prototype.save = function(fn) {
+      console.log('@model_', this.model_);
       if (this.model_) {
         this.model_.save(fn);
         return this.isSaved = true;
@@ -131,6 +138,19 @@
     };
     return Word;
   })();
+  getInitialWord = function() {
+    var obj;
+    return obj = {
+      content: 'しりとり',
+      createdBy: 'initial post by server'
+    };
+  };
+  saveInitialWord = function(fn) {
+    var word;
+    word = new WordModel();
+    word = _.extend(word, getInitialWord());
+    return word.save(fn);
+  };
   findRecentWords = function(fn) {
     return WordModel.find({}, [], findOptions, fn);
   };
@@ -138,10 +158,20 @@
   getLastDoc = function() {
     return lastDoc_ || {};
   };
+  updateWords_ = function(socket, err, docs) {
+    if (err) {
+      return;
+    }
+    lastDoc_ = docs[0];
+    return socket.emit('update', docs);
+  };
   updateWords = function(socket) {
     return findRecentWords(function(err, docs) {
-      lastDoc_ = docs[0];
-      return socket.emit('update', docs);
+      if (_.isEmpty(docs)) {
+        return saveInitialWord(updateWords_.bind(this, socket));
+      } else {
+        return updateWords_(socket, err, docs);
+      }
     });
   };
   /*
@@ -159,11 +189,10 @@
       user.setToken(token);
       return user.validate();
     });
-    return socket.on('post word', function(post) {
-      var word;
-      console.log('--------------------------------------');
+    socket.on('post word', function(post) {
+      var word, word1;
       console.log(getLastDoc().content);
-      if (!user.isValid) {
+      if (!user.isValid()) {
         return socket.emit('error message', {
           message: 'you bad boy.'
         });
@@ -173,11 +202,25 @@
         });
       } else if (!_.isValidWord(post.content)) {
         return socket.emit('error message', {
-          message: 'Do you speak japanese?'
+          message: 'Please enter a Japanese word in HIRAGANA.'
         });
       } else if (!_.isValidLastFirst(getLastDoc().content, post.content)) {
         return socket.emit('error message', {
           message: 'I\'m not sure it\'s being Last and First.'
+        });
+      } else if (_.isEndsN(post.content)) {
+        console.log('penalty word saved===============', post);
+        word1 = new WordModel(post);
+        return word1.save(function() {
+          var word2;
+          word2 = new WordModel(getInitialWord());
+          return word2.save(function() {
+            c('saved both........................');
+            updateWords(io.sockets);
+            return socket.emit('got penalty', {
+              message: 'ん!'
+            });
+          });
         });
       } else {
         postLocked = true;
@@ -191,6 +234,7 @@
         });
       }
     });
+    return socket.on('disconnect', function() {});
   });
   oathScopes = ['https://www.googleapis.com/auth/userinfo.profile'];
   oathQuery = {
@@ -203,6 +247,12 @@
   app.get("/", function(req, res) {
     return res.render("index", {
       title: "LastFirstApp",
+      oathUrl: oathUrl
+    });
+  });
+  app.get("/about", function(req, res) {
+    return res.render("about", {
+      title: "LastFirstApp - about",
       oathUrl: oathUrl
     });
   });

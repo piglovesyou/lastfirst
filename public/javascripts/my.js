@@ -1,12 +1,11 @@
 (function() {
-  var $indicator_, $list_, $msgBox_, c, currentDocs_, delayTimerId_, getFirstLetter_, getLastLetter_, postLocked_, socket, userId_;
-  c = console.log;
   /*
    Utils.
    Depends on underscore.js
   */
-  getFirstLetter_ = function(str) {
-    var count, len;
+  var $indicator_, $inputs_, $list_, $msgBox_, currentDocs_, delayTimerId_, postLocked_, socket, userId_;
+  window.getFirstLetter_ = function(str) {
+    var count, len, result;
     count = 1;
     len = str.length;
     if (len >= 2 && /^[ゃ-ょ|ー]$/.test(str[1])) {
@@ -16,9 +15,13 @@
         count = 2;
       }
     }
-    return str.slice(0, count);
+    result = [];
+    _(count).times(function(i) {
+      return result.push(str.slice(0, i + 1));
+    });
+    return result;
   };
-  getLastLetter_ = function(str) {
+  window.getLastLetter_ = function(str) {
     var count, lastIndex, len;
     count = 1;
     len = str.length;
@@ -37,7 +40,7 @@
   };
   _.mixin({
     isValidWord: function(str) {
-      if (_.isString(str) && /^[あ-ん|ー]+$/.test(str) && /^[^を]+$/.test(str)) {
+      if (_.isString(str) && /^[あ-ん|ー]+$/.test(str) && /^[^を]+$/.test(str) && !/っ$/.test(str)) {
         return _.all(str.split(''), function(letter, index, array) {
           if (index === 0) {
             return /^[^ゃ-ょ|^っ]$/.test(letter);
@@ -59,8 +62,7 @@
       return /ん$/.test(str);
     },
     isValidLastFirst: function(last, first) {
-      console.log(last, first);
-      return getLastLetter_(last) === getFirstLetter_(first);
+      return _.include(getFirstLetter_(first), getLastLetter_(last));
     }
   });
   _.mixin({
@@ -160,7 +162,6 @@
   $(function() {
     var $form, $list, $list_, token;
     token = _.getToken();
-    console.log('token?', token);
     if (token) {
       socket.emit('got token', {
         token: token
@@ -175,7 +176,7 @@
       if (_.isLocked()) {
         return;
       }
-      _.setLock(true);
+      _.disableForm(true);
       id = _.getUserId();
       content = $('input[name="content"]', $form).val();
       if (_.isEmpty(content)) {
@@ -184,8 +185,8 @@
       if (id && content && _.isValidWord(content)) {
         lastDoc = _.getLastDoc();
         if (id === lastDoc.createdBy) {
-          _.showMessage('You can post only once a turn.');
-          return _.setLock(false);
+          _.showMessage('It\'s not your turn.');
+          return _.disableForm(false);
         } else if (_.isValidLastFirst(lastDoc.content, content)) {
           return socket.emit('post word', {
             content: content,
@@ -193,11 +194,11 @@
           });
         } else {
           _.showMessage('I\'m not sure it\'s being Last and First.');
-          return _.setLock(false);
+          return _.disableForm(false);
         }
       } else {
         _.showMessage('Do you speak japanese?');
-        return _.setLock(false);
+        return _.disableForm(false);
       }
     });
   });
@@ -205,12 +206,21 @@
   $msgBox_ = null;
   postLocked_ = false;
   $indicator_ = null;
+  $inputs_ = null;
   _.mixin({
     isLocked: function() {
       return postLocked_;
     },
-    setLock: function(lock) {
-      var $indicator;
+    disableForm: function(lock) {
+      var $indicator, $inputs;
+      $inputs = $inputs_ || ($inputs_ = $('#post-form input'));
+      if (lock) {
+        $inputs.attr({
+          disabled: 'disabled'
+        });
+      } else {
+        $inputs.removeAttr('disabled');
+      }
       $indicator = $indicator_ || ($indicator_ = $('#post-form #indicator'));
       if ($indicator) {
         if (lock) {
@@ -289,19 +299,22 @@
     var id;
     console.log('validated good.', data);
     id = data.userId;
-    console.log('id,,,', id);
     _.setUserId(id);
     _.setUserIdToHiddenInput(id);
-    _.showMessage('logged in.');
+    _.showMessage('Authorized fine.');
     _.hideLoginLink();
     return _.showPostForm();
   });
   socket.on('error message', function(data) {
     _.showMessage(data.message);
-    return _.setLock(false);
+    return _.disableForm(false);
   });
   socket.on('posted successfully', function(post) {
-    _.showMessage('"' + post.content + '" is posted successfully!');
-    return _.setLock(false);
+    _.showMessage('"' + post.content + '" posted!');
+    return _.disableForm(false);
+  });
+  socket.on('got penalty', function(data) {
+    _.showMessage(data.message);
+    return _.disableForm(false);
   });
 }).call(this);

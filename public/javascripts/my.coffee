@@ -1,4 +1,3 @@
-c = console.log
 
 ###
  Utils.
@@ -6,7 +5,7 @@ c = console.log
 ###
 # common in server and client
 
-getFirstLetter_ = (str) ->
+window.getFirstLetter_ = (str) ->
   count = 1
   len = str.length
   if len >= 2 and /^[ゃ-ょ|ー]$/.test(str[1])
@@ -14,9 +13,12 @@ getFirstLetter_ = (str) ->
       count = 3
     else
       count = 2
-  str.slice(0,count)
+  result = []
+  _(count).times (i) ->
+    result.push str.slice(0,i+1)
+  result
 
-getLastLetter_ = (str) ->
+window.getLastLetter_ = (str) ->
   count = 1
   len = str.length
   lastIndex = len - 1
@@ -30,8 +32,8 @@ getLastLetter_ = (str) ->
 
 _.mixin
   isValidWord: (str) ->
-    if _.isString(str) and
-        /^[あ-ん|ー]+$/.test(str) and /^[^を]+$/.test(str)
+    if _.isString(str) and /^[あ-ん|ー]+$/.test(str) and
+        /^[^を]+$/.test(str) and !/っ$/.test(str)
       return _.all str.split(''), (letter, index, array) ->
         if index is 0
           return /^[^ゃ-ょ|^っ]$/.test(letter)
@@ -46,8 +48,7 @@ _.mixin
   isEndsN: (str) ->
     return /ん$/.test(str)
   isValidLastFirst: (last, first) ->
-    console.log last, first
-    getLastLetter_(last) is getFirstLetter_(first)
+    _.include getFirstLetter_(first), getLastLetter_(last)
 
 # Client extentions
 _.mixin
@@ -125,7 +126,6 @@ _.mixin
 # init
 $(->
   token = _.getToken()
-  console.log 'token?', token
   if token
     # verify the token
     socket.emit 'got token',
@@ -137,7 +137,7 @@ $(->
   $form = $('#post')
   $form.submit (e) ->
     return if _.isLocked()
-    _.setLock(true)
+    _.disableForm(true)
     id = _.getUserId()
     content = $('input[name="content"]',$form).val()
     return if _.isEmpty(content)
@@ -145,18 +145,18 @@ $(->
     if id and content and _.isValidWord(content)
       lastDoc = _.getLastDoc()
       if id is lastDoc.createdBy
-        _.showMessage('You can post only once a turn.')
-        _.setLock(false)
+        _.showMessage('It\'s not your turn.')
+        _.disableForm(false)
       else if _.isValidLastFirst(lastDoc.content, content)
         socket.emit 'post word',
           content: content
           createdBy: id
       else
         _.showMessage('I\'m not sure it\'s being Last and First.')
-        _.setLock(false)
+        _.disableForm(false)
     else
       _.showMessage('Do you speak japanese?')
-      _.setLock(false)
+      _.disableForm(false)
   # for dev
   # $("#login-link > a").click()
 )
@@ -165,10 +165,17 @@ $list_ = null
 $msgBox_ = null
 postLocked_ = false
 $indicator_ = null
+$inputs_ = null
 _.mixin
   isLocked: () ->
     postLocked_
-  setLock: (lock) ->
+  disableForm: (lock) ->
+    $inputs = $inputs_ ||
+        ($inputs_ = $('#post-form input'))
+    if lock
+      $inputs.attr(disabled: 'disabled')
+    else
+      $inputs.removeAttr('disabled')
     $indicator = $indicator_ ||
         ($indicator_ = $('#post-form #indicator'))
     if $indicator
@@ -228,17 +235,21 @@ socket.on 'need login', () ->
 socket.on 'validated nicely!', (data) ->
   console.log 'validated good.', data
   id = data.userId
-  console.log 'id,,,', id
   _.setUserId(id)
   _.setUserIdToHiddenInput(id)
-  _.showMessage('logged in.')
+  _.showMessage('Authorized fine.')
   _.hideLoginLink()
   _.showPostForm()
 
 socket.on 'error message', (data) ->
   _.showMessage(data.message)
-  _.setLock(false)
+  _.disableForm(false)
 
 socket.on 'posted successfully', (post) ->
-  _.showMessage('"' + post.content + '" is posted successfully!')
-  _.setLock(false)
+  _.showMessage('"' + post.content + '" posted!')
+  _.disableForm(false)
+
+socket.on 'got penalty', (data) ->
+  _.showMessage(data.message)
+  _.disableForm(false)
+

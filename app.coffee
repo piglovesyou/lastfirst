@@ -72,13 +72,13 @@ class User
     @isValid_
   setValid: (valid) ->
     @isValid_ = valid
-  gotPenalty: () ->
-    @isValid_ = false
-    _.delay () =>
-      @socket.emit 'release penalty'
-        message: 'Penalty released.'
-      @isValid_ = true
-    , 3 * 1000
+  # gotPenalty: () ->
+  #   @isValid_ = false
+  #   _.delay () =>
+  #     @socket.emit 'release penalty'
+  #       message: 'Penalty released.'
+  #     @isValid_ = true
+  #   , 3 * 1000
 
   constructor: (@socket) ->
   setToken: (@token) ->
@@ -151,6 +151,7 @@ class Word
     else
       c 'something goes wrong..'
   save: (fn) ->
+    console.log '@model_', @model_
     if @model_
       @model_.save(fn)
       @isSaved = true
@@ -158,11 +159,9 @@ class Word
 getInitialWord = () ->
   obj =
     content: 'しりとり'
-    createdAt: new Date()
-    createdBy: 'default first post'
+    createdBy: 'initial post by server'
 
 saveInitialWord = (fn) ->
-  console.log 'saveInitialWord'
   word = new WordModel()
   word = _.extend word, getInitialWord()
   word.save(fn)
@@ -175,7 +174,7 @@ getLastDoc = () ->
   lastDoc_ or {}
 
 # could be `io.socket'
-updateWords_ = (err, docs) ->
+updateWords_ = (socket, err, docs) ->
   return  if err
   lastDoc_ = docs[0]
   socket.emit 'update', docs
@@ -222,16 +221,16 @@ io.sockets.on 'connection', (socket) ->
       socket.emit 'error message',
         message: 'I\'m not sure it\'s being Last and First.'
     else if _.isEndsN(post.content)
-      user.gotPenalty()
+      # user.gotPenalty()
+      console.log 'penalty word saved===============', post
       word1 = new WordModel(post)
       word1.save () ->
-        console.log 'penalty word saved===============', post.content
         word2 = new WordModel(getInitialWord())
         word2.save () ->
           c 'saved both........................'
           updateWords(io.sockets)
           socket.emit 'got penalty',
-            message: 'ん! you can\'t port for a while'
+            message: 'ん!' # you can\'t port for a while'
     else
       postLocked = true
       word = new Word(post)
@@ -240,6 +239,9 @@ io.sockets.on 'connection', (socket) ->
         unless err
           socket.emit 'posted successfully', post
           updateWords(io.sockets)
+
+  socket.on 'disconnect', () ->
+    
     
     
 

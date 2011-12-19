@@ -6,7 +6,7 @@
    Depends on underscore.js
   */
   getFirstLetter_ = function(str) {
-    var count, len;
+    var count, len, result;
     count = 1;
     len = str.length;
     if (len >= 2 && /^[ゃ-ょ|ー]$/.test(str[1])) {
@@ -16,7 +16,11 @@
         count = 2;
       }
     }
-    return str.slice(0, count);
+    result = [];
+    _(count).times(function(i) {
+      return result.push(str.slice(0, i + 1));
+    });
+    return result;
   };
   getLastLetter_ = function(str) {
     var count, lastIndex, len;
@@ -37,7 +41,7 @@
   };
   _.mixin({
     isValidWord: function(str) {
-      if (_.isString(str) && /^[あ-ん|ー]+$/.test(str) && /^[^を]+$/.test(str)) {
+      if (_.isString(str) && /^[あ-ん|ー]+$/.test(str) && /^[^を]+$/.test(str) && !/っ$/.test(str)) {
         return _.all(str.split(''), function(letter, index, array) {
           if (index === 0) {
             return /^[^ゃ-ょ|^っ]$/.test(letter);
@@ -59,8 +63,7 @@
       return /ん$/.test(str);
     },
     isValidLastFirst: function(last, first) {
-      console.log(last, first);
-      return getLastLetter_(last) === getFirstLetter_(first);
+      return _.include(getFirstLetter_(first), getLastLetter_(last));
     }
   });
 }).call(this);

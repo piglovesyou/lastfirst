@@ -14,7 +14,10 @@ getFirstLetter_ = (str) ->
       count = 3
     else
       count = 2
-  str.slice(0,count)
+  result = []
+  _(count).times (i) ->
+    result.push str.slice(0,i+1)
+  result
 
 getLastLetter_ = (str) ->
   count = 1
@@ -30,8 +33,8 @@ getLastLetter_ = (str) ->
 
 _.mixin
   isValidWord: (str) ->
-    if _.isString(str) and
-        /^[あ-ん|ー]+$/.test(str) and /^[^を]+$/.test(str)
+    if _.isString(str) and /^[あ-ん|ー]+$/.test(str) and
+        /^[^を]+$/.test(str) and !/っ$/.test(str)
       return _.all str.split(''), (letter, index, array) ->
         if index is 0
           return /^[^ゃ-ょ|^っ]$/.test(letter)
@@ -46,6 +49,5 @@ _.mixin
   isEndsN: (str) ->
     return /ん$/.test(str)
   isValidLastFirst: (last, first) ->
-    console.log last, first
-    getLastLetter_(last) is getFirstLetter_(first)
+    _.include getFirstLetter_(first), getLastLetter_(last)
 
