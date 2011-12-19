@@ -2,7 +2,7 @@
   /*
    Include libraries.
   */
-  var SECRET, User, Word, WordModel, WordSchema, app, c, express, findOptions, findRecentWords, getInitialWord, getLastDoc, https, io, lastDoc_, mongoose, oathQuery, oathScopes, oathUrl, postLocked, querystring, saveInitialWord, updateWords, updateWords_, url, _;
+  var SECRET, User, Word, WordModel, WordSchema, app, c, express, findOptions, findRecentWords, getInitialWord, getLastDoc, https, io, lastDoc_, mongoose, oathQuery, oathScopes, oathUrl, penaltyUserIds, querystring, saveInitialWord, setPenaltyUser, updateWords, updateWords_, url, _;
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
   c = console.log;
   SECRET = require('secret-strings').LAST_FIRST;
@@ -177,7 +177,16 @@
   /*
    Socket IO listening.
   */
-  postLocked = false;
+  penaltyUserIds = [];
+  setPenaltyUser = function(user) {
+    penaltyUserIds.push(user.id);
+    return _.delay(function() {
+      penaltyUserIds = _.without(penaltyUserIds, user.id);
+      return user.socket.emit('release penalty', {
+        message: 'Now you can post.'
+      });
+    }, 5 * 1000);
+  };
   io.sockets.on('connection', function(socket) {
     var user;
     user = new User(socket);
@@ -190,11 +199,16 @@
       return user.validate();
     });
     socket.on('post word', function(post) {
-      var word, word1;
+      var postLocked, word, word1;
       console.log(getLastDoc().content);
       if (!user.isValid()) {
-        return socket.emit('error message', {
+        socket.emit('error message', {
           message: 'you bad boy.'
+        });
+      }
+      if (_.include(penaltyUserIds, user.id)) {
+        return socket.emit('error message', {
+          message: 'ん! you can\'t post for a while.'
         });
       } else if (postLocked) {
         return socket.emit('error message', {
@@ -209,16 +223,15 @@
           message: 'I\'m not sure it\'s being Last and First.'
         });
       } else if (_.isEndsN(post.content)) {
-        console.log('penalty word saved===============', post);
+        setPenaltyUser(user);
         word1 = new Word(post);
         return word1.save(function() {
           var word2;
           word2 = new Word(getInitialWord());
           return word2.save(function() {
-            c('saved both........................');
             updateWords(io.sockets);
             return socket.emit('got penalty', {
-              message: 'ん!'
+              message: 'ん! you can\'t post for a while.'
             });
           });
         });

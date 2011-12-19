@@ -211,8 +211,9 @@
     isLocked: function() {
       return postLocked_;
     },
-    disableForm: function(lock) {
-      var $indicator, $inputs;
+    disableForm: function(lock, withoutIndicator) {
+      var $inputs;
+      postLocked_ = lock;
       $inputs = $inputs_ || ($inputs_ = $('#post-form input'));
       if (lock) {
         $inputs.attr({
@@ -221,21 +222,26 @@
       } else {
         $inputs.removeAttr('disabled');
       }
-      $indicator = $indicator_ || ($indicator_ = $('#post-form #indicator'));
-      if ($indicator) {
-        if (lock) {
-          $indicator.addClass('loading');
-        } else {
-          $indicator.removeClass('loading');
-        }
+      if (!withoutIndicator) {
+        return _.showIndicator(lock);
       }
-      return postLocked_ = lock;
     }
   });
   delayTimerId_ = null;
   _.mixin({
     hideWaitSecMessage: function() {
       return $('#wait-sec-message').hide();
+    },
+    showIndicator: function(show) {
+      var $indicator;
+      $indicator = $indicator_ || ($indicator_ = $('#post-form #indicator'));
+      if ($indicator) {
+        if (show) {
+          return $indicator.addClass('loading');
+        } else {
+          return $indicator.removeClass('loading');
+        }
+      }
     }
   });
   _.mixin({
@@ -314,6 +320,10 @@
     return _.disableForm(false);
   });
   socket.on('got penalty', function(data) {
+    _.showMessage(data.message);
+    return _.showIndicator(false);
+  });
+  socket.on('release penalty', function(data) {
     _.showMessage(data.message);
     return _.disableForm(false);
   });

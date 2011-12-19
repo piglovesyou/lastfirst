@@ -188,18 +188,26 @@ updateWords = (socket) ->
 
   
 
-  
+# key: userId, value: User instance
 
 ###
  Socket IO listening.
 ###
 # user.user_id
 # user.socket
-postLocked = false
+
+penaltyUserIds = []
+setPenaltyUser = (user) ->
+  penaltyUserIds.push(user.id)
+  _.delay () ->
+    penaltyUserIds = _.without(penaltyUserIds, user.id)
+    user.socket.emit 'release penalty',
+      message: 'Now you can post.'
+  , 5 * 1000
+  
 io.sockets.on 'connection', (socket) ->
   user = new User(socket)
   updateWords(socket)
-
   socket.on 'got token', (data) ->
     c 'got token!!!!!!! from client'
     token = data.token
@@ -211,6 +219,9 @@ io.sockets.on 'connection', (socket) ->
     if not user.isValid()
       socket.emit 'error message',
         message: 'you bad boy.'
+    if _.include(penaltyUserIds, user.id)
+      socket.emit 'error message',
+        message: 'ん! you can\'t post for a while.'
     else if postLocked
       socket.emit 'error message',
         message: 'post conflicted with someones post!'
@@ -222,15 +233,14 @@ io.sockets.on 'connection', (socket) ->
         message: 'I\'m not sure it\'s being Last and First.'
     else if _.isEndsN(post.content)
       # user.gotPenalty()
-      console.log 'penalty word saved===============', post
+      setPenaltyUser(user)
       word1 = new Word(post)
       word1.save () ->
         word2 = new Word(getInitialWord())
         word2.save () ->
-          c 'saved both........................'
           updateWords(io.sockets)
           socket.emit 'got penalty',
-            message: 'ん!' # you can\'t port for a while'
+            message: 'ん! you can\'t post for a while.'
     else
       postLocked = true
       word = new Word(post)

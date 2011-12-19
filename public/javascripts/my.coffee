@@ -169,26 +169,29 @@ $inputs_ = null
 _.mixin
   isLocked: () ->
     postLocked_
-  disableForm: (lock) ->
+  disableForm: (lock, withoutIndicator) ->
+    postLocked_ = lock
     $inputs = $inputs_ ||
         ($inputs_ = $('#post-form input'))
     if lock
       $inputs.attr(disabled: 'disabled')
     else
       $inputs.removeAttr('disabled')
-    $indicator = $indicator_ ||
-        ($indicator_ = $('#post-form #indicator'))
-    if $indicator
-      if lock
-        $indicator.addClass('loading')
-      else
-        $indicator.removeClass('loading')
-    postLocked_ = lock
+    unless withoutIndicator
+      _.showIndicator(lock)
 # DOM functions.
 delayTimerId_ = null
 _.mixin
   hideWaitSecMessage: () ->
     $('#wait-sec-message').hide()
+  showIndicator: (show) ->
+    $indicator = $indicator_ ||
+        ($indicator_ = $('#post-form #indicator'))
+    if $indicator
+      if show
+        $indicator.addClass('loading')
+      else
+        $indicator.removeClass('loading')
 _.mixin
   showLoginLink: () ->
     _.hideWaitSecMessage()
@@ -251,5 +254,8 @@ socket.on 'posted successfully', (post) ->
 
 socket.on 'got penalty', (data) ->
   _.showMessage(data.message)
-  _.disableForm(false)
+  _.showIndicator(false)
 
+socket.on 'release penalty', (data) ->
+  _.showMessage(data.message)
+  _.disableForm(false)
