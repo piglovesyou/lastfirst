@@ -261,7 +261,7 @@
   oathQuery = {
     response_type: 'token',
     scope: oathScopes.join('+'),
-    redirect_uri: 'http://' + SECRET.HOST + ':' + SECRET.PORT + '/oauth2callback',
+    redirect_uri: SECRET.GOOGLE_OAUTH_REDIRECT_TO,
     client_id: SECRET.GOOGLE_OAUTH_CLIENT_IE
   };
   oathUrl = 'https://accounts.google.com/o/oauth2/auth?' + querystring.stringify(oathQuery);
