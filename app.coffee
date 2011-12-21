@@ -280,6 +280,7 @@ app.get "/", (req, res) ->
   res.render "index",
     title: "LastFirstApp"
     oathUrl: oathUrl
+    isProduction: SECRET.IS_PRODUCTION
 
 app.get "/about", (req, res) ->
   res.render "about",

@@ -268,7 +268,8 @@
   app.get("/", function(req, res) {
     return res.render("index", {
       title: "LastFirstApp",
-      oathUrl: oathUrl
+      oathUrl: oathUrl,
+      isProduction: SECRET.IS_PRODUCTION
     });
   });
   app.get("/about", function(req, res) {
