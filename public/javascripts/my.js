@@ -255,6 +255,38 @@
       }
     }
   });
+  renderWords = function() {
+    var $list, $list_, doc, docs, html, niceDate, postfix, _i, _len, _results;
+    docs = currentDocs_;
+    $list = $list_ || ($list_ = $('#word-list'));
+    $list.empty();
+    _results = [];
+    for (_i = 0, _len = docs.length; _i < _len; _i++) {
+      doc = docs[_i];
+      postfix = '';
+      niceDate = _.niceDate(doc.createdAt);
+      if (_.isEndsN(doc.content)) {
+        postfix = '<span class="warn">*</span>';
+      }
+      html = "<tr>";
+      html += "<td title='" + doc.createdAt + "'>" + doc.content + postfix + " </td>";
+      if (_i === 0) {
+        html += "<td>&lt;-last post </td>";
+      }
+      if (doc.createdBy === _.getUserId()) {
+        html += "<td>&lt;-your post! </td>";
+      }
+      if (_i < 2) {
+        html += "<td>" + niceDate + "</td>";
+      }
+      html += "</tr>";
+      _results.push($list.append(html));
+    }
+    return _results;
+  };
+  window.setInterval(function() {
+    return renderWords();
+  }, 60 * 1000);
   /*
    jQuery init
   */
@@ -375,38 +407,10 @@
   /*
    Sockets init
   */
-  renderWords = function(docs) {
-    var $list, doc, html, niceDate, postfix, _i, _len, _results;
-    currentDocs_ = docs;
-    $list = $list_ || ($list_ = $('#word-list'));
-    $list.empty();
-    _results = [];
-    for (_i = 0, _len = docs.length; _i < _len; _i++) {
-      doc = docs[_i];
-      postfix = '';
-      niceDate = _.niceDate(doc.createdAt);
-      if (_.isEndsN(doc.content)) {
-        postfix = '<span class="warn">*</span>';
-      }
-      html = "<tr>";
-      html += "<td>" + doc.content + postfix + " </td>";
-      if (_i === 0) {
-        html += "<td>&lt;-last post </td>";
-      }
-      if (doc.createdBy === _.getUserId()) {
-        html += "<td>&lt;-your post! </td>";
-      }
-      if (_i < 2) {
-        html += "<td>" + niceDate + "</td>";
-      }
-      html += "</tr>";
-      _results.push($list.append(html));
-    }
-    return _results;
-  };
   socket = io.connect(location.protocol + '//' + location.host);
   socket.on('update', function(docs) {
-    return renderWords(docs);
+    currentDocs_ = docs;
+    return renderWords();
   });
   socket.on('need login', function() {
     _.showMessage('Expired. Need another login.');

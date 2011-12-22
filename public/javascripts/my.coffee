@@ -202,6 +202,26 @@ _.mixin
         token: token
     else
       # show error
+renderWords = () ->
+  docs = currentDocs_
+  $list = $list_ or ($list_ = $('#word-list'))
+  $list.empty()
+  for doc in docs
+    postfix = ''
+    niceDate = _.niceDate(doc.createdAt)
+    if _.isEndsN(doc.content)
+      postfix = '<span class="warn">*</span>'
+    html = "<tr>"
+    html += "<td title='#{doc.createdAt}'>#{doc.content}#{postfix} </td>"
+    html += "<td>&lt;-last post </td>" if _i is 0
+    html += "<td>&lt;-your post! </td>" if doc.createdBy is _.getUserId()
+    html += "<td>#{niceDate}</td>" if _i < 2
+    html += "</tr>"
+    $list.append html
+
+window.setInterval () ->
+  renderWords()
+, 60 * 1000
 
 
 
@@ -307,26 +327,11 @@ _.mixin
 ###
  Sockets init
 ###
-renderWords = (docs) ->
-  currentDocs_ = docs
-  $list = $list_ or ($list_ = $('#word-list'))
-  $list.empty()
-  for doc in docs
-    postfix = ''
-    niceDate = _.niceDate(doc.createdAt)
-    if _.isEndsN(doc.content)
-      postfix = '<span class="warn">*</span>'
-    html = "<tr>"
-    html += "<td>#{doc.content}#{postfix} </td>"
-    html += "<td>&lt;-last post </td>" if _i is 0
-    html += "<td>&lt;-your post! </td>" if doc.createdBy is _.getUserId()
-    html += "<td>#{niceDate}</td>" if _i < 2
-    html += "</tr>"
-    $list.append html
 
 socket = io.connect(location.protocol + '//' + location.host)
 socket.on 'update', (docs) ->
-  renderWords(docs)
+  currentDocs_ = docs
+  renderWords()
 
 socket.on 'need login', () ->
   _.showMessage('Expired. Need another login.')
