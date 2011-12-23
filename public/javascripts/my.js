@@ -10,7 +10,7 @@
   /*
    Utils.
   */
-  var $indicator_, $inputs_, $list_, $msgBox_, currentDocs_, delayTimerId_, getFirstLetter_, getLastLetter_, postLocked_, renderWords, socket, userId_;
+  var $indicator_, $inputs_, $list_, $msgBox_, Word, currentDocs_, delayTimerId_, getFirstLetter_, getLastLetter_, postLocked_, renderWords, socket, userId_;
   var __slice = Array.prototype.slice;
   getFirstLetter_ = function(str) {
     var count, len, result;
@@ -284,9 +284,17 @@
     }
     return _results;
   };
-  window.setInterval(function() {
-    return renderWords();
-  }, 60 * 1000);
+  /*
+   Class for a word.
+  */
+  Word = (function() {
+    function Word(content_, createdBy_, createdAt_) {
+      this.content_ = content_;
+      this.createdBy_ = createdBy_;
+      this.createdAt_ = createdAt_;
+    }
+    return Word;
+  })();
   /*
    jQuery init
   */
@@ -419,6 +427,7 @@
   socket.on('validated nicely!', function(data) {
     var id;
     id = data.userId;
+    console.log(id);
     _.setUserId(id);
     _.setUserIdToHiddenInput(id);
     _.showMessage('Authorized fine.');

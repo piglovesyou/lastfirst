@@ -6,6 +6,9 @@
 SECRET = require('secret-strings').LAST_FIRST
 _ = require("underscore")
 require('./underscore_extention')
+crypto = require('crypto')
+md5 = (str) ->
+  crypto.createHash('md5').update(str).digest('hex')
 express = require("express")
 mongoose = require("mongoose")
 url = require('url')
@@ -89,7 +92,8 @@ class User
       res.on 'data', (data) =>
         json = JSON.parse(data.toString())
         if !json.error
-          @id = json.user_id
+          id  = json.user_id
+          @id = md5(id)
           @isValid_ = true
           @socket.emit 'validated nicely!',
             userId: @id

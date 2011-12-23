@@ -2,11 +2,15 @@
   /*
    Include libraries.
   */
-  var SECRET, User, Word, WordModel, WordSchema, app, express, findOptions, findRecentWords, getInitialWord, getLastDoc, https, io, lastDoc_, mongoose, oathQuery, oathScopes, oathUrl, penaltyUserIds, querystring, saveInitialWord, setPenaltyUser, updateWords, updateWords_, url, users, _;
+  var SECRET, User, Word, WordModel, WordSchema, app, crypto, express, findOptions, findRecentWords, getInitialWord, getLastDoc, https, io, lastDoc_, md5, mongoose, oathQuery, oathScopes, oathUrl, penaltyUserIds, querystring, saveInitialWord, setPenaltyUser, updateWords, updateWords_, url, users, _;
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
   SECRET = require('secret-strings').LAST_FIRST;
   _ = require("underscore");
   require('./underscore_extention');
+  crypto = require('crypto');
+  md5 = function(str) {
+    return crypto.createHash('md5').update(str).digest('hex');
+  };
   express = require("express");
   mongoose = require("mongoose");
   url = require('url');
@@ -84,10 +88,11 @@
       };
       return https.get(options, __bind(function(res) {
         return res.on('data', __bind(function(data) {
-          var json;
+          var id, json;
           json = JSON.parse(data.toString());
           if (!json.error) {
-            this.id = json.user_id;
+            id = json.user_id;
+            this.id = md5(id);
             this.isValid_ = true;
             this.socket.emit('validated nicely!', {
               userId: this.id

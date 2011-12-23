@@ -219,9 +219,15 @@ renderWords = () ->
     html += "</tr>"
     $list.append html
 
-window.setInterval () ->
-  renderWords()
-, 60 * 1000
+
+
+
+###
+ Class for a word.
+###
+class Word
+  constructor: (@content_, @createdBy_, @createdAt_) ->
+    
 
 
 
@@ -339,6 +345,7 @@ socket.on 'need login', () ->
 
 socket.on 'validated nicely!', (data) ->
   id = data.userId
+  console.log id
   _.setUserId(id)
   _.setUserIdToHiddenInput(id)
   _.showMessage('Authorized fine.')
