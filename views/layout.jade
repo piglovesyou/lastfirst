@@ -3,10 +3,14 @@ html
   head
     title= title
     link(rel='stylesheet', href='/stylesheets/style.css')
-    script(src='/socket.io/socket.io.js')
-    script(src='/javascripts/underscore-min.js')
-    script(src='/javascripts/jquery-1.7.min.js')
-    script(src='/javascripts/my.js')
+    script(src='/javascripts/head.load.min.js')
+    script
+      head.js('/socket.io/socket.io.js'
+            , '/javascripts/underscore-min.js'
+            , '/javascripts/jquery-1.7.min.js'
+            , '/javascripts/utils.js'
+            , '/javascripts/classes.js'
+            , '/javascripts/init.js')
     - if (isProduction)
       include google-analytics
   body!= body
