@@ -103,6 +103,11 @@ class Word
         .append(content)
         .append(likedElm)
 
+      if userId isnt @createdBy and not _.include(@liked, userId)
+        likeButtonElm = $("<span class='like i' title='like it'>6</span>")
+          .bind 'click', @sendLike
+        @element.append(likeButtonElm)
+
       if @lastPost
         lastPostElm = $('<span class="last-post">&lt-last post</span>')
         @element.append(lastPostElm)
@@ -110,11 +115,6 @@ class Word
       if userId is @createdBy
         yourPostElm = $('<span class="your-post">&lt-your post!</span>')
         @element.append(yourPostElm)
-
-      if userId isnt @createdBy and not _.include(@liked, userId)
-        likeButtonElm = $("<span class='like i'>6</span>")
-          .bind 'click', @sendLike
-        @element.append(likeButtonElm)
 
       if @showCreatedAt
         text = ' <-' + _.niceDate(@createdAt, 'en')
