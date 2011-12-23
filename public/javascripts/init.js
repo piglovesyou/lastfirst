@@ -41,6 +41,9 @@
       } else {
 
       }
+    },
+    getSocket: function() {
+      return socket;
     }
   });
   /*
@@ -73,7 +76,6 @@
       }
       if (id && content && _.isValidWord(content)) {
         lastDoc = words.getLastWord();
-        console.log('lastDoc', lastDoc, 'last doc');
         if (id === lastDoc.createdBy) {
           message.show('It\'s not your turn.');
           return _.disableForm(false);
@@ -168,14 +170,16 @@
   socketInit = function() {
     socket = io.connect(location.protocol + '//' + location.host);
     socket.on('update', function(docs) {
-      var doc, word, _i, _len;
+      var doc, word, _i, _len, _results;
       words.empty();
+      _results = [];
       for (_i = 0, _len = docs.length; _i < _len; _i++) {
         doc = docs[_i];
-        word = new Word(doc);
-        words.push(word);
+        word = new Word(doc, _i < 2);
+        word.render();
+        _results.push(words.push(word));
       }
-      return words.renderWords();
+      return _results;
     });
     socket.on('need login', function() {
       message.show('Expired. Need another login.');
@@ -184,7 +188,6 @@
     socket.on('validated nicely!', function(data) {
       var id;
       id = data.userId;
-      console.log(id);
       _.setUserId(id);
       _.setUserIdToHiddenInput(id);
       message.show('Authorized fine.');
@@ -204,9 +207,20 @@
       _.disableForm(true);
       return _.showIndicator(false);
     });
-    return socket.on('release penalty', function(data) {
+    socket.on('release penalty', function(data) {
       message.show(data.message);
       return _.disableForm(false);
+    });
+    return socket.on('update like', function(data) {
+      var word;
+      word = words.get(data._id);
+      if (word) {
+        word.liked = data.liked;
+        word.render();
+        if (word.createdBy === _.getUserId()) {
+          return message.showImportant('Somebody liked your post, "' + word.content + '"');
+        }
+      }
     });
   };
 }).call(this);

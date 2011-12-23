@@ -2,7 +2,7 @@
   /*
    Include libraries.
   */
-  var SECRET, User, Word, WordSchema, Words, app, crypto, express, findOptions, findRecentWords, getInitialWord, getLastDoc, https, io, lastDoc_, md5, mongoose, oathQuery, oathScopes, oathUrl, penaltyUserIds, querystring, saveInitialWord, setPenaltyUser, updateWords, updateWords_, url, users, _;
+  var SECRET, User, Users, Word, WordSchema, Words, app, crypto, express, findOptions, findRecentWords, getInitialWord, getLastDoc, https, io, lastDoc_, md5, mongoose, oathQuery, oathScopes, oathUrl, querystring, saveInitialWord, updateWords, updateWords_, url, users, _;
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
   SECRET = require('secret-strings').LAST_FIRST;
   _ = require("underscore");
@@ -23,10 +23,7 @@
     content: String,
     createdBy: String,
     createdAt: Date,
-    nice: {
-      type: Number,
-      "default": 0
-    }
+    liked: Array
   });
   mongoose.model('Words', WordSchema);
   mongoose.connect('mongodb://localhost/lastFirst');
@@ -171,34 +168,54 @@
   /*
    Socket IO listening.
   */
-  users = {};
-  penaltyUserIds = [];
-  setPenaltyUser = function(user) {
-    penaltyUserIds.push(user.id);
-    return _.delay(function() {
-      penaltyUserIds = _.without(penaltyUserIds, user.id);
-      user = users[user.id];
-      if (user) {
-        return user.socket.emit('release penalty', {
-          message: 'Now you can post.'
-        });
-      }
-    }, 60 * 60 * 1000);
-  };
   /*
    Singleton class for managing users.
   */
+  Users = (function() {
+    Users.prototype.users_ = {};
+    Users.prototype.penaltyUserIds_ = [];
+    function Users() {}
+    Users.prototype.add = function(user) {
+      if (user.id) {
+        return this.users_[user.id] = user;
+      }
+    };
+    Users.prototype.remove = function(id) {
+      return delete this.users_[id];
+    };
+    Users.prototype.has = function(id) {
+      return !!this.users_[id];
+    };
+    Users.prototype.setPenaltyUser = function(id) {
+      this.penaltyUserIds_.push(id);
+      return _.delay(__bind(function() {
+        var user;
+        this.penaltyUserIds_ = _.without(this.penaltyUserIds_, id);
+        user = this.users_[id];
+        if (user) {
+          return user.socket.emit('release penalty', {
+            message: 'Now you can post.'
+          });
+        }
+      }, this), 60 * 60 * 1000);
+    };
+    Users.prototype.isPenaltyUser = function(id) {
+      return _.include(this.penaltyUserIds_, id);
+    };
+    return Users;
+  })();
+  users = new Users();
   io.sockets.on('connection', function(socket) {
     var user;
     user = new User(socket);
-    updateWords(socket);
     socket.on('got token', function(data) {
       var token;
       token = data.token;
       user.setToken(token);
       return user.validate(function() {
-        users[user.id] = user;
-        if (_.include(penaltyUserIds, user.id)) {
+        users.add(user);
+        updateWords(socket);
+        if (users.isPenaltyUser(user.id)) {
           return socket.emit('got penalty', {
             message: 'ん! you can\'t post for a while.'
           });
@@ -212,7 +229,7 @@
           message: 'you bad boy.'
         });
       }
-      if (_.include(penaltyUserIds, user.id)) {
+      if (users.isPenaltyUser(user.id)) {
         return socket.emit('error message', {
           message: 'ん! you can\'t post for a while.'
         });
@@ -229,7 +246,7 @@
           message: 'I\'m not sure it\'s being Last and First.'
         });
       } else if (_.isEndsN(post.content)) {
-        setPenaltyUser(user);
+        users.setPenaltyUser(user.id);
         word1 = new Word(post);
         return word1.save(function() {
           var word2;
@@ -253,10 +270,35 @@
         });
       }
     });
-    return socket.on('disconnect', function() {
-      if (users[user.id]) {
-        return delete users[user.id];
+    socket.on('like', function(data) {
+      var userId, wordId;
+      userId = data.userId;
+      wordId = data.wordId;
+      if (users.has(data.userId)) {
+        return Words.findById(wordId, function(err, word) {
+          var liked;
+          if (!err) {
+            liked = word.liked;
+            if (_.include(liked, userId)) {
+              return socket.emit('error message', {
+                message: 'you bad boy.'
+              });
+            } else {
+              word.liked.push(userId);
+              return Words.update({
+                _id: wordId
+              }, {
+                liked: liked
+              }, null, function() {
+                return io.sockets.emit('update like', word);
+              });
+            }
+          }
+        });
       }
+    });
+    return socket.on('disconnect', function() {
+      return users.remove(user.id);
     });
   });
   oathScopes = ['https://www.googleapis.com/auth/userinfo.profile'];

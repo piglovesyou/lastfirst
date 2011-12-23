@@ -63,3 +63,9 @@ a {
   font-family: 'Dingbats2SamplerOT';
 }
 .warn { color: #f99 }
+
+
+.like { color: #ccc; cursor: pointer; }
+.like:hover { color: #e3e3e3 }
+
+.liked { color: #f33 }

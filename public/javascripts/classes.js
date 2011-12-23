@@ -9,18 +9,19 @@
      jquery-1.7.js
   */
   var Message, Word, WordList, exports;
+  var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
   exports = window;
   /*
    Singleton class for words.
   */
   WordList = (function() {
     WordList.prototype.wordInstances_ = [];
-    WordList.prototype.element_ = null;
+    WordList.prototype.element = null;
     WordList.prototype.getElement = function() {
-      return this.element_;
+      return this.element;
     };
     function WordList(containerSelector) {
-      this.element_ = $(containerSelector);
+      this.element = $(containerSelector);
     }
     WordList.prototype.empty = function() {
       var word, _i, _len, _ref;
@@ -30,21 +31,22 @@
         word.dispose();
       }
       this.wordInstances_ = [];
-      return this.element_.empty();
+      return this.element.empty();
     };
     WordList.prototype.renderWords = function() {
       var word, _i, _len, _ref, _results;
-      this.element_.empty();
+      this.element.empty();
       _ref = this.wordInstances_;
       _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         word = _ref[_i];
-        _results.push(word.render(this.element_));
+        _results.push(word.render());
       }
       return _results;
     };
     WordList.prototype.push = function(word) {
-      return this.wordInstances_.push(word);
+      this.wordInstances_.push(word);
+      return this.element.append(word.getElement());
     };
     WordList.prototype.shift = function(word) {
       return this.wordInstances_.shift(word);
@@ -55,15 +57,9 @@
       return word.dispose();
     };
     WordList.prototype.get = function(id) {
-      var word, _i, _len, _ref;
-      _ref = this.wordInstances_;
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        word = _ref[_i];
-        if (word.id === id) {
-          return word;
-        }
-      }
-      return null;
+      return _.find(this.wordInstances_, function(word) {
+        return word.id === id;
+      });
     };
     WordList.prototype.getLastWord = function() {
       return this.wordInstances_[0];
@@ -74,30 +70,67 @@
    Class for a word.
   */
   Word = (function() {
-    var canRender_, element_, timeElm_;
-    element_ = null;
-    timeElm_ = null;
-    canRender_ = false;
-    function Word(data) {
+    Word.prototype.element = null;
+    Word.prototype.getElement = function() {
+      return this.element;
+    };
+    Word.prototype.canRender = false;
+    function Word(data, showCreatedAt) {
+      var className;
+      this.showCreatedAt = showCreatedAt;
+      this.sendLike = __bind(this.sendLike, this);
+      this.id = data._id;
       this.content = data.content;
       this.createdBy = data.createdBy;
       this.createdAt = data.createdAt;
-      this.canRender_ = !!(this.content && this.createdBy && this.createdAt);
-    }
-    Word.prototype.render = function($parent) {
-      var className, content;
-      if (this.canRender_) {
-        content = $("<span class='content'>" + this.content + "</span>");
-        this.timeElm_ = $("<span class='time'>" + this.createdAt + "</span>");
+      this.liked = data.liked;
+      this.canRender = !!(this.id && this.content && this.createdBy && this.createdAt && this.liked);
+      console.log(this.canRender);
+      if (this.canRender) {
         className = 'word';
-        this.element_ = $("<div class='" + className + "'></div>").append(content).append(this.$timeElm_);
-        return $parent.append(this.element_);
+        this.element = $("<div class='" + className + "'></div>");
+      }
+    }
+    Word.prototype.render = function() {
+      var content, createdAt, i, likeButtonElm, likedElm, text, userId, _i, _len, _ref;
+      if (this.canRender) {
+        this.element.empty();
+        content = $("<span class='content'>" + this.content + "</span>");
+        text = '';
+        _ref = this.liked;
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          i = _ref[_i];
+          text += '6';
+        }
+        likedElm = $("<span class='liked i'>" + text + "</span>");
+        this.element.append(content).append(likedElm);
+        userId = _.getUserId();
+        if (userId !== this.createdBy && !_.include(this.liked, userId)) {
+          likeButtonElm = $("<span class='like i'>6</span>").bind('click', this.sendLike);
+          this.element.append(likeButtonElm);
+        }
+        if (this.showCreatedAt) {
+          text = ' <-' + _.niceDate(this.createdAt, 'en');
+          createdAt = $("<span class='createdat'>" + text + "</span>");
+          return this.element.append(createdAt);
+        }
+      }
+    };
+    Word.prototype.sendLike = function(e) {
+      var socket;
+      console.log('send like');
+      socket = _.getSocket();
+      if (socket) {
+        return socket.emit('like', {
+          wordId: this.id,
+          userId: _.getUserId()
+        });
       }
     };
     Word.prototype.dispose = function() {
       var prop, _results;
-      this.element_.unbind();
-      this.element_.remove();
+      this.element.unbind();
+      this.element.remove();
       _results = [];
       for (prop in this) {
         _results.push(this[prop] = null);
@@ -110,14 +143,14 @@
    Singleton class for showing messages.
   */
   Message = (function() {
-    Message.prototype.element_ = null;
+    Message.prototype.element = null;
     Message.prototype.messageElm_ = null;
     Message.prototype.importantMessageElm_ = null;
     function Message(containerSelector) {
       var importantMessageTimer, messageTimer, onDocMouseMove;
       importantMessageTimer = null;
       messageTimer = null;
-      this.element_ = $(containerSelector);
+      this.element = $(containerSelector);
       onDocMouseMove = function(e) {
         var $that;
         $that = e.data.$that;
@@ -155,7 +188,7 @@
       }).bind('click', function(e) {
         return $(this).trigger('hide');
       });
-      this.element_.append(this.importantMessageElm_).append(this.messageElm_);
+      this.element.append(this.importantMessageElm_).append(this.messageElm_);
     }
     Message.prototype.show = function(str) {
       return this.messageElm_.trigger('show', str);

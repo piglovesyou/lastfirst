@@ -33,34 +33,34 @@ exports = window
 ###
 class WordList
   wordInstances_: []
-  element_: null
+  element: null
   getElement: () ->
-    @element_
+    @element
 
   constructor: (containerSelector) ->
-    @element_ = $(containerSelector)
+    @element = $(containerSelector)
   empty: () ->
     for word in @wordInstances_
       word.dispose()
     @wordInstances_ = []
-    @element_.empty()
+    @element.empty()
 
   renderWords: () ->
-    @element_.empty()
+    @element.empty()
     for word in @wordInstances_
-      word.render(@element_)
+      word.render()
 
   push: (word) ->
     @wordInstances_.push(word)
+    @element.append(word.getElement())
   shift: (word) ->
     @wordInstances_.shift(word)
   pop: () ->
     word = @wordInstances_.pop()
     word.dispose()
   get: (id) ->
-    for word in @wordInstances_
-      return word  if word.id == id
-    null
+    return _.find @wordInstances_, (word) ->
+      return word.id == id
   getLastWord: () ->
     @wordInstances_[0]
     
@@ -70,26 +70,56 @@ class WordList
  Class for a word.
 ###
 class Word
-  element_ = null
-  timeElm_ = null
-  canRender_ = false
+  element: null
+  getElement: () ->
+    @element
+  canRender: false
 
-  constructor: (data) ->
+  constructor: (data, @showCreatedAt) ->
+    @id = data._id
     @content = data.content
     @createdBy = data.createdBy
     @createdAt = data.createdAt
-
-    @canRender_ = !!(@content and @createdBy and @createdAt)
-  render: ($parent) ->
-    if @canRender_
-      content = $("<span class='content'>#{@content}</span>")
-      @timeElm_ = $("<span class='time'>#{@createdAt}</span>")
+    @liked = data.liked
+    @canRender = !!(@id and @content and @createdBy and @createdAt and @liked)
+    console.log @canRender
+    if @canRender
       className = 'word'
-      @element_ = $("<div class='#{className}'></div>").append(content).append(@$timeElm_)
-      $parent.append(@element_)
+      @element = $("<div class='#{className}'></div>")
+  render: () ->
+    if @canRender
+      @element.empty()
+      content = $("<span class='content'>#{@content}</span>")
+
+      text = ''
+      text += '6' for i in @liked
+      likedElm = $("<span class='liked i'>#{text}</span>")
+      
+      @element
+        .append(content)
+        .append(likedElm)
+
+      userId = _.getUserId()
+      if userId isnt @createdBy and not _.include(@liked, userId)
+        likeButtonElm = $("<span class='like i'>6</span>")
+          .bind 'click', @sendLike
+        @element.append(likeButtonElm)
+
+      if @showCreatedAt
+        text = ' <-' + _.niceDate(@createdAt, 'en')
+        createdAt = $("<span class='createdat'>#{text}</span>")
+        @element.append(createdAt)
+
+  sendLike: (e) =>
+    console.log 'send like'
+    socket = _.getSocket()
+    if socket
+      socket.emit 'like',
+        wordId: @id
+        userId: _.getUserId()
   dispose: () ->
-    @element_.unbind()
-    @element_.remove()
+    @element.unbind()
+    @element.remove()
     for prop of @
       @[prop] = null
 
@@ -101,7 +131,7 @@ class Word
  Singleton class for showing messages.
 ###
 class Message
-  element_: null
+  element: null
   messageElm_: null
   importantMessageElm_: null
 
@@ -109,7 +139,7 @@ class Message
     importantMessageTimer = null
     messageTimer = null
 
-    @element_ = $(containerSelector)
+    @element = $(containerSelector)
 
     # important message
     onDocMouseMove = (e) ->
@@ -148,7 +178,7 @@ class Message
       .bind 'click', (e) ->
         $(this).trigger('hide')
 
-    @element_
+    @element
       .append(@importantMessageElm_)
       .append(@messageElm_)
 

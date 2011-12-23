@@ -25,7 +25,7 @@ WordSchema = new mongoose.Schema(
   content: String
   createdBy: String
   createdAt: Date
-  nice: {type: Number, default: 0}
+  liked: Array
 )
 mongoose.model('Words', WordSchema)
 mongoose.connect('mongodb://localhost/lastFirst')
@@ -172,60 +172,74 @@ updateWords = (socket) ->
 # user.user_id
 # user.socket
 
-# user that has id (validated).
-users = {}
-
-penaltyUserIds = []
-setPenaltyUser = (user) ->
-  penaltyUserIds.push(user.id)
-  _.delay () ->
-    penaltyUserIds = _.without(penaltyUserIds, user.id)
-    user = users[user.id]
-    if user
-      user.socket.emit 'release penalty',
-        message: 'Now you can post.'
-  , 60 * 60 * 1000
-# need above to manage
-# - validated users
-# - penalty users
 
 ###
  Singleton class for managing users.
 ###
-# class Users
-#   constructor: (@id, @token) ->
-#   users_: []
-#   # @param {User} user
-#   add: (user) ->
-#     @users_.push(user)
-#   remove: (id) ->
-#     _.find @users_, (user) ->
-#       if user.id is id
-#         @users_[_i].splice()
-#         return true
-#   # @param {String} idOrToken
-#   # @return {Boolean}
-#   has: (idOrToken) ->
-#     _.find @users_, (user) ->
-#       user.id is idOrToken or user.token is idOrToken
-# users = new Users()
+class Users
+  users_: {}  # only validated users are here.
+  penaltyUserIds_: []
+
+
+  constructor: () ->
+  # @param {User} user
+  add: (user) ->
+    if user.id
+      @users_[user.id] = user
+  remove: (id) ->
+    delete @users_[id]
+  has: (id) ->
+    !!@users_[id]
+  setPenaltyUser: (id) ->
+    @penaltyUserIds_.push(id)
+    _.delay () =>
+      @penaltyUserIds_ = _.without(@penaltyUserIds_, id)
+      user = @users_[id]
+      if user
+        user.socket.emit 'release penalty',
+          message: 'Now you can post.'
+    , 60 * 60 * 1000
+  isPenaltyUser: (id) ->
+    _.include(@penaltyUserIds_, id)
+users = new Users()
+
+
+# user that has id (validated).
+#users = {}
+
+#penaltyUserIds = []
+# need above to manage
+# - validated users
+# - penalty users
+
+
+
+
+
+
+
+
+
+
+
+
   
 io.sockets.on 'connection', (socket) ->
   user = new User(socket)
-  updateWords(socket)
   socket.on 'got token', (data) ->
     token = data.token
     user.setToken(token)
     user.validate () ->
-      users[user.id] = user
-      if _.include(penaltyUserIds, user.id)
+      users.add(user)
+      updateWords(socket)
+      if users.isPenaltyUser(user.id)
         socket.emit 'got penalty',
           message: 'ん! you can\'t post for a while.'
   socket.on 'post word', (post) ->
     if not user.isValid()
       socket.emit 'error message',
         message: 'you bad boy.'
-    if _.include(penaltyUserIds, user.id)
+    if users.isPenaltyUser(user.id)
       socket.emit 'error message',
         message: 'ん! you can\'t post for a while.'
     else if postLocked
@@ -239,7 +253,7 @@ io.sockets.on 'connection', (socket) ->
         message: 'I\'m not sure it\'s being Last and First.'
     else if _.isEndsN(post.content)
       # user.gotPenalty()
-      setPenaltyUser(user)
+      users.setPenaltyUser(user.id)
       word1 = new Word(post)
       word1.save () ->
         word2 = new Word(getInitialWord())
@@ -256,9 +270,23 @@ io.sockets.on 'connection', (socket) ->
           socket.emit 'posted successfully', post
           updateWords(io.sockets)
 
+  socket.on 'like', (data) ->
+    userId = data.userId
+    wordId = data.wordId
+    if users.has(data.userId)
+      Words.findById wordId, (err, word) ->
+        unless err
+          liked = word.liked
+          if _.include(liked, userId)
+            socket.emit 'error message',
+              message: 'you bad boy.'
+          else
+            word.liked.push(userId)
+            Words.update {_id: wordId}, {liked: liked}, null, () ->
+              io.sockets.emit 'update like', word
+    
   socket.on 'disconnect', () ->
-    if users[user.id]
-      delete users[user.id]
+    users.remove(user.id)
     
     
     

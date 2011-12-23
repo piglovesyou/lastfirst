@@ -36,6 +36,8 @@ _.mixin
         token: token
     else
       # show error
+  getSocket: () ->
+    socket
 
 
 
@@ -90,7 +92,6 @@ $(->
 
     if id and content and _.isValidWord(content)
       lastDoc = words.getLastWord()
-      console.log 'lastDoc', lastDoc, 'last doc'
       if id is lastDoc.createdBy
         message.show('It\'s not your turn.')
         _.disableForm(false)
@@ -180,9 +181,9 @@ socketInit = () ->
   socket.on 'update', (docs) ->
     words.empty()
     for doc in docs
-      word = new Word(doc)
+      word = new Word(doc, _i < 2)
+      word.render()
       words.push(word)
-    words.renderWords()
 
   socket.on 'need login', () ->
     message.show('Expired. Need another login.')
@@ -191,7 +192,6 @@ socketInit = () ->
 
   socket.on 'validated nicely!', (data) ->
     id = data.userId
-    console.log id
     _.setUserId(id)
     _.setUserIdToHiddenInput(id)
     message.show('Authorized fine.')
@@ -214,4 +214,13 @@ socketInit = () ->
   socket.on 'release penalty', (data) ->
     message.show(data.message)
     _.disableForm(false)
+
+  socket.on 'update like', (data) ->
+    word = words.get(data._id)
+    if word
+      word.liked = data.liked
+      word.render()
+      if word.createdBy is _.getUserId()
+        message.showImportant('Somebody liked your post, "' + word.content + '"')
+    
 
