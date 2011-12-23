@@ -89,7 +89,9 @@ class Word
   render: () ->
     if @canRender
       @element.empty()
-      content = $("<span class='content'>#{@content}</span>")
+      text = @content
+      text += '*' if _.isEndsN(@content)
+      content = $("<span class='content' title='#{@createdAt}'>#{text}</span>")
 
       text = ''
       text += '6' for i in @liked

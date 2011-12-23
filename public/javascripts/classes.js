@@ -95,7 +95,11 @@
       var content, createdAt, i, likeButtonElm, likedElm, text, userId, _i, _len, _ref;
       if (this.canRender) {
         this.element.empty();
-        content = $("<span class='content'>" + this.content + "</span>");
+        text = this.content;
+        if (_.isEndsN(this.content)) {
+          text += '*';
+        }
+        content = $("<span class='content' title='" + this.createdAt + "'>" + text + "</span>");
         text = '';
         _ref = this.liked;
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
