@@ -85,7 +85,6 @@
       this.createdAt = data.createdAt;
       this.liked = data.liked;
       this.canRender = !!(this.id && this.content && this.createdBy && this.createdAt && this.liked);
-      console.log(this.canRender);
       if (this.canRender) {
         className = 'word';
         this.element = $("<div class='" + className + "'></div>");
@@ -122,7 +121,6 @@
     };
     Word.prototype.sendLike = function(e) {
       var socket;
-      console.log('send like');
       socket = _.getSocket();
       if (socket) {
         return socket.emit('like', {

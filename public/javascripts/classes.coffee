@@ -82,7 +82,6 @@ class Word
     @createdAt = data.createdAt
     @liked = data.liked
     @canRender = !!(@id and @content and @createdBy and @createdAt and @liked)
-    console.log @canRender
     if @canRender
       className = 'word'
       @element = $("<div class='#{className}'></div>")
@@ -113,7 +112,6 @@ class Word
         @element.append(createdAt)
 
   sendLike: (e) =>
-    console.log 'send like'
     socket = _.getSocket()
     if socket
       socket.emit 'like',
