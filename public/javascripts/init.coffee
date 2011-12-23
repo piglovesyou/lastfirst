@@ -181,7 +181,7 @@ socketInit = () ->
   socket.on 'update', (docs) ->
     words.empty()
     for doc in docs
-      word = new Word(doc, _i < 2)
+      word = new Word(doc, _i < 2, _i is 0)
       word.render()
       words.push(word)
 

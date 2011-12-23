@@ -75,7 +75,7 @@ class Word
     @element
   canRender: false
 
-  constructor: (data, @showCreatedAt) ->
+  constructor: (data, @showCreatedAt, @lastPost) ->
     @id = data._id
     @content = data.content
     @createdBy = data.createdBy
@@ -88,6 +88,9 @@ class Word
   render: () ->
     if @canRender
       @element.empty()
+      text = ''
+      userId = _.getUserId()
+
       text = @content
       text += '*' if _.isEndsN(@content)
       content = $("<span class='content' title='#{@createdAt}'>#{text}</span>")
@@ -100,7 +103,14 @@ class Word
         .append(content)
         .append(likedElm)
 
-      userId = _.getUserId()
+      if @lastPost
+        lastPostElm = $('<span class="last-post">&lt-last post</span>')
+        @element.append(lastPostElm)
+
+      if userId is @createdBy
+        yourPostElm = $('<span class="your-post">&lt-your post!</span>')
+        @element.append(yourPostElm)
+
       if userId isnt @createdBy and not _.include(@liked, userId)
         likeButtonElm = $("<span class='like i'>6</span>")
           .bind 'click', @sendLike

@@ -175,7 +175,7 @@
       _results = [];
       for (_i = 0, _len = docs.length; _i < _len; _i++) {
         doc = docs[_i];
-        word = new Word(doc, _i < 2);
+        word = new Word(doc, _i < 2, _i === 0);
         word.render();
         _results.push(words.push(word));
       }

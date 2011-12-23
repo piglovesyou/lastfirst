@@ -75,9 +75,10 @@
       return this.element;
     };
     Word.prototype.canRender = false;
-    function Word(data, showCreatedAt) {
+    function Word(data, showCreatedAt, lastPost) {
       var className;
       this.showCreatedAt = showCreatedAt;
+      this.lastPost = lastPost;
       this.sendLike = __bind(this.sendLike, this);
       this.id = data._id;
       this.content = data.content;
@@ -91,9 +92,11 @@
       }
     }
     Word.prototype.render = function() {
-      var content, createdAt, i, likeButtonElm, likedElm, text, userId, _i, _len, _ref;
+      var content, createdAt, i, lastPostElm, likeButtonElm, likedElm, text, userId, yourPostElm, _i, _len, _ref;
       if (this.canRender) {
         this.element.empty();
+        text = '';
+        userId = _.getUserId();
         text = this.content;
         if (_.isEndsN(this.content)) {
           text += '*';
@@ -107,7 +110,14 @@
         }
         likedElm = $("<span class='liked i'>" + text + "</span>");
         this.element.append(content).append(likedElm);
-        userId = _.getUserId();
+        if (this.lastPost) {
+          lastPostElm = $('<span class="last-post">&lt-last post</span>');
+          this.element.append(lastPostElm);
+        }
+        if (userId === this.createdBy) {
+          yourPostElm = $('<span class="your-post">&lt-your post!</span>');
+          this.element.append(yourPostElm);
+        }
         if (userId !== this.createdBy && !_.include(this.liked, userId)) {
           likeButtonElm = $("<span class='like i'>6</span>").bind('click', this.sendLike);
           this.element.append(likeButtonElm);
