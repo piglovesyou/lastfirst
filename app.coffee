@@ -27,9 +27,9 @@ WordSchema = new mongoose.Schema(
   createdAt: Date
   nice: {type: Number, default: 0}
 )
-mongoose.model('WordModel', WordSchema)
-mongoose.connect('mongodb://localhost/lastFirstDB')
-WordModel = mongoose.model('WordModel')
+mongoose.model('Words', WordSchema)
+mongoose.connect('mongodb://localhost/lastFirst')
+Words = mongoose.model('Words')
 
 findOptions =
   sort: [['createdAt', 'descending']]
@@ -92,8 +92,7 @@ class User
       res.on 'data', (data) =>
         json = JSON.parse(data.toString())
         if !json.error
-          id  = json.user_id
-          @id = md5(id)
+          @id = md5(json.user_id)
           @isValid_ = true
           @socket.emit 'validated nicely!',
             userId: @id
@@ -107,30 +106,31 @@ class User
 
 
 
-
 ###
  Class for word.
+ @extends Word_
 ###
 class Word
   content: null
-  lastLetter: null
+  model_: null
   createdBy: null
   createdAt: null
-  model_: null
+  lastLetter: null
   isSaved: false
 
   constructor: (post) ->
     if _.keys(post).length is 2 and
         post.content and post.createdBy
-      @model_ = new WordModel()
+      @model_ = new Words()
       @model_.createdAt = new Date()
       @model_ = _.extend(@model_, post)
       @lastLetter = _.last(post)
-    else
   save: (fn) ->
     if @model_
-      @model_.save(fn)
-      @isSaved = true
+      @model_.save () ->
+        @isSaved = true
+        fn()
+
     
 getInitialWord = () ->
   obj =
@@ -138,12 +138,11 @@ getInitialWord = () ->
     createdBy: 'initial post by server'
 
 saveInitialWord = (fn) ->
-  word = new WordModel()
-  word = _.extend word, getInitialWord()
+  word = new Word(getInitialWord())
   word.save(fn)
 
 findRecentWords = (fn) ->
-  WordModel.find {},[],findOptions,fn
+  Words.find {},[],findOptions,fn
 
 lastDoc_ = {}
 getLastDoc = () ->

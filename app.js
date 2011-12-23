@@ -2,7 +2,7 @@
   /*
    Include libraries.
   */
-  var SECRET, User, Word, WordModel, WordSchema, app, crypto, express, findOptions, findRecentWords, getInitialWord, getLastDoc, https, io, lastDoc_, md5, mongoose, oathQuery, oathScopes, oathUrl, penaltyUserIds, querystring, saveInitialWord, setPenaltyUser, updateWords, updateWords_, url, users, _;
+  var SECRET, User, Word, WordSchema, Words, app, crypto, express, findOptions, findRecentWords, getInitialWord, getLastDoc, https, io, lastDoc_, md5, mongoose, oathQuery, oathScopes, oathUrl, penaltyUserIds, querystring, saveInitialWord, setPenaltyUser, updateWords, updateWords_, url, users, _;
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
   SECRET = require('secret-strings').LAST_FIRST;
   _ = require("underscore");
@@ -28,9 +28,9 @@
       "default": 0
     }
   });
-  mongoose.model('WordModel', WordSchema);
-  mongoose.connect('mongodb://localhost/lastFirstDB');
-  WordModel = mongoose.model('WordModel');
+  mongoose.model('Words', WordSchema);
+  mongoose.connect('mongodb://localhost/lastFirst');
+  Words = mongoose.model('Words');
   findOptions = {
     sort: [['createdAt', 'descending']],
     limit: 5
@@ -88,11 +88,10 @@
       };
       return https.get(options, __bind(function(res) {
         return res.on('data', __bind(function(data) {
-          var id, json;
+          var json;
           json = JSON.parse(data.toString());
           if (!json.error) {
-            id = json.user_id;
-            this.id = md5(id);
+            this.id = md5(json.user_id);
             this.isValid_ = true;
             this.socket.emit('validated nicely!', {
               userId: this.id
@@ -109,28 +108,29 @@
   })();
   /*
    Class for word.
+   @extends Word_
   */
   Word = (function() {
     Word.prototype.content = null;
-    Word.prototype.lastLetter = null;
+    Word.prototype.model_ = null;
     Word.prototype.createdBy = null;
     Word.prototype.createdAt = null;
-    Word.prototype.model_ = null;
+    Word.prototype.lastLetter = null;
     Word.prototype.isSaved = false;
     function Word(post) {
       if (_.keys(post).length === 2 && post.content && post.createdBy) {
-        this.model_ = new WordModel();
+        this.model_ = new Words();
         this.model_.createdAt = new Date();
         this.model_ = _.extend(this.model_, post);
         this.lastLetter = _.last(post);
-      } else {
-
       }
     }
     Word.prototype.save = function(fn) {
       if (this.model_) {
-        this.model_.save(fn);
-        return this.isSaved = true;
+        return this.model_.save(function() {
+          this.isSaved = true;
+          return fn();
+        });
       }
     };
     return Word;
@@ -144,12 +144,11 @@
   };
   saveInitialWord = function(fn) {
     var word;
-    word = new WordModel();
-    word = _.extend(word, getInitialWord());
+    word = new Word(getInitialWord());
     return word.save(fn);
   };
   findRecentWords = function(fn) {
-    return WordModel.find({}, [], findOptions, fn);
+    return Words.find({}, [], findOptions, fn);
   };
   lastDoc_ = {};
   getLastDoc = function() {
