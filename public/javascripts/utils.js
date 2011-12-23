@@ -8,9 +8,11 @@
      underscore.js
      jquery-1.7.js
   */
-  var cn, currentDocs_, getFirstLetter_, getLastLetter_, userId_;
+  var getFirstLetter_, getLastLetter_;
   var __slice = Array.prototype.slice;
-  cn = console.log;
+  window.cn = function(s) {
+    return console.log(s);
+  };
   /*
    Utils common in server and client.
   */
@@ -216,45 +218,5 @@
         }
       };
     })()
-  });
-  /*
-   Global accessor to the base info
-  */
-  currentDocs_ = [];
-  userId_ = '';
-  _.mixin({
-    setToken: function(token, expires) {
-      return _.setCookies({
-        token: token,
-        expires: expires
-      });
-    },
-    getToken: function() {
-      var cookies;
-      cookies = _.getCookies();
-      return cookies.token;
-    },
-    setUserId: function(userId) {
-      return userId_ = userId;
-    },
-    getUserId: function() {
-      return userId_;
-    },
-    parseToken: function(hashStr) {
-      var expires, params, token;
-      hashStr = hashStr.replace(/^#/, '');
-      params = _.parseParamString(hashStr);
-      token = params.access_token || '';
-      expires = params.expires_in;
-      if (token && expires) {
-        expires = new Date(_.now() + expires * 1000).toString();
-        _.setToken(token, expires);
-        return socket.emit('got token', {
-          token: token
-        });
-      } else {
-
-      }
-    }
   });
 }).call(this);

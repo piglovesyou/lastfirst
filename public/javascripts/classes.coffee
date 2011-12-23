@@ -1,5 +1,13 @@
 
+###
+ Classes used in LastFirstApp
+ http://lastfirst.stakam.net/
 
+ Depands on:
+   socket.io.js
+   underscore.js
+   jquery-1.7.js
+###
 
 exports = window
 
@@ -87,6 +95,68 @@ class Word
     for prop of @
       @[prop] = null
 
+
+
+
+
+###
+ Singleton class for showing messages.
+###
+class Message
+  element_: null
+  messageElm_: null
+  importantMessageElm_: null
+
+  constructor: (containerSelector) ->
+    importantMessageTimer = null
+    messageTimer = null
+
+    @element_ = $(containerSelector)
+
+    # important message
+    onDocMouseMove = (e) ->
+      $that = e.data.$that
+      $(window.document).unbind 'mousemove', onDocMouseMove
+      importantMessageTimer = _.delay () ->
+        $that.trigger('hide')
+      , 3 * 1000
+    @importantMessageElm_ = $('<div class="msg important"></div>')
+      .hide()
+      .bind 'hide', (e) ->
+        window.clearTimeout(importantMessageTimer)
+        $(window.document).unbind 'mousemove', onDocMouseMove
+        $(this).fadeOut()
+      .bind 'show', (e, msg) ->
+        window.clearTimeout(importantMessageTimer)
+        $that = $(this).text(msg)
+        $that.fadeIn()
+        $(window.document).bind 'mousemove', {$that: $that}, onDocMouseMove
+      .bind 'click', (e) ->
+        $(this).trigger('hide')
+
+    # regular message
+    @messageElm_ = $('<div class="msg"></div>')
+      .hide()
+      .bind 'hide', (e) ->
+        window.clearTimeout(messageTimer)
+        $(this).fadeOut()
+      .bind 'show', (e, msg) ->
+        window.clearTimeout(messageTimer)
+        $that = $(this).text(msg)
+        $that.fadeIn()
+        messageTimer = _.delay () ->
+          $that.trigger('hide')
+        , 3 * 1000
+      .bind 'click', (e) ->
+        $(this).trigger('hide')
+
+    @element_
+      .append(@importantMessageElm_)
+      .append(@messageElm_)
+  show: (str) ->
+    @messageElm_.trigger('show', str)
+  showImportant: (str) ->
+    @importantMessageElm_.trigger('show', str)
       
     
     
@@ -94,4 +164,5 @@ class Word
 
 exports.WordList = WordList
 exports.Word = Word
+exports.Message = Message
 

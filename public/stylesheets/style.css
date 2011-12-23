@@ -18,9 +18,11 @@ a {
 
 #msg-box {
   position: fixed;
-  display: inline-block;
   top: 2px;
   right: 2px;
+}
+#msg-box .msg {
+  display: inline-block;
   padding: 4px 10px;
   border-color: #ccc #999 #999 #ccc;
   border-style: solid;
@@ -29,9 +31,25 @@ a {
   box-shadow: 2px 2px 4px rgba(0,0,0,.2);
   cursor: pointer;
 }
-#msg-box:hover {
+#msg-box .msg:hover {
   background-color: #fff;
 }
+#msg-box .important {
+  border: 1px outset #FFCCCC;
+  background-color: #f33;
+  color: #fff;
+}
+#msg-box .important:hover {
+  background-color: #f99;
+  color: #fff;
+}
+
+
+
+
+
+
+
 
 #post-form #indicator {
   vertical-align: middle;

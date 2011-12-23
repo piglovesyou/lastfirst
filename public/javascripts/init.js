@@ -1,12 +1,56 @@
 (function() {
-  var $indicator_, $inputs_, $msgBox_, cn, delayTimerId_, postLocked_, renderWords, socket, words;
-  cn = console.log;
+  /*
+   Global accessor to the base info
+  */
+  var $indicator_, $inputs_, $msgBox_, currentDocs_, delayTimerId_, message, postLocked_, renderWords, socket, socketInit, userId_, words;
+  currentDocs_ = [];
+  userId_ = '';
+  socket = null;
+  words = null;
+  message = null;
+  _.mixin({
+    setToken: function(token, expires) {
+      return _.setCookies({
+        token: token,
+        expires: expires
+      });
+    },
+    getToken: function() {
+      var cookies;
+      cookies = _.getCookies();
+      return cookies.token;
+    },
+    setUserId: function(userId) {
+      return userId_ = userId;
+    },
+    getUserId: function() {
+      return userId_;
+    },
+    parseToken: function(hashStr) {
+      var expires, params, token;
+      hashStr = hashStr.replace(/^#/, '');
+      params = _.parseParamString(hashStr);
+      token = params.access_token || '';
+      expires = params.expires_in;
+      if (token && expires) {
+        expires = new Date(_.now() + expires * 1000).toString();
+        _.setToken(token, expires);
+        return socket.emit('got token', {
+          token: token
+        });
+      } else {
+
+      }
+    }
+  });
   /*
    Initialize a page.
   */
-  words = null;
   $(function() {
     var $form, token;
+    message = new Message('#msg-box');
+    words = new WordList('#word-list');
+    socketInit();
     token = _.getToken();
     if (token) {
       socket.emit('got token', {
@@ -15,7 +59,6 @@
     } else {
       _.showLoginLink();
     }
-    words = new WordList('#word-list');
     $form = $('#post');
     return $form.submit(function(e) {
       var content, id, lastDoc;
@@ -31,7 +74,7 @@
       if (id && content && _.isValidWord(content)) {
         lastDoc = words.getLastWord();
         if (id === lastDoc.createdBy) {
-          _.showMessage('It\'s not your turn.');
+          message.show('It\'s not your turn.');
           return _.disableForm(false);
         } else if (_.isValidLastFirst(lastDoc.content, content)) {
           return socket.emit('post word', {
@@ -39,25 +82,16 @@
             createdBy: id
           });
         } else {
-          _.showMessage('I\'m not sure it\'s being Last and First.');
+          message.show('I\'m not sure it\'s being Last and First.');
           return _.disableForm(false);
         }
       } else {
-        _.showMessage('Please enter a word in HIRAGANA.');
+        message.show('Please enter a word in HIRAGANA.');
         return _.disableForm(false);
       }
     });
   });
-  renderWords = function(docs) {
-    var doc, word, _i, _len;
-    words.empty();
-    for (_i = 0, _len = docs.length; _i < _len; _i++) {
-      doc = docs[_i];
-      word = new Word(doc);
-      words.push(word);
-    }
-    return words.renderWords();
-  };
+  renderWords = function(docs) {};
   $msgBox_ = null;
   postLocked_ = false;
   $indicator_ = null;
@@ -131,39 +165,48 @@
   /*
    Sockets init
   */
-  socket = io.connect(location.protocol + '//' + location.host);
-  socket.on('update', function(docs) {
-    return renderWords(docs);
-  });
-  socket.on('need login', function() {
-    _.showMessage('Expired. Need another login.');
-    return _.showLoginLink();
-  });
-  socket.on('validated nicely!', function(data) {
-    var id;
-    id = data.userId;
-    console.log(id);
-    _.setUserId(id);
-    _.setUserIdToHiddenInput(id);
-    _.showMessage('Authorized fine.');
-    _.hideLoginLink();
-    return _.showPostForm();
-  });
-  socket.on('error message', function(data) {
-    _.showMessage(data.message);
-    return _.disableForm(false);
-  });
-  socket.on('posted successfully', function(post) {
-    _.showMessage('"' + post.content + '" posted!');
-    return _.disableForm(false);
-  });
-  socket.on('got penalty', function(data) {
-    _.showMessage(data.message);
-    _.disableForm(true);
-    return _.showIndicator(false);
-  });
-  socket.on('release penalty', function(data) {
-    _.showMessage(data.message);
-    return _.disableForm(false);
-  });
+  socketInit = function() {
+    socket = io.connect(location.protocol + '//' + location.host);
+    socket.on('update', function(docs) {
+      var doc, word, _i, _len;
+      words.empty();
+      for (_i = 0, _len = docs.length; _i < _len; _i++) {
+        doc = docs[_i];
+        word = new Word(doc);
+        words.push(word);
+      }
+      return words.renderWords();
+    });
+    socket.on('need login', function() {
+      message.show('Expired. Need another login.');
+      return _.showLoginLink();
+    });
+    socket.on('validated nicely!', function(data) {
+      var id;
+      id = data.userId;
+      console.log(id);
+      _.setUserId(id);
+      _.setUserIdToHiddenInput(id);
+      message.show('Authorized fine.');
+      _.hideLoginLink();
+      return _.showPostForm();
+    });
+    socket.on('error message', function(data) {
+      message.show(data.message);
+      return _.disableForm(false);
+    });
+    socket.on('posted successfully', function(post) {
+      message.show('"' + post.content + '" posted!');
+      return _.disableForm(false);
+    });
+    socket.on('got penalty', function(data) {
+      message.show(data.message);
+      _.disableForm(true);
+      return _.showIndicator(false);
+    });
+    return socket.on('release penalty', function(data) {
+      message.show(data.message);
+      return _.disableForm(false);
+    });
+  };
 }).call(this);

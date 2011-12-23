@@ -1,5 +1,57 @@
 
-cn = console.log
+
+
+
+
+###
+ Global accessor to the base info
+###
+currentDocs_ = []
+userId_ = ''
+socket = null
+words = null  # @type {WordList}
+message = null  # @type {Message}
+_.mixin
+  setToken: (token, expires) ->
+    _.setCookies
+      token: token
+      expires: expires
+  getToken: () ->
+    cookies = _.getCookies()
+    cookies.token
+  setUserId: (userId) ->
+    userId_ = userId
+  getUserId: () ->
+    userId_
+  # Called from oauth window.
+  parseToken: (hashStr) ->
+    hashStr = hashStr.replace(/^#/,'')
+    params = _.parseParamString(hashStr)
+    token = params.access_token or ''
+    expires = params.expires_in
+    if token and expires
+      expires = new Date(_.now() + expires * 1000).toString()
+      _.setToken(token, expires)
+      socket.emit 'got token',
+        token: token
+    else
+      # show error
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ###
  Initialize a page.
@@ -7,12 +59,18 @@ cn = console.log
 
 # Variables.
 
-# @type {WordList}
-words = null
 
 
 # DOM init.
 $(->
+
+  # create instances
+  message = new Message('#msg-box')
+  words = new WordList('#word-list')
+
+
+  socketInit()
+
   token = _.getToken()
   if token
     # verify the token
@@ -22,8 +80,6 @@ $(->
     # first login.
     _.showLoginLink()
 
-  # create container
-  words = new WordList('#word-list')
   #$list = $list_ or ($list_ = $())
   $form = $('#post')
   $form.submit (e) ->
@@ -36,20 +92,21 @@ $(->
     if id and content and _.isValidWord(content)
       lastDoc = words.getLastWord()
       if id is lastDoc.createdBy
-        _.showMessage('It\'s not your turn.')
+        message.show('It\'s not your turn.')
         _.disableForm(false)
       else if _.isValidLastFirst(lastDoc.content, content)
         socket.emit 'post word',
           content: content
           createdBy: id
       else
-        _.showMessage('I\'m not sure it\'s being Last and First.')
+        message.show('I\'m not sure it\'s being Last and First.')
         _.disableForm(false)
     else
-      _.showMessage('Please enter a word in HIRAGANA.')
+      message.show('Please enter a word in HIRAGANA.')
       _.disableForm(false)
   # for dev
   # $("#login-link > a").click()
+
 )
 
 
@@ -57,11 +114,6 @@ $(->
 renderWords = (docs) ->
   #$list = $list_ or ($list_ = $('#word-list'))
   #$list.empty()
-  words.empty()
-  for doc in docs
-    word = new Word(doc)
-    words.push(word)
-  words.renderWords()
 
 
 
@@ -128,37 +180,43 @@ _.mixin
  Sockets init
 ###
 
-socket = io.connect(location.protocol + '//' + location.host)
-socket.on 'update', (docs) ->
-  renderWords(docs)
+socketInit = () ->
+  socket = io.connect(location.protocol + '//' + location.host)
+  socket.on 'update', (docs) ->
+    words.empty()
+    for doc in docs
+      word = new Word(doc)
+      words.push(word)
+    words.renderWords()
 
-socket.on 'need login', () ->
-  _.showMessage('Expired. Need another login.')
-  _.showLoginLink()
+  socket.on 'need login', () ->
+    message.show('Expired. Need another login.')
+    #message.show('Expired. Need another login.')
+    _.showLoginLink()
 
-socket.on 'validated nicely!', (data) ->
-  id = data.userId
-  console.log id
-  _.setUserId(id)
-  _.setUserIdToHiddenInput(id)
-  _.showMessage('Authorized fine.')
-  _.hideLoginLink()
-  _.showPostForm()
+  socket.on 'validated nicely!', (data) ->
+    id = data.userId
+    console.log id
+    _.setUserId(id)
+    _.setUserIdToHiddenInput(id)
+    message.show('Authorized fine.')
+    _.hideLoginLink()
+    _.showPostForm()
 
-socket.on 'error message', (data) ->
-  _.showMessage(data.message)
-  _.disableForm(false)
+  socket.on 'error message', (data) ->
+    message.show(data.message)
+    _.disableForm(false)
 
-socket.on 'posted successfully', (post) ->
-  _.showMessage('"' + post.content + '" posted!')
-  _.disableForm(false)
+  socket.on 'posted successfully', (post) ->
+    message.show('"' + post.content + '" posted!')
+    _.disableForm(false)
 
-socket.on 'got penalty', (data) ->
-  _.showMessage(data.message)
-  _.disableForm(true)
-  _.showIndicator(false)
+  socket.on 'got penalty', (data) ->
+    message.show(data.message)
+    _.disableForm(true)
+    _.showIndicator(false)
 
-socket.on 'release penalty', (data) ->
-  _.showMessage(data.message)
-  _.disableForm(false)
+  socket.on 'release penalty', (data) ->
+    message.show(data.message)
+    _.disableForm(false)
 

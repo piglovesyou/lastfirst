@@ -9,7 +9,9 @@
    jquery-1.7.js
 ###
 
-cn = console.log
+window.cn = (s) ->
+  console.log(s)
+
 
 ###
  Utils common in server and client.
@@ -174,36 +176,6 @@ _.mixin
 
 
 
-###
- Global accessor to the base info
-###
-currentDocs_ = []
-userId_ = ''
-_.mixin
-  setToken: (token, expires) ->
-    _.setCookies
-      token: token
-      expires: expires
-  getToken: () ->
-    cookies = _.getCookies()
-    cookies.token
-  setUserId: (userId) ->
-    userId_ = userId
-  getUserId: () ->
-    userId_
-  # Called from oauth window.
-  parseToken: (hashStr) ->
-    hashStr = hashStr.replace(/^#/,'')
-    params = _.parseParamString(hashStr)
-    token = params.access_token or ''
-    expires = params.expires_in
-    if token and expires
-      expires = new Date(_.now() + expires * 1000).toString()
-      _.setToken(token, expires)
-      socket.emit 'got token',
-        token: token
-    else
-      # show error
 
 
 

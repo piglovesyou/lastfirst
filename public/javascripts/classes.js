@@ -1,5 +1,14 @@
 (function() {
-  var Word, WordList, exports;
+  /*
+   Classes used in LastFirstApp
+   http://lastfirst.stakam.net/
+  
+   Depands on:
+     socket.io.js
+     underscore.js
+     jquery-1.7.js
+  */
+  var Message, Word, WordList, exports;
   exports = window;
   /*
    Singleton class for words.
@@ -96,6 +105,66 @@
     };
     return Word;
   })();
+  /*
+   Singleton class for showing messages.
+  */
+  Message = (function() {
+    Message.prototype.element_ = null;
+    Message.prototype.messageElm_ = null;
+    Message.prototype.importantMessageElm_ = null;
+    function Message(containerSelector) {
+      var importantMessageTimer, messageTimer, onDocMouseMove;
+      importantMessageTimer = null;
+      messageTimer = null;
+      this.element_ = $(containerSelector);
+      onDocMouseMove = function(e) {
+        var $that;
+        $that = e.data.$that;
+        $(window.document).unbind('mousemove', onDocMouseMove);
+        return importantMessageTimer = _.delay(function() {
+          return $that.trigger('hide');
+        }, 3 * 1000);
+      };
+      this.importantMessageElm_ = $('<div class="msg important"></div>').hide().bind('hide', function(e) {
+        window.clearTimeout(importantMessageTimer);
+        $(window.document).unbind('mousemove', onDocMouseMove);
+        return $(this).fadeOut();
+      }).bind('show', function(e, msg) {
+        var $that;
+        window.clearTimeout(importantMessageTimer);
+        $that = $(this).text(msg);
+        $that.fadeIn();
+        return $(window.document).bind('mousemove', {
+          $that: $that
+        }, onDocMouseMove);
+      }).bind('click', function(e) {
+        return $(this).trigger('hide');
+      });
+      this.messageElm_ = $('<div class="msg"></div>').hide().bind('hide', function(e) {
+        window.clearTimeout(messageTimer);
+        return $(this).fadeOut();
+      }).bind('show', function(e, msg) {
+        var $that;
+        window.clearTimeout(messageTimer);
+        $that = $(this).text(msg);
+        $that.fadeIn();
+        return messageTimer = _.delay(function() {
+          return $that.trigger('hide');
+        }, 3 * 1000);
+      }).bind('click', function(e) {
+        return $(this).trigger('hide');
+      });
+      this.element_.append(this.importantMessageElm_).append(this.messageElm_);
+    }
+    Message.prototype.show = function(str) {
+      return this.messageElm_.trigger('show', str);
+    };
+    Message.prototype.showImportant = function(str) {
+      return this.importantMessageElm_.trigger('show', str);
+    };
+    return Message;
+  })();
   exports.WordList = WordList;
   exports.Word = Word;
+  exports.Message = Message;
 }).call(this);
