@@ -80,7 +80,6 @@ $(->
     # first login.
     _.showLoginLink()
 
-  #$list = $list_ or ($list_ = $())
   $form = $('#post')
   $form.submit (e) ->
     return if _.isLocked()
@@ -91,6 +90,7 @@ $(->
 
     if id and content and _.isValidWord(content)
       lastDoc = words.getLastWord()
+      console.log 'lastDoc', lastDoc, 'last doc'
       if id is lastDoc.createdBy
         message.show('It\'s not your turn.')
         _.disableForm(false)
@@ -111,17 +111,12 @@ $(->
 
 
 
-renderWords = (docs) ->
-  #$list = $list_ or ($list_ = $('#word-list'))
-  #$list.empty()
-
 
 
 
 
 
 # variables of DOM/jQuery manipulation
-#$list_ = null
 $msgBox_ = null
 postLocked_ = false
 $indicator_ = null

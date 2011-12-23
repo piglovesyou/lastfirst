@@ -2,7 +2,7 @@
   /*
    Global accessor to the base info
   */
-  var $indicator_, $inputs_, $msgBox_, currentDocs_, delayTimerId_, message, postLocked_, renderWords, socket, socketInit, userId_, words;
+  var $indicator_, $inputs_, $msgBox_, currentDocs_, delayTimerId_, message, postLocked_, socket, socketInit, userId_, words;
   currentDocs_ = [];
   userId_ = '';
   socket = null;
@@ -73,6 +73,7 @@
       }
       if (id && content && _.isValidWord(content)) {
         lastDoc = words.getLastWord();
+        console.log('lastDoc', lastDoc, 'last doc');
         if (id === lastDoc.createdBy) {
           message.show('It\'s not your turn.');
           return _.disableForm(false);
@@ -91,7 +92,6 @@
       }
     });
   });
-  renderWords = function(docs) {};
   $msgBox_ = null;
   postLocked_ = false;
   $indicator_ = null;

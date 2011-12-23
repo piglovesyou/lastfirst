@@ -74,29 +74,29 @@
    Class for a word.
   */
   Word = (function() {
-    var $element_, $timeElm_, canRender_;
-    $element_ = null;
-    $timeElm_ = null;
+    var canRender_, element_, timeElm_;
+    element_ = null;
+    timeElm_ = null;
     canRender_ = false;
     function Word(data) {
-      this.content_ = data.content;
-      this.createdBy_ = data.createdBy;
-      this.createdAt_ = data.createdAt;
-      this.canRender_ = !!(this.content_ && this.createdBy_ && this.createdAt_);
+      this.content = data.content;
+      this.createdBy = data.createdBy;
+      this.createdAt = data.createdAt;
+      this.canRender_ = !!(this.content && this.createdBy && this.createdAt);
     }
     Word.prototype.render = function($parent) {
-      var className, content, div;
+      var className, content;
       if (this.canRender_) {
-        content = $("<span class='content'>" + this.content_ + "</span>");
-        this.$timeElm_ = $("<span class='time'>" + this.createdAt_ + "</span>");
+        content = $("<span class='content'>" + this.content + "</span>");
+        this.timeElm_ = $("<span class='time'>" + this.createdAt + "</span>");
         className = 'word';
-        div = $("<div class='" + className + "'></div>").append(content).append(this.$timeElm_);
-        return $parent.append(div);
+        this.element_ = $("<div class='" + className + "'></div>").append(content).append(this.$timeElm_);
+        return $parent.append(this.element_);
       }
     };
     Word.prototype.dispose = function() {
       var prop, _results;
-      this.$element_.remove();
+      this.element_.remove();
       _results = [];
       for (prop in this) {
         _results.push(this[prop] = null);

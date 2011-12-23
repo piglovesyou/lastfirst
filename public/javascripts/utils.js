@@ -10,8 +10,8 @@
   */
   var getFirstLetter_, getLastLetter_;
   var __slice = Array.prototype.slice;
-  window.cn = function(s) {
-    return console.log(s);
+  window.cn = function(arg) {
+    return console.log.apply(this, arg);
   };
   /*
    Utils common in server and client.

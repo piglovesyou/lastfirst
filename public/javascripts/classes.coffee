@@ -32,7 +32,6 @@ exports = window
  Singleton class for words.
 ###
 class WordList
-  #wordIds_: []
   wordInstances_: []
   element_: null
   getElement: () ->
@@ -52,10 +51,8 @@ class WordList
       word.render(@element_)
 
   push: (word) ->
-    #@wordIds_.push(word.id)
     @wordInstances_.push(word)
   shift: (word) ->
-    #@wordIds_.shift(word.id)
     @wordInstances_.shift(word)
   pop: () ->
     word = @wordInstances_.pop()
@@ -73,25 +70,25 @@ class WordList
  Class for a word.
 ###
 class Word
-  $element_ = null
-  $timeElm_ = null
+  element_ = null
+  timeElm_ = null
   canRender_ = false
 
   constructor: (data) ->
-    @content_ = data.content
-    @createdBy_ = data.createdBy
-    @createdAt_ = data.createdAt
+    @content = data.content
+    @createdBy = data.createdBy
+    @createdAt = data.createdAt
 
-    @canRender_ = !!(@content_ and @createdBy_ and @createdAt_)
+    @canRender_ = !!(@content and @createdBy and @createdAt)
   render: ($parent) ->
     if @canRender_
-      content = $("<span class='content'>#{@content_}</span>")
-      @$timeElm_ = $("<span class='time'>#{@createdAt_}</span>")
+      content = $("<span class='content'>#{@content}</span>")
+      @timeElm_ = $("<span class='time'>#{@createdAt}</span>")
       className = 'word'
-      div = $("<div class='#{className}'></div>").append(content).append(@$timeElm_)
-      $parent.append(div)
+      @element_ = $("<div class='#{className}'></div>").append(content).append(@$timeElm_)
+      $parent.append(@element_)
   dispose: () ->
-    @$element_.remove()
+    @element_.remove()
     for prop of @
       @[prop] = null
 

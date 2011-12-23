@@ -9,8 +9,8 @@
    jquery-1.7.js
 ###
 
-window.cn = (s) ->
-  console.log(s)
+window.cn = (arg) ->
+  console.log.apply(@, arg)
 
 
 ###
