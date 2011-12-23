@@ -96,7 +96,6 @@ class User
           @isValid_ = true
           @socket.emit 'validated nicely!',
             userId: @id
-          #updateWords(@socket)
           fn()
         else
           @socket.emit 'need login'
@@ -226,6 +225,7 @@ users = new Users()
   
 io.sockets.on 'connection', (socket) ->
   user = new User(socket)
+  updateWords(socket)
   socket.on 'got token', (data) ->
     token = data.token
     user.setToken(token)

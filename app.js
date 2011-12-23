@@ -208,6 +208,7 @@
   io.sockets.on('connection', function(socket) {
     var user;
     user = new User(socket);
+    updateWords(socket);
     socket.on('got token', function(data) {
       var token;
       token = data.token;

@@ -12,22 +12,6 @@
 exports = window
 
 
-
-
-    # postfix = ''
-    # niceDate = _.niceDate(doc.createdAt)
-    # if _.isEndsN(doc.content)
-    #   postfix = '<span class="warn">*</span>'
-    # html = "<tr>"
-    # html += "<td title='#{doc.createdAt}'>#{doc.content}#{postfix} </td>"
-    # html += "<td>&lt;-last post </td>" if _i is 0
-    # html += "<td>&lt;-your post! </td>" if doc.createdBy is _.getUserId()
-    # html += "<td>#{niceDate}</td>" if _i < 2
-    # html += "</tr>"
-    # $list.append html
-
-
-
 ###
  Singleton class for words.
 ###
@@ -103,7 +87,7 @@ class Word
         .append(content)
         .append(likedElm)
 
-      if userId isnt @createdBy and not _.include(@liked, userId)
+      if userId and userId isnt @createdBy and not _.include(@liked, userId)
         likeButtonElm = $("<span class='like i' title='like it'>6</span>")
           .bind 'click', @sendLike
         @element.append(likeButtonElm)

@@ -110,7 +110,7 @@
         }
         likedElm = $("<span class='liked i'>" + text + "</span>");
         this.element.append(content).append(likedElm);
-        if (userId !== this.createdBy && !_.include(this.liked, userId)) {
+        if (userId && userId !== this.createdBy && !_.include(this.liked, userId)) {
           likeButtonElm = $("<span class='like i' title='like it'>6</span>").bind('click', this.sendLike);
           this.element.append(likeButtonElm);
         }
