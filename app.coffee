@@ -133,9 +133,10 @@ class Word
 
     
 getInitialWord = () ->
-  obj =
+  {
     content: 'しりとり'
     createdBy: 'initial post by server'
+  }
 
 saveInitialWord = (fn) ->
   word = new Word(getInitialWord())

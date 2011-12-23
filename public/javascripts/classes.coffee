@@ -88,6 +88,7 @@ class Word
       @element_ = $("<div class='#{className}'></div>").append(content).append(@$timeElm_)
       $parent.append(@element_)
   dispose: () ->
+    @element_.unbind()
     @element_.remove()
     for prop of @
       @[prop] = null
@@ -116,7 +117,7 @@ class Message
       $(window.document).unbind 'mousemove', onDocMouseMove
       importantMessageTimer = _.delay () ->
         $that.trigger('hide')
-      , 3 * 1000
+      , 7 * 1000
     @importantMessageElm_ = $('<div class="msg important"></div>')
       .hide()
       .bind 'hide', (e) ->
@@ -143,13 +144,14 @@ class Message
         $that.fadeIn()
         messageTimer = _.delay () ->
           $that.trigger('hide')
-        , 3 * 1000
+        , 7 * 1000
       .bind 'click', (e) ->
         $(this).trigger('hide')
 
     @element_
       .append(@importantMessageElm_)
       .append(@messageElm_)
+
   show: (str) ->
     @messageElm_.trigger('show', str)
   showImportant: (str) ->

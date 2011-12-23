@@ -135,8 +135,7 @@
     return Word;
   })();
   getInitialWord = function() {
-    var obj;
-    return obj = {
+    return {
       content: 'しりとり',
       createdBy: 'initial post by server'
     };

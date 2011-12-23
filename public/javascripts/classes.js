@@ -96,6 +96,7 @@
     };
     Word.prototype.dispose = function() {
       var prop, _results;
+      this.element_.unbind();
       this.element_.remove();
       _results = [];
       for (prop in this) {
@@ -123,7 +124,7 @@
         $(window.document).unbind('mousemove', onDocMouseMove);
         return importantMessageTimer = _.delay(function() {
           return $that.trigger('hide');
-        }, 3 * 1000);
+        }, 7 * 1000);
       };
       this.importantMessageElm_ = $('<div class="msg important"></div>').hide().bind('hide', function(e) {
         window.clearTimeout(importantMessageTimer);
@@ -150,7 +151,7 @@
         $that.fadeIn();
         return messageTimer = _.delay(function() {
           return $that.trigger('hide');
-        }, 3 * 1000);
+        }, 7 * 1000);
       }).bind('click', function(e) {
         return $(this).trigger('hide');
       });
