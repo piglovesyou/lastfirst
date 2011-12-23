@@ -96,7 +96,6 @@
             this.socket.emit('validated nicely!', {
               userId: this.id
             });
-            updateWords(this.socket);
             return fn();
           } else {
             return this.socket.emit('need login');

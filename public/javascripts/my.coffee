@@ -1,3 +1,6 @@
+
+cn = console.log
+
 ###
  LastFirstApp
 
@@ -202,31 +205,97 @@ _.mixin
         token: token
     else
       # show error
+
 renderWords = () ->
   docs = currentDocs_
-  $list = $list_ or ($list_ = $('#word-list'))
-  $list.empty()
+  #$list = $list_ or ($list_ = $('#word-list'))
+  #$list.empty()
+  words.empty()
   for doc in docs
-    postfix = ''
-    niceDate = _.niceDate(doc.createdAt)
-    if _.isEndsN(doc.content)
-      postfix = '<span class="warn">*</span>'
-    html = "<tr>"
-    html += "<td title='#{doc.createdAt}'>#{doc.content}#{postfix} </td>"
-    html += "<td>&lt;-last post </td>" if _i is 0
-    html += "<td>&lt;-your post! </td>" if doc.createdBy is _.getUserId()
-    html += "<td>#{niceDate}</td>" if _i < 2
-    html += "</tr>"
-    $list.append html
+    word = new Word(doc)
+    words.push(word)
+  words.renderWords()
+
+    # postfix = ''
+    # niceDate = _.niceDate(doc.createdAt)
+    # if _.isEndsN(doc.content)
+    #   postfix = '<span class="warn">*</span>'
+    # html = "<tr>"
+    # html += "<td title='#{doc.createdAt}'>#{doc.content}#{postfix} </td>"
+    # html += "<td>&lt;-last post </td>" if _i is 0
+    # html += "<td>&lt;-your post! </td>" if doc.createdBy is _.getUserId()
+    # html += "<td>#{niceDate}</td>" if _i < 2
+    # html += "</tr>"
+    # $list.append html
 
 
+
+###
+ Singleton class for words.
+###
+class WordList
+  #wordIds_: []
+  wordInstances_: []
+  element_: null
+  getElement: () ->
+    @element_
+
+  constructor: (containerSelector) ->
+    @element_ = $(containerSelector)
+  empty: () ->
+    @element_.empty()
+  renderWords: () ->
+    @element_.empty()
+    for word in @wordInstances_
+      word.render(@element_)
+
+  push: (word) ->
+    #@wordIds_.push(word.id)
+    @wordInstances_.push(word)
+  shift: (word) ->
+    #@wordIds_.shift(word.id)
+    @wordInstances_.shift(word)
+  pop: () ->
+    word = @wordInstances_.pop()
+    word.dispose()
+  get: (id) ->
+    for word in @wordInstances_
+      return word  if word.id == id
+    null
+  getLast: () ->
+    @wordInstances_[0]
+words = new WordList()
+    
 
 
 ###
  Class for a word.
 ###
 class Word
-  constructor: (@content_, @createdBy_, @createdAt_) ->
+  $element_ = null
+  $timeElm_ = null
+  canRender_ = false
+
+  constructor: (data) ->
+    @content_ = data.content
+    @createdBy_ = data.createdBy
+    @createdAt_ = data.createdAt
+
+    @canRender_ = !!(@content_ and @createdBy_ and @createdAt_)
+  render: ($parent) ->
+    if @canRender_
+      content = $("<span class='content'>#{@content_}</span>")
+      @$timeElm_ = $("<span class='time'>#{@createdAt_}</span>")
+      className = 'word'
+      div = $("<div class='#{className}'></div>").append(content).append(@$timeElm_)
+      $parent.append(div)
+  dispose: () ->
+    @$element_.remove()
+    for prop of @
+      @[prop] = null
+
+      
+    
     
 
 
@@ -235,7 +304,7 @@ class Word
 
 
 ###
- jQuery init
+ DOM init.
 ###
 # init
 $(->
@@ -247,7 +316,10 @@ $(->
   else
     # first login.
     _.showLoginLink()
-  $list = $list_ or ($list_ = $('#word-list'))
+
+  # create container
+  words = new WordList('#word-list')
+  #$list = $list_ or ($list_ = $())
   $form = $('#post')
   $form.submit (e) ->
     return if _.isLocked()
@@ -275,7 +347,7 @@ $(->
   # $("#login-link > a").click()
 )
 # variables of DOM/jQuery manipulation
-$list_ = null
+#$list_ = null
 $msgBox_ = null
 postLocked_ = false
 $indicator_ = null
@@ -337,6 +409,7 @@ _.mixin
 socket = io.connect(location.protocol + '//' + location.host)
 socket.on 'update', (docs) ->
   currentDocs_ = docs
+  cn 'renderWords'
   renderWords()
 
 socket.on 'need login', () ->

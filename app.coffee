@@ -96,7 +96,7 @@ class User
           @isValid_ = true
           @socket.emit 'validated nicely!',
             userId: @id
-          updateWords(@socket)
+          #updateWords(@socket)
           fn()
         else
           @socket.emit 'need login'

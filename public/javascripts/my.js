@@ -1,4 +1,7 @@
 (function() {
+  var $indicator_, $inputs_, $msgBox_, Word, WordList, cn, currentDocs_, delayTimerId_, getFirstLetter_, getLastLetter_, postLocked_, renderWords, socket, userId_, words;
+  var __slice = Array.prototype.slice;
+  cn = console.log;
   /*
    LastFirstApp
   
@@ -10,8 +13,6 @@
   /*
    Utils.
   */
-  var $indicator_, $inputs_, $list_, $msgBox_, Word, currentDocs_, delayTimerId_, getFirstLetter_, getLastLetter_, postLocked_, renderWords, socket, userId_;
-  var __slice = Array.prototype.slice;
   getFirstLetter_ = function(str) {
     var count, len, result;
     count = 1;
@@ -256,50 +257,110 @@
     }
   });
   renderWords = function() {
-    var $list, $list_, doc, docs, html, niceDate, postfix, _i, _len, _results;
+    var doc, docs, word, _i, _len;
     docs = currentDocs_;
-    $list = $list_ || ($list_ = $('#word-list'));
-    $list.empty();
-    _results = [];
+    words.empty();
     for (_i = 0, _len = docs.length; _i < _len; _i++) {
       doc = docs[_i];
-      postfix = '';
-      niceDate = _.niceDate(doc.createdAt);
-      if (_.isEndsN(doc.content)) {
-        postfix = '<span class="warn">*</span>';
-      }
-      html = "<tr>";
-      html += "<td title='" + doc.createdAt + "'>" + doc.content + postfix + " </td>";
-      if (_i === 0) {
-        html += "<td>&lt;-last post </td>";
-      }
-      if (doc.createdBy === _.getUserId()) {
-        html += "<td>&lt;-your post! </td>";
-      }
-      if (_i < 2) {
-        html += "<td>" + niceDate + "</td>";
-      }
-      html += "</tr>";
-      _results.push($list.append(html));
+      word = new Word(doc);
+      words.push(word);
     }
-    return _results;
+    return words.renderWords();
   };
+  /*
+   Singleton class for words.
+  */
+  WordList = (function() {
+    WordList.prototype.wordInstances_ = [];
+    WordList.prototype.element_ = null;
+    WordList.prototype.getElement = function() {
+      return this.element_;
+    };
+    function WordList(containerSelector) {
+      this.element_ = $(containerSelector);
+    }
+    WordList.prototype.empty = function() {
+      return this.element_.empty();
+    };
+    WordList.prototype.renderWords = function() {
+      var word, _i, _len, _ref, _results;
+      this.element_.empty();
+      _ref = this.wordInstances_;
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        word = _ref[_i];
+        _results.push(word.render(this.element_));
+      }
+      return _results;
+    };
+    WordList.prototype.push = function(word) {
+      return this.wordInstances_.push(word);
+    };
+    WordList.prototype.shift = function(word) {
+      return this.wordInstances_.shift(word);
+    };
+    WordList.prototype.pop = function() {
+      var word;
+      word = this.wordInstances_.pop();
+      return word.dispose();
+    };
+    WordList.prototype.get = function(id) {
+      var word, _i, _len, _ref;
+      _ref = this.wordInstances_;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        word = _ref[_i];
+        if (word.id === id) {
+          return word;
+        }
+      }
+      return null;
+    };
+    WordList.prototype.getLast = function() {
+      return this.wordInstances_[0];
+    };
+    return WordList;
+  })();
+  words = new WordList();
   /*
    Class for a word.
   */
   Word = (function() {
-    function Word(content_, createdBy_, createdAt_) {
-      this.content_ = content_;
-      this.createdBy_ = createdBy_;
-      this.createdAt_ = createdAt_;
+    var $element_, $timeElm_, canRender_;
+    $element_ = null;
+    $timeElm_ = null;
+    canRender_ = false;
+    function Word(data) {
+      this.content_ = data.content;
+      this.createdBy_ = data.createdBy;
+      this.createdAt_ = data.createdAt;
+      this.canRender_ = !!(this.content_ && this.createdBy_ && this.createdAt_);
     }
+    Word.prototype.render = function($parent) {
+      var className, content, div;
+      if (this.canRender_) {
+        content = $("<span class='content'>" + this.content_ + "</span>");
+        this.$timeElm_ = $("<span class='time'>" + this.createdAt_ + "</span>");
+        className = 'word';
+        div = $("<div class='" + className + "'></div>").append(content).append(this.$timeElm_);
+        return $parent.append(div);
+      }
+    };
+    Word.prototype.dispose = function() {
+      var prop, _results;
+      this.$element_.remove();
+      _results = [];
+      for (prop in this) {
+        _results.push(this[prop] = null);
+      }
+      return _results;
+    };
     return Word;
   })();
   /*
-   jQuery init
+   DOM init.
   */
   $(function() {
-    var $form, $list, $list_, token;
+    var $form, token;
     token = _.getToken();
     if (token) {
       socket.emit('got token', {
@@ -308,7 +369,7 @@
     } else {
       _.showLoginLink();
     }
-    $list = $list_ || ($list_ = $('#word-list'));
+    words = new WordList('#word-list');
     $form = $('#post');
     return $form.submit(function(e) {
       var content, id, lastDoc;
@@ -341,7 +402,6 @@
       }
     });
   });
-  $list_ = null;
   $msgBox_ = null;
   postLocked_ = false;
   $indicator_ = null;
@@ -418,6 +478,7 @@
   socket = io.connect(location.protocol + '//' + location.host);
   socket.on('update', function(docs) {
     currentDocs_ = docs;
+    cn('renderWords');
     return renderWords();
   });
   socket.on('need login', function() {
