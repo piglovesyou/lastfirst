@@ -1,4 +1,44 @@
 
+style
+  .inline-block {display: inline-block; padding: 10px;}
+  .true {background-color: #3f3;}
+
+div.inline-block
+  script
+    var s = 'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよゃゅょらりるれろわをんがぎぐげござじずぜぞだぢづでどばびぶべぼぱぴぷぺぽー';
+    document.write('/^[あ-ん|ー]+$/');
+    var a = s.split('');
+    var result = null;
+
+    document.write('<table border="1">');
+    for (var i=0; i<a.length; i++) {
+      result = /[あ-ん|ー]/.test(a[i]);
+      document.write('<tr><th>' + a[i] + '</th><td class="' + result + '">' + result + '</td></tr>');
+    }
+    document.write('</table>');
 
 
+div.inline-block
+  script
+    document.write('/^[ゃ-ょ]+$/');
+    var result = null;
 
+    document.write('<table border="1">');
+    for (var i=0; i<a.length; i++) {
+      result = /[ゃ-ょ]/.test(a[i]);
+      document.write('<tr><th>' + a[i] + '</th><td class="' + result + '">' + result + '</td></tr>');
+    }
+    document.write('</table>');
+
+
+div.inline-block
+  script
+    document.write('/^[ゃゅょ]+$/');
+    var result = null;
+
+    document.write('<table border="1">');
+    for (var i=0; i<a.length; i++) {
+      result = /[ゃゅょ]/.test(a[i]);
+      document.write('<tr><th>' + a[i] + '</th><td class="' + result + '">' + result + '</td></tr>');
+    }
+    document.write('</table>');

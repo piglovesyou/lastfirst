@@ -325,6 +325,7 @@
   });
   app.get("/dev", function(req, res) {
     return res.render("dev", {
+      isProduction: true,
       title: "dev"
     });
   });

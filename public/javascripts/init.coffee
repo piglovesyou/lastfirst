@@ -82,6 +82,7 @@ $(->
     # first login.
     _.showLoginLink()
 
+  _.disableForm(false)
   $form = $('#post')
   $form.submit (e) ->
     return if _.isLocked()

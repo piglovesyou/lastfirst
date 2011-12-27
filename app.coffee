@@ -322,6 +322,7 @@ app.get "/about", (req, res) ->
 # dev
 app.get "/dev", (req, res) ->
   res.render "dev",
+    isProduction: true
     title: "dev"
 
 app.get "/oauth2callback", (req, res) ->

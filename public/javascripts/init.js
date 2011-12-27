@@ -62,6 +62,7 @@
     } else {
       _.showLoginLink();
     }
+    _.disableForm(false);
     $form = $('#post');
     return $form.submit(function(e) {
       var content, id, lastDoc;

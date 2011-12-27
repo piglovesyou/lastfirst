@@ -1,15 +1,12 @@
 _ = require("underscore")
 
 ###
- Utils.
- Depends on underscore.js
+ Utils common in server and client.
 ###
-# common in server and client
-
 getFirstLetter_ = (str) ->
   count = 1
   len = str.length
-  if len >= 2 and /^[ゃ-ょ|ー]$/.test(str[1])
+  if len >= 2 and /^[ゃゅょ|ー]$/.test(str[1])
     if len >= 3 and /^[ー]$/.test(str[2])
       count = 3
     else
@@ -23,8 +20,8 @@ getLastLetter_ = (str) ->
   count = 1
   len = str.length
   lastIndex = len - 1
-  if len >= 2 and /^[ゃ-ょ|ー]$/.test(str[lastIndex])
-    if len >= 3 and  /^[ー]$/.test(str[lastIndex-1])
+  if len >= 2 and /^[ゃゅょ|ー]$/.test(str[lastIndex])
+    if len >= 3 and  /^[ゃゅょ]$/.test(str[lastIndex-1])
       count = 3
     else
       count = 2
@@ -37,9 +34,9 @@ _.mixin
         /^[^を]+$/.test(str) and !/っ$/.test(str)
       return _.all str.split(''), (letter, index, array) ->
         if index is 0
-          return /^[^ゃ-ょ|^っ]$/.test(letter)
+          return /^[^ゃゅょ|^っ|^ー]$/.test(letter)
         else
-          if /^[ゃ-ょ]$/.test(letter)
+          if /^[ゃゅょ]$/.test(letter)
             return /^[きしちにひみりぎじぢび]$/.test(array[index-1])
           if letter is 'っ'
             return /^[^っ]$/.test(array[index-1])
