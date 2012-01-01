@@ -273,9 +273,7 @@
       }, this));
     };
     TimeComponent.prototype.setRotate_ = function(elm, deg) {
-      return elm.css({
-        '-moz-transform': "rotate(" + deg + "deg)"
-      });
+      return elm.css(_.getCssPrefix() + 'transform', "rotate(" + deg + "deg)");
     };
     TimeComponent.prototype.getHourDeg_ = function(date) {
       return Math.floor(360 / 12 * date.getHours());

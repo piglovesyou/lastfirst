@@ -86,6 +86,44 @@ _.mixin
     for key of keyValuePairs
       document.cookie = key + '=' + keyValuePairs[key]
 
+BrowserType =
+  WEBKIT: 0
+  GECKO: 1
+  MSIE: 2
+  OPERA: 3
+  OTHER: 4
+_.mixin
+  getBrowserVendor: () ->
+    userAgent = navigator.userAgent.toLowerCase()
+    if userAgent.indexOf('webkit') >= 0
+      BrowserType.WEBKIT
+    else if userAgent.indexOf('gecko') >= 0
+      BrowserType.GECKO
+    else if userAgent.indexOf('msie') >= 0
+      BrowserType.MSIE
+    else if userAgent.indexOf('opera') >= 0
+      BrowserType.OPERA
+    else
+      BrowserType.OTHER
+CSS_PREFIX = null
+_.mixin
+  getCssPrefix: () ->
+    if not _.isNull(CSS_PREFIX)
+      CSS_PREFIX
+    else
+      switch _.getBrowserVendor()
+        when BrowserType.WEBKIT
+          CSS_PREFIX = '-webkit-'
+        when BrowserType.GECKO
+          CSS_PREFIX = '-moz-'
+        when BrowserType.MSIE
+          CSS_PREFIX = '-ms-'
+        when BrowserType.OPERA
+          CSS_PREFIX = '-o-'
+        when BrowserType.OTHER
+          CSS_PREFIX = ''
+
+
   # @param {Date|Number|String} date
   # @param {?String=} lang default is "ja"
   niceDate: ((date, lang) ->

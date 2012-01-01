@@ -253,6 +253,12 @@ a {
   background-color: #f44;
   -moz-transition: -moz-transform .4s linear;
   -moz-transform-origin: center bottom;
+  -webkit-transition: -webkit-transform .4s linear;
+  -webkit-transform-origin: center bottom;
+  -ms-transition: -ms-transform .4s linear;
+  -ms-transform-origin: center bottom;
+  -o-transition: -o-transform .4s linear;
+  -o-transform-origin: center bottom;
 }
 .time-tick-short {
   height: 11px;

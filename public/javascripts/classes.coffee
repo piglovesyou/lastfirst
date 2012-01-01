@@ -246,8 +246,7 @@ class TimeComponent
         , 3000
 
   setRotate_: (elm, deg) ->
-    elm.css
-      '-moz-transform': "rotate(#{deg}deg)"
+    elm.css(_.getCssPrefix() + 'transform',  "rotate(#{deg}deg)")
 
   getHourDeg_: (date) ->
     Math.floor(360 / 12 * date.getHours())

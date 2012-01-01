@@ -11,7 +11,7 @@
   /*
    Utils common in server and client.
   */
-  var getFirstLetter_, getLastLetter_;
+  var BrowserType, CSS_PREFIX, getFirstLetter_, getLastLetter_;
   var __slice = Array.prototype.slice;
   getFirstLetter_ = function(str) {
     var count, len, result;
@@ -122,6 +122,51 @@
         _results.push(document.cookie = key + '=' + keyValuePairs[key]);
       }
       return _results;
+    }
+  });
+  BrowserType = {
+    WEBKIT: 0,
+    GECKO: 1,
+    MSIE: 2,
+    OPERA: 3,
+    OTHER: 4
+  };
+  _.mixin({
+    getBrowserVendor: function() {
+      var userAgent;
+      userAgent = navigator.userAgent.toLowerCase();
+      if (userAgent.indexOf('webkit') >= 0) {
+        return BrowserType.WEBKIT;
+      } else if (userAgent.indexOf('gecko') >= 0) {
+        return BrowserType.GECKO;
+      } else if (userAgent.indexOf('msie') >= 0) {
+        return BrowserType.MSIE;
+      } else if (userAgent.indexOf('opera') >= 0) {
+        return BrowserType.OPERA;
+      } else {
+        return BrowserType.OTHER;
+      }
+    }
+  });
+  CSS_PREFIX = null;
+  _.mixin({
+    getCssPrefix: function() {
+      if (!_.isNull(CSS_PREFIX)) {
+        return CSS_PREFIX;
+      } else {
+        switch (_.getBrowserVendor()) {
+          case BrowserType.WEBKIT:
+            return CSS_PREFIX = '-webkit-';
+          case BrowserType.GECKO:
+            return CSS_PREFIX = '-moz-';
+          case BrowserType.MSIE:
+            return CSS_PREFIX = '-ms-';
+          case BrowserType.OPERA:
+            return CSS_PREFIX = '-o-';
+          case BrowserType.OTHER:
+            return CSS_PREFIX = '';
+        }
+      }
     },
     niceDate: (function(date, lang) {
       var DAY, HOUR, MINUTE, MONTH, SECOND, WEEK, YEAR, dateFormat, formatize, langs, pluralize;
