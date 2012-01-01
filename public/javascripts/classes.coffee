@@ -106,6 +106,12 @@ class Word
         createdAt = $("<span class='createdat'>#{text}</span>")
         @element.append(createdAt)
 
+  attachTime: (@time) ->
+    @time.attachElement(@element, @createdAt)
+
+  detachTime: () ->
+    @time.detatchElement(@element, @createdAt)
+
   sendLike: (e) =>
     socket = _.getSocket()
     if socket
@@ -113,6 +119,7 @@ class Word
         wordId: @id
         userId: _.getUserId()
   dispose: () ->
+    @detachTime()
     @element.unbind()
     @element.remove()
     for prop of @
@@ -184,9 +191,77 @@ class Message
       
     
     
+###
+ Singleton class for time.
+###
+class TimeComponent
+  element: null
+  shortTickElm: null
+  longTickElm: null
+  titleElm: null
+  height: 0
+  hideTimer: null
+
+  constructor: () ->
+    @render()
+
+  render: () ->
+    @element = $("""
+      <div class="time" style="display:none"><div class="time-arrow"></div><div class="time-bg"><div class="time-round clearfix"><div class="time-label"><div class="time-label-twelve">12</div><div class="time-label-three">3</div><div class="time-label-six">6</div><div class="time-label-nine">9</div></div><div class="time-tick"><div class="time-tick-short"></div><div class="time-tick-long"></div></div><div class="time-tick-center"></div></div><div class="time-title"><div class="time-title-content"></div></div></div></div>
+    """)
+    $('body').append(@element)
+    @element.css
+      'margin-top': @element.height()/-2
+
+    @shortTickElm = $('.time-tick-short', @element)
+    @longTickElm = $('.time-tick-long', @element)
+    @titleElm = $('.time-title-content', @element)
+
+  attachElement: (elm, time) ->
+    elm = $(elm)
+    date = new Date(time)
+    niceDate = _.niceDate(date)
+    console.log niceDate
+    hourDeg = @getHourDeg_(date)
+    minuteDeg = @getMinuteDeg_(date)
+    pos = null
+    _.defer () ->
+      pos = elm.offset()
+      pos.left += elm.width()
+      pos.top += elm.height()/2
+    $(elm)
+      .bind 'mouseover', () =>
+        window.clearTimeout(@hideTimer)
+        _.defer () =>
+          @setRotate_ @shortTickElm, hourDeg
+          @setRotate_ @longTickElm, minuteDeg
+        @titleElm.text(niceDate).css
+        @element.css
+          top: pos.top
+          left: pos.left
+        .fadeIn()
+      .bind 'mouseout', () =>
+        @hideTimer = _.delay () =>
+          @element.fadeOut()
+        , 3000
+
+  setRotate_: (elm, deg) ->
+    elm.css
+      '-moz-transform': "rotate(#{deg}deg)"
+
+  getHourDeg_: (date) ->
+    Math.floor(360 / 12 * date.getHours())
+
+  getMinuteDeg_: (date) ->
+    Math.floor(360 / 60 * date.getMinutes())
+
+
+
+
 
 
 exports.WordList = WordList
 exports.Word = Word
 exports.Message = Message
+exports.TimeComponent = TimeComponent
 

@@ -1,7 +1,39 @@
 
+
+script
+  head.ready('classes', function () {
+    time = new TimeComponent()
+    time.render()
+    time.attachElement("#yeah", Date.now())
+    time.attachElement("#yeash", Date.now() - 20000000)
+  });
+
+br
+div#yeah(style="width:200px;background:#000;") aaa
+
+br
+div#yeash(style="width:200px;background:#000;") aaa
+
 style
   .inline-block {display: inline-block; padding: 10px;}
   .true {background-color: #3f3;}
+
+br
+.time
+  .time-arrow
+  .time-bg
+    .time-round.clearfix
+      .time-label
+        .time-label-twelve 12
+        .time-label-three 3
+        .time-label-six 6
+        .time-label-nine 9
+      .time-tick
+        .time-tick-short
+        .time-tick-long
+      .time-tick-center
+    .time-title 
+      .time-title-content aa>ee
 
 div.inline-block
   script
@@ -43,11 +75,3 @@ div.inline-block
     }
     document.write('</table>');
 
-div.time
-  div.time-round
-    div.time-label.time-label-twelve 12
-    div.time-label.time-label-three 3
-    div.time-label.time-label-six 6
-    div.time-label.time-label-nine 9
-    div.time-tick.time-tick-short
-    div.time-tick.time-tick-long

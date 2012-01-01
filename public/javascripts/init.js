@@ -2,7 +2,7 @@
   /*
    Global accessor to the base info
   */
-  var $indicator_, $inputs_, $msgBox_, currentDocs_, delayTimerId_, message, postLocked_, socket, socketInit, userId_, words;
+  var $indicator_, $inputs_, $msgBox_, currentDocs_, delayTimerId_, message, postLocked_, socket, socketInit, time, userId_, words;
   currentDocs_ = [];
   userId_ = '';
   socket = null;
@@ -49,10 +49,14 @@
   /*
    Initialize a page.
   */
+  message === null;
+  words = null;
+  time = null;
   $(function() {
     var $form, token;
     message = new Message('#msg-box');
     words = new WordList('#word-list');
+    time = new TimeComponent();
     socketInit();
     token = _.getToken();
     if (token) {
@@ -178,6 +182,7 @@
         doc = docs[_i];
         word = new Word(doc, _i < 2, _i === 0);
         word.render();
+        word.attachTime(time);
         _results.push(words.push(word));
       }
       return _results;

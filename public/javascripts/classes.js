@@ -8,7 +8,7 @@
      underscore.js
      jquery-1.7.js
   */
-  var Message, Word, WordList, exports;
+  var Message, TimeComponent, Word, WordList, exports;
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
   exports = window;
   /*
@@ -129,6 +129,13 @@
         }
       }
     };
+    Word.prototype.attachTime = function(time) {
+      this.time = time;
+      return this.time.attachElement(this.element, this.createdAt);
+    };
+    Word.prototype.detachTime = function() {
+      return this.time.detatchElement(this.element, this.createdAt);
+    };
     Word.prototype.sendLike = function(e) {
       var socket;
       socket = _.getSocket();
@@ -141,6 +148,7 @@
     };
     Word.prototype.dispose = function() {
       var prop, _results;
+      this.detachTime();
       this.element.unbind();
       this.element.remove();
       _results = [];
@@ -210,7 +218,75 @@
     };
     return Message;
   })();
+  /*
+   Singleton class for time.
+  */
+  TimeComponent = (function() {
+    TimeComponent.prototype.element = null;
+    TimeComponent.prototype.shortTickElm = null;
+    TimeComponent.prototype.longTickElm = null;
+    TimeComponent.prototype.titleElm = null;
+    TimeComponent.prototype.height = 0;
+    TimeComponent.prototype.hideTimer = null;
+    function TimeComponent() {
+      this.render();
+    }
+    TimeComponent.prototype.render = function() {
+      this.element = $("<div class=\"time\" style=\"display:none\"><div class=\"time-arrow\"></div><div class=\"time-bg\"><div class=\"time-round clearfix\"><div class=\"time-label\"><div class=\"time-label-twelve\">12</div><div class=\"time-label-three\">3</div><div class=\"time-label-six\">6</div><div class=\"time-label-nine\">9</div></div><div class=\"time-tick\"><div class=\"time-tick-short\"></div><div class=\"time-tick-long\"></div></div><div class=\"time-tick-center\"></div></div><div class=\"time-title\"><div class=\"time-title-content\"></div></div></div></div>");
+      $('body').append(this.element);
+      this.element.css({
+        'margin-top': this.element.height() / -2
+      });
+      this.shortTickElm = $('.time-tick-short', this.element);
+      this.longTickElm = $('.time-tick-long', this.element);
+      return this.titleElm = $('.time-title-content', this.element);
+    };
+    TimeComponent.prototype.attachElement = function(elm, time) {
+      var date, hourDeg, minuteDeg, niceDate, pos;
+      elm = $(elm);
+      date = new Date(time);
+      niceDate = _.niceDate(date);
+      console.log(niceDate);
+      hourDeg = this.getHourDeg_(date);
+      minuteDeg = this.getMinuteDeg_(date);
+      pos = null;
+      _.defer(function() {
+        pos = elm.offset();
+        pos.left += elm.width();
+        return pos.top += elm.height() / 2;
+      });
+      return $(elm).bind('mouseover', __bind(function() {
+        window.clearTimeout(this.hideTimer);
+        _.defer(__bind(function() {
+          this.setRotate_(this.shortTickElm, hourDeg);
+          return this.setRotate_(this.longTickElm, minuteDeg);
+        }, this));
+        this.titleElm.text(niceDate).css;
+        return this.element.css({
+          top: pos.top,
+          left: pos.left
+        }).fadeIn();
+      }, this)).bind('mouseout', __bind(function() {
+        return this.hideTimer = _.delay(__bind(function() {
+          return this.element.fadeOut();
+        }, this), 3000);
+      }, this));
+    };
+    TimeComponent.prototype.setRotate_ = function(elm, deg) {
+      return elm.css({
+        '-moz-transform': "rotate(" + deg + "deg)"
+      });
+    };
+    TimeComponent.prototype.getHourDeg_ = function(date) {
+      return Math.floor(360 / 12 * date.getHours());
+    };
+    TimeComponent.prototype.getMinuteDeg_ = function(date) {
+      return Math.floor(360 / 60 * date.getMinutes());
+    };
+    return TimeComponent;
+  })();
   exports.WordList = WordList;
   exports.Word = Word;
   exports.Message = Message;
+  exports.TimeComponent = TimeComponent;
 }).call(this);

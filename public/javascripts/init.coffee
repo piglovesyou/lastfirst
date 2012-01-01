@@ -64,11 +64,15 @@ _.mixin
 
 
 # DOM init.
+message == null
+words = null
+time = null
 $(->
 
   # create instances
   message = new Message('#msg-box')
   words = new WordList('#word-list')
+  time = new TimeComponent()
 
 
   socketInit()
@@ -186,6 +190,7 @@ socketInit = () ->
     for doc in docs
       word = new Word(doc, _i < 2, _i is 0)
       word.render()
+      word.attachTime(time)
       words.push(word)
 
   socket.on 'need login', () ->
