@@ -67,32 +67,32 @@
     return $form.submit(function(e) {
       var content, id, lastDoc;
       if (_.isLocked()) {
-        return;
+        return false;
       }
       _.disableForm(true);
       id = _.getUserId();
       content = $('input[name="content"]', $form).val();
-      if (_.isEmpty(content)) {
-        return;
-      }
-      if (id && content && _.isValidWord(content)) {
+      if (_.isEmpty(id) || _.isEmpty(content)) {
+        _.disableForm(false);
+      } else if (_.isValidWord(content)) {
         lastDoc = words.getLastWord();
         if (id === lastDoc.createdBy) {
           message.show('It\'s not your turn.');
-          return _.disableForm(false);
+          _.disableForm(false);
         } else if (_.isValidLastFirst(lastDoc.content, content)) {
-          return socket.emit('post word', {
+          socket.emit('post word', {
             content: content,
             createdBy: id
           });
         } else {
           message.show('I\'m not sure it\'s being Last and First.');
-          return _.disableForm(false);
+          _.disableForm(false);
         }
       } else {
         message.show('Please enter a word in HIRAGANA.');
-        return _.disableForm(false);
+        _.disableForm(false);
       }
+      return false;
     });
   });
   $msgBox_ = null;

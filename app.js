@@ -2,20 +2,14 @@
   /*
    Include libraries.
   */
-  var SECRET, User, Users, Word, WordSchema, Words, app, crypto, express, findOptions, findRecentWords, getInitialWord, getLastDoc, https, io, lastDoc_, md5, mongoose, oathQuery, oathScopes, oathUrl, querystring, saveInitialWord, updateWords, updateWords_, url, users, _;
-  var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+  var SECRET, User, Word, WordSchema, Words, app, express, findOptions, findRecentWords, getInitialWord, getLastDoc, io, lastDoc_, mongoose, oauthQuery, oauthScopes, oauthUrl, querystring, saveInitialWord, updateWords, updateWords_, url, users, _;
   SECRET = require('secret-strings').LAST_FIRST;
   _ = require("underscore");
   require('./underscore_extention');
-  crypto = require('crypto');
-  md5 = function(str) {
-    return crypto.createHash('md5').update(str).digest('hex');
-  };
   express = require("express");
   mongoose = require("mongoose");
   url = require('url');
   querystring = require('querystring');
-  https = require('https');
   /*
    DB setting.
   */
@@ -32,6 +26,12 @@
     sort: [['createdAt', 'descending']],
     limit: 5
   };
+  /*
+   Include resources.
+  */
+  User = require('./resources/user').User;
+  Word = require('./resources/word').set(Words);
+  users = require('./resources/users').getInstance();
   /*
    App initialize.
   */
@@ -54,83 +54,6 @@
   app.configure("production", function() {
     return app.use(express.errorHandler());
   });
-  /*
-   Class for user.
-  */
-  User = (function() {
-    User.prototype.socket = null;
-    User.prototype.id = '';
-    User.prototype.token = '';
-    User.prototype.isValid_ = false;
-    User.prototype.isValid = function() {
-      return this.isValid_;
-    };
-    User.prototype.setValid = function(valid) {
-      return this.isValid_ = valid;
-    };
-    function User(socket) {
-      this.socket = socket;
-    }
-    User.prototype.setToken = function(token) {
-      this.token = token;
-    };
-    User.prototype.validate = function(fn) {
-      var options;
-      if (!this.socket || !this.token) {
-        return;
-      }
-      options = {
-        host: 'www.googleapis.com',
-        path: '/oauth2/v1/tokeninfo?access_token=' + this.token
-      };
-      return https.get(options, __bind(function(res) {
-        return res.on('data', __bind(function(data) {
-          var json;
-          json = JSON.parse(data.toString());
-          if (!json.error) {
-            this.id = md5(json.user_id);
-            this.isValid_ = true;
-            this.socket.emit('validated nicely!', {
-              userId: this.id
-            });
-            return fn();
-          } else {
-            return this.socket.emit('need login');
-          }
-        }, this));
-      }, this));
-    };
-    return User;
-  })();
-  /*
-   Class for word.
-   @extends Word_
-  */
-  Word = (function() {
-    Word.prototype.content = null;
-    Word.prototype.model_ = null;
-    Word.prototype.createdBy = null;
-    Word.prototype.createdAt = null;
-    Word.prototype.lastLetter = null;
-    Word.prototype.isSaved = false;
-    function Word(post) {
-      if (_.keys(post).length === 2 && post.content && post.createdBy) {
-        this.model_ = new Words();
-        this.model_.createdAt = new Date();
-        this.model_ = _.extend(this.model_, post);
-        this.lastLetter = _.last(post);
-      }
-    }
-    Word.prototype.save = function(fn) {
-      if (this.model_) {
-        return this.model_.save(function() {
-          this.isSaved = true;
-          return fn();
-        });
-      }
-    };
-    return Word;
-  })();
   getInitialWord = function() {
     return {
       content: 'しりとり',
@@ -168,43 +91,6 @@
   /*
    Socket IO listening.
   */
-  /*
-   Singleton class for managing users.
-  */
-  Users = (function() {
-    Users.prototype.users_ = {};
-    Users.prototype.penaltyUserIds_ = [];
-    function Users() {}
-    Users.prototype.add = function(user) {
-      if (user.id) {
-        return this.users_[user.id] = user;
-      }
-    };
-    Users.prototype.remove = function(id) {
-      return delete this.users_[id];
-    };
-    Users.prototype.has = function(id) {
-      return !!this.users_[id];
-    };
-    Users.prototype.setPenaltyUser = function(id) {
-      this.penaltyUserIds_.push(id);
-      return _.delay(__bind(function() {
-        var user;
-        this.penaltyUserIds_ = _.without(this.penaltyUserIds_, id);
-        user = this.users_[id];
-        if (user) {
-          return user.socket.emit('release penalty', {
-            message: 'Now you can post.'
-          });
-        }
-      }, this), 60 * 60 * 1000);
-    };
-    Users.prototype.isPenaltyUser = function(id) {
-      return _.include(this.penaltyUserIds_, id);
-    };
-    return Users;
-  })();
-  users = new Users();
   io.sockets.on('connection', function(socket) {
     var user;
     user = new User(socket);
@@ -302,25 +188,25 @@
       return users.remove(user.id);
     });
   });
-  oathScopes = ['https://www.googleapis.com/auth/userinfo.profile'];
-  oathQuery = {
+  oauthScopes = ['https://www.googleapis.com/auth/userinfo.profile'];
+  oauthQuery = {
     response_type: 'token',
-    scope: oathScopes.join('+'),
+    scope: oauthScopes.join('+'),
     redirect_uri: SECRET.GOOGLE_OAUTH_REDIRECT_TO,
     client_id: SECRET.GOOGLE_OAUTH_CLIENT_IE
   };
-  oathUrl = 'https://accounts.google.com/o/oauth2/auth?' + querystring.stringify(oathQuery);
+  oauthUrl = 'https://accounts.google.com/o/oauth2/auth?' + querystring.stringify(oauthQuery);
   app.get("/", function(req, res) {
     return res.render("index", {
       title: "LastFirstApp",
-      oathUrl: oathUrl,
+      oauthUrl: oauthUrl,
       isProduction: SECRET.IS_PRODUCTION
     });
   });
   app.get("/about", function(req, res) {
     return res.render("about", {
       title: "LastFirstApp - about",
-      oathUrl: oathUrl
+      oauthUrl: oauthUrl
     });
   });
   app.get("/dev", function(req, res) {

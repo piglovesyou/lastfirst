@@ -6,14 +6,12 @@
 SECRET = require('secret-strings').LAST_FIRST
 _ = require("underscore")
 require('./underscore_extention')
-crypto = require('crypto')
-md5 = (str) ->
-  crypto.createHash('md5').update(str).digest('hex')
 express = require("express")
 mongoose = require("mongoose")
 url = require('url')
 querystring = require('querystring')
-https = require('https')
+
+
 
 
 
@@ -34,6 +32,15 @@ Words = mongoose.model('Words')
 findOptions =
   sort: [['createdAt', 'descending']]
   limit: 5
+
+
+
+###
+ Include resources.
+###
+User = require('./resources/user').User
+Word = require('./resources/word').set(Words)
+users = require('./resources/users').getInstance()
 
 
 
@@ -61,74 +68,12 @@ app.configure "production", ->
 
 
 
-###
- Class for user.
-###
-class User
-  socket: null
-  id: ''
-  token: ''
-  isValid_: false
-  isValid: () ->
-    @isValid_
-  setValid: (valid) ->
-    @isValid_ = valid
-  # gotPenalty: () ->
-  #   @isValid_ = false
-  #   _.delay () =>
-  #     @socket.emit 'release penalty'
-  #       message: 'Penalty released.'
-  #     @isValid_ = true
-  #   , 3 * 1000
-
-  constructor: (@socket) ->
-  setToken: (@token) ->
-  validate: (fn) ->
-    return if not @socket or not @token
-    options =
-      host: 'www.googleapis.com'
-      path: '/oauth2/v1/tokeninfo?access_token=' + @token
-    https.get options, (res) =>
-      res.on 'data', (data) =>
-        json = JSON.parse(data.toString())
-        if !json.error
-          @id = md5(json.user_id)
-          @isValid_ = true
-          @socket.emit 'validated nicely!',
-            userId: @id
-          fn()
-        else
-          @socket.emit 'need login'
   
 
 
 
 
 
-###
- Class for word.
- @extends Word_
-###
-class Word
-  content: null
-  model_: null
-  createdBy: null
-  createdAt: null
-  lastLetter: null
-  isSaved: false
-
-  constructor: (post) ->
-    if _.keys(post).length is 2 and
-        post.content and post.createdBy
-      @model_ = new Words()
-      @model_.createdAt = new Date()
-      @model_ = _.extend(@model_, post)
-      @lastLetter = _.last(post)
-  save: (fn) ->
-    if @model_
-      @model_.save () ->
-        @isSaved = true
-        fn()
 
     
 getInitialWord = () ->
@@ -163,65 +108,11 @@ updateWords = (socket) ->
 
   
 
-# key: userId, value: User instance
+
 
 ###
  Socket IO listening.
 ###
-# user.user_id
-# user.socket
-
-
-###
- Singleton class for managing users.
-###
-class Users
-  users_: {}  # only validated users are here.
-  penaltyUserIds_: []
-
-
-  constructor: () ->
-  # @param {User} user
-  add: (user) ->
-    if user.id
-      @users_[user.id] = user
-  remove: (id) ->
-    delete @users_[id]
-  has: (id) ->
-    !!@users_[id]
-  setPenaltyUser: (id) ->
-    @penaltyUserIds_.push(id)
-    _.delay () =>
-      @penaltyUserIds_ = _.without(@penaltyUserIds_, id)
-      user = @users_[id]
-      if user
-        user.socket.emit 'release penalty',
-          message: 'Now you can post.'
-    , 60 * 60 * 1000
-  isPenaltyUser: (id) ->
-    _.include(@penaltyUserIds_, id)
-users = new Users()
-
-
-# user that has id (validated).
-#users = {}
-
-#penaltyUserIds = []
-# need above to manage
-# - validated users
-# - penalty users
-
-
-
-
-
-
-
-
-
-
-
-
   
 io.sockets.on 'connection', (socket) ->
   user = new User(socket)
@@ -297,27 +188,27 @@ io.sockets.on 'connection', (socket) ->
 
 
 # GET requests. 
-oathScopes = [
+oauthScopes = [
   'https://www.googleapis.com/auth/userinfo.profile'
 ]
-oathQuery =
+oauthQuery =
   response_type: 'token'
-  scope: oathScopes.join('+')
+  scope: oauthScopes.join('+')
   redirect_uri: SECRET.GOOGLE_OAUTH_REDIRECT_TO
   client_id: SECRET.GOOGLE_OAUTH_CLIENT_IE
-oathUrl = 'https://accounts.google.com/o/oauth2/auth?' +
-    querystring.stringify(oathQuery)
+oauthUrl = 'https://accounts.google.com/o/oauth2/auth?' +
+    querystring.stringify(oauthQuery)
 
 app.get "/", (req, res) ->
   res.render "index",
     title: "LastFirstApp"
-    oathUrl: oathUrl
+    oauthUrl: oauthUrl
     isProduction: SECRET.IS_PRODUCTION
 
 app.get "/about", (req, res) ->
   res.render "about",
     title: "LastFirstApp - about"
-    oathUrl: oathUrl
+    oauthUrl: oauthUrl
 
 # dev
 app.get "/dev", (req, res) ->

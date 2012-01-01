@@ -85,13 +85,14 @@ $(->
   _.disableForm(false)
   $form = $('#post')
   $form.submit (e) ->
-    return if _.isLocked()
+    return false if _.isLocked()
     _.disableForm(true)
     id = _.getUserId()
     content = $('input[name="content"]',$form).val()
-    return if _.isEmpty(content)
-
-    if id and content and _.isValidWord(content)
+    
+    if _.isEmpty(id) or _.isEmpty(content)
+      _.disableForm(false)
+    else if _.isValidWord(content)
       lastDoc = words.getLastWord()
       if id is lastDoc.createdBy
         message.show('It\'s not your turn.')
@@ -106,6 +107,7 @@ $(->
     else
       message.show('Please enter a word in HIRAGANA.')
       _.disableForm(false)
+    false
   # for dev
   # $("#login-link > a").click()
 
