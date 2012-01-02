@@ -60,7 +60,7 @@ class Word
     @element
   canRender: false
 
-  constructor: (data, @showCreatedAt, @lastPost) ->
+  constructor: (data, @lastPost) ->
     @id = data._id
     @content = data.content
     @createdBy = data.createdBy
@@ -101,16 +101,8 @@ class Word
         yourPostElm = $('<span class="your-post">&lt-your post!</span>')
         @element.append(yourPostElm)
 
-      if @showCreatedAt
-        text = ' <-' + _.niceDate(@createdAt, 'en')
-        createdAt = $("<span class='createdat'>#{text}</span>")
-        @element.append(createdAt)
-
   attachTime: (@time) ->
     @time.attachElement(@element, @createdAt)
-
-  detachTime: () ->
-    @time.detatchElement(@element, @createdAt)
 
   sendLike: (e) =>
     socket = _.getSocket()
@@ -119,7 +111,6 @@ class Word
         wordId: @id
         userId: _.getUserId()
   dispose: () ->
-    @detachTime()
     @element.unbind()
     @element.remove()
     for prop of @
@@ -132,7 +123,7 @@ class Word
 ###
  Singleton class for showing messages.
 ###
-class Message
+class MessageComponent
   element: null
   messageElm_: null
   importantMessageElm_: null
@@ -207,7 +198,8 @@ class TimeComponent
 
   render: () ->
     @element = $("""
-      <div class="time" style="display:none"><div class="time-arrow"></div><div class="time-bg"><div class="time-round clearfix"><div class="time-label"><div class="time-label-twelve">12</div><div class="time-label-three">3</div><div class="time-label-six">6</div><div class="time-label-nine">9</div></div><div class="time-tick"><div class="time-tick-short"></div><div class="time-tick-long"></div></div><div class="time-tick-center"></div></div><div class="time-title"><div class="time-title-content"></div></div></div></div>
+      <div class="time" style="display:none"><div class="time-arrow"></div><div class="time-bg"><div class="time-round clearfix"><div class="time-label"><div class="time-label-twelve">12</div><div class="time-label-three">3</div><div class="time-label-six">6</div><div class="time-label-nine">9</div></div><div class="time-tick"><div class="time-tick-short"></div><div class="time-tick-long"></div></div><div class="time-tick-center"></div></div><div class="time-title"><div class="time-title-content">
+        </div></div></div></div>
     """)
     $('body').append(@element)
     @element.css
@@ -220,8 +212,7 @@ class TimeComponent
   attachElement: (elm, time) ->
     elm = $(elm)
     date = new Date(time)
-    niceDate = _.niceDate(date)
-    console.log niceDate
+    titleHTML = @createTitleHTML(date)
     hourDeg = @getHourDeg_(date)
     minuteDeg = @getMinuteDeg_(date)
     pos = null
@@ -235,7 +226,7 @@ class TimeComponent
         _.defer () =>
           @setRotate_ @shortTickElm, hourDeg
           @setRotate_ @longTickElm, minuteDeg
-        @titleElm.text(niceDate).css
+        @titleElm.html(titleHTML)
         @element.css
           top: pos.top
           left: pos.left
@@ -244,6 +235,14 @@ class TimeComponent
         @hideTimer = _.delay () =>
           @element.fadeOut()
         , 3000
+
+  createTitleHTML: (date) ->
+    digits = _.padString(date.getHours(), 2) + ':' + _.padString(date.getMinutes(), 2)
+    niceDate = _.niceDate(date)
+    """
+    <span class="time-title-digits">#{digits}</span><br />
+    <span class="time-title-nice">#{niceDate}</span>
+    """
 
   setRotate_: (elm, deg) ->
     elm.css(_.getCssPrefix() + 'transform',  "rotate(#{deg}deg)")
@@ -261,6 +260,6 @@ class TimeComponent
 
 exports.WordList = WordList
 exports.Word = Word
-exports.Message = Message
+exports.MessageComponent = MessageComponent
 exports.TimeComponent = TimeComponent
 

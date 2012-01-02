@@ -8,7 +8,7 @@
      underscore.js
      jquery-1.7.js
   */
-  var Message, TimeComponent, Word, WordList, exports;
+  var MessageComponent, TimeComponent, Word, WordList, exports;
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
   exports = window;
   /*
@@ -75,9 +75,8 @@
       return this.element;
     };
     Word.prototype.canRender = false;
-    function Word(data, showCreatedAt, lastPost) {
+    function Word(data, lastPost) {
       var className;
-      this.showCreatedAt = showCreatedAt;
       this.lastPost = lastPost;
       this.sendLike = __bind(this.sendLike, this);
       this.id = data._id;
@@ -92,7 +91,7 @@
       }
     }
     Word.prototype.render = function() {
-      var content, createdAt, i, lastPostElm, likeButtonElm, likedElm, text, userId, yourPostElm, _i, _len, _ref;
+      var content, i, lastPostElm, likeButtonElm, likedElm, text, userId, yourPostElm, _i, _len, _ref;
       if (this.canRender) {
         this.element.empty();
         text = '';
@@ -120,21 +119,13 @@
         }
         if (userId === this.createdBy) {
           yourPostElm = $('<span class="your-post">&lt-your post!</span>');
-          this.element.append(yourPostElm);
-        }
-        if (this.showCreatedAt) {
-          text = ' <-' + _.niceDate(this.createdAt, 'en');
-          createdAt = $("<span class='createdat'>" + text + "</span>");
-          return this.element.append(createdAt);
+          return this.element.append(yourPostElm);
         }
       }
     };
     Word.prototype.attachTime = function(time) {
       this.time = time;
       return this.time.attachElement(this.element, this.createdAt);
-    };
-    Word.prototype.detachTime = function() {
-      return this.time.detatchElement(this.element, this.createdAt);
     };
     Word.prototype.sendLike = function(e) {
       var socket;
@@ -148,7 +139,6 @@
     };
     Word.prototype.dispose = function() {
       var prop, _results;
-      this.detachTime();
       this.element.unbind();
       this.element.remove();
       _results = [];
@@ -162,11 +152,11 @@
   /*
    Singleton class for showing messages.
   */
-  Message = (function() {
-    Message.prototype.element = null;
-    Message.prototype.messageElm_ = null;
-    Message.prototype.importantMessageElm_ = null;
-    function Message(containerSelector) {
+  MessageComponent = (function() {
+    MessageComponent.prototype.element = null;
+    MessageComponent.prototype.messageElm_ = null;
+    MessageComponent.prototype.importantMessageElm_ = null;
+    function MessageComponent(containerSelector) {
       var importantMessageTimer, messageTimer, onDocMouseMove;
       importantMessageTimer = null;
       messageTimer = null;
@@ -210,13 +200,13 @@
       });
       this.element.append(this.importantMessageElm_).append(this.messageElm_);
     }
-    Message.prototype.show = function(str) {
+    MessageComponent.prototype.show = function(str) {
       return this.messageElm_.trigger('show', str);
     };
-    Message.prototype.showImportant = function(str) {
+    MessageComponent.prototype.showImportant = function(str) {
       return this.importantMessageElm_.trigger('show', str);
     };
-    return Message;
+    return MessageComponent;
   })();
   /*
    Singleton class for time.
@@ -232,7 +222,7 @@
       this.render();
     }
     TimeComponent.prototype.render = function() {
-      this.element = $("<div class=\"time\" style=\"display:none\"><div class=\"time-arrow\"></div><div class=\"time-bg\"><div class=\"time-round clearfix\"><div class=\"time-label\"><div class=\"time-label-twelve\">12</div><div class=\"time-label-three\">3</div><div class=\"time-label-six\">6</div><div class=\"time-label-nine\">9</div></div><div class=\"time-tick\"><div class=\"time-tick-short\"></div><div class=\"time-tick-long\"></div></div><div class=\"time-tick-center\"></div></div><div class=\"time-title\"><div class=\"time-title-content\"></div></div></div></div>");
+      this.element = $("<div class=\"time\" style=\"display:none\"><div class=\"time-arrow\"></div><div class=\"time-bg\"><div class=\"time-round clearfix\"><div class=\"time-label\"><div class=\"time-label-twelve\">12</div><div class=\"time-label-three\">3</div><div class=\"time-label-six\">6</div><div class=\"time-label-nine\">9</div></div><div class=\"time-tick\"><div class=\"time-tick-short\"></div><div class=\"time-tick-long\"></div></div><div class=\"time-tick-center\"></div></div><div class=\"time-title\"><div class=\"time-title-content\">\n  </div></div></div></div>");
       $('body').append(this.element);
       this.element.css({
         'margin-top': this.element.height() / -2
@@ -242,11 +232,10 @@
       return this.titleElm = $('.time-title-content', this.element);
     };
     TimeComponent.prototype.attachElement = function(elm, time) {
-      var date, hourDeg, minuteDeg, niceDate, pos;
+      var date, hourDeg, minuteDeg, pos, titleHTML;
       elm = $(elm);
       date = new Date(time);
-      niceDate = _.niceDate(date);
-      console.log(niceDate);
+      titleHTML = this.createTitleHTML(date);
       hourDeg = this.getHourDeg_(date);
       minuteDeg = this.getMinuteDeg_(date);
       pos = null;
@@ -261,7 +250,7 @@
           this.setRotate_(this.shortTickElm, hourDeg);
           return this.setRotate_(this.longTickElm, minuteDeg);
         }, this));
-        this.titleElm.text(niceDate).css;
+        this.titleElm.html(titleHTML);
         return this.element.css({
           top: pos.top,
           left: pos.left
@@ -271,6 +260,12 @@
           return this.element.fadeOut();
         }, this), 3000);
       }, this));
+    };
+    TimeComponent.prototype.createTitleHTML = function(date) {
+      var digits, niceDate;
+      digits = _.padString(date.getHours(), 2) + ':' + _.padString(date.getMinutes(), 2);
+      niceDate = _.niceDate(date);
+      return "<span class=\"time-title-digits\">" + digits + "</span><br />\n<span class=\"time-title-nice\">" + niceDate + "</span>";
     };
     TimeComponent.prototype.setRotate_ = function(elm, deg) {
       return elm.css(_.getCssPrefix() + 'transform', "rotate(" + deg + "deg)");
@@ -285,6 +280,6 @@
   })();
   exports.WordList = WordList;
   exports.Word = Word;
-  exports.Message = Message;
+  exports.MessageComponent = MessageComponent;
   exports.TimeComponent = TimeComponent;
 }).call(this);

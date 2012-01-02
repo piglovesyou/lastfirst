@@ -54,7 +54,7 @@
   time = null;
   $(function() {
     var $form, token;
-    message = new Message('#msg-box');
+    message = new MessageComponent('#msg-box');
     words = new WordList('#word-list');
     time = new TimeComponent();
     socketInit();
@@ -180,7 +180,7 @@
       _results = [];
       for (_i = 0, _len = docs.length; _i < _len; _i++) {
         doc = docs[_i];
-        word = new Word(doc, _i < 2, _i === 0);
+        word = new Word(doc, _i === 0);
         word.render();
         word.attachTime(time);
         _results.push(words.push(word));

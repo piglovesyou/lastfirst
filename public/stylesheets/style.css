@@ -100,6 +100,9 @@ p {
 #word-list {
   width: 300px;
 }
+.word:hover {
+  background-color: #f6f6f6;
+}
 
 
 
@@ -187,11 +190,20 @@ a {
 
 
 /* time */
-.time { position: absolute; }
+.time {
+  position: absolute;
+  z-index: 9999;
+
+  -moz-transition:    top .2s, left .2s; 
+  -webkit-transition: top .2s, left .2s;  
+}
 .time-arrow,
 .time-bg {
   display: inline-block;
   vertical-align: bottom;
+}
+.time-bg {
+  box-shadow: 2px 2px 2px rgba(0,0,0,.3);
 }
 .time-arrow {
   display: inline-block;
@@ -204,7 +216,7 @@ a {
   height: 30px;
   background-color: #ccc;
   border-radius: 0 50px 50px 0;
-  width: 80px;
+  width: 82px;
 }
 .time-round {
   position: relative;
@@ -218,8 +230,12 @@ a {
 }
 .time-label div {
   position: absolute;
-  font-size: 6px;
   text-indent: -.25em;
+
+  -moz-transform-origin:    left top;
+  -webkit-transform-origin: left top;
+  -moz-transform:    scale(.4,.4);
+  -webkit-transform: scale(.4,.4);
 }
 .time-label .time-label-twelve {
   text-indent: -.55em;
@@ -229,11 +245,11 @@ a {
   top: 4px;
 }
 .time-label .time-label-three {
-  top: -.5em;
+  top: -3px;
   left: 8px;
 }
 .time-label .time-label-nine {
-  top: -.5em;
+  top: -3px;
   left: -8px;
 }
 .time-tick {
@@ -250,28 +266,25 @@ a {
   bottom: 0;
   width: 3px;
   border-radius: 50px;
-  background-color: #f44;
+  background-color: #f33;
   -moz-transition: -moz-transform .4s linear;
-  -moz-transform-origin: center bottom;
   -webkit-transition: -webkit-transform .4s linear;
+
+  -moz-transform-origin: center bottom;
   -webkit-transform-origin: center bottom;
-  -ms-transition: -ms-transform .4s linear;
-  -ms-transform-origin: center bottom;
-  -o-transition: -o-transform .4s linear;
-  -o-transform-origin: center bottom;
 }
 .time-tick-short {
-  height: 11px;
+  height: 9px;
 }
 .time-tick-long {
-  height: 10px;
+  height: 11px;
 }
 .time-tick-center {
   position: absolute;
   background-color: #fff;
   top: -2px;
   left: -2px;
-  border: 1px #f44 solid;
+  border: 1px #f33 solid;
   border-radius: 50px;
   width: 3px;
   height: 3px;
@@ -280,13 +293,16 @@ a {
 .time-title {
   display: table;
   padding: 0 0 0 2px;
-  height: 28px;
-  line-height: 1;
+  height: 30px;
   font-size: 73%;
 }
 .time-title-content {
   display: table-cell;
   vertical-align: middle;
+  line-height: 1.2;
+}
+.time-title-nice {
+  color: #777;
 }
 
 

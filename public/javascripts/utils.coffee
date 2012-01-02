@@ -85,6 +85,16 @@ _.mixin
   setCookies: (keyValuePairs) ->
     for key of keyValuePairs
       document.cookie = key + '=' + keyValuePairs[key]
+  padString: (str, howmany, padStr="0") ->
+    str = str.toString()  if not _.isString(str)
+    diff = howmany - str.length
+    pad = ''
+    if diff >= 1
+      _(diff).times () ->
+        pad += padStr
+      str = pad + str
+    str
+
 
 BrowserType =
   WEBKIT: 0

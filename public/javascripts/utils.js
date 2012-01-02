@@ -122,6 +122,24 @@
         _results.push(document.cookie = key + '=' + keyValuePairs[key]);
       }
       return _results;
+    },
+    padString: function(str, howmany, padStr) {
+      var diff, pad;
+      if (padStr == null) {
+        padStr = "0";
+      }
+      if (!_.isString(str)) {
+        str = str.toString();
+      }
+      diff = howmany - str.length;
+      pad = '';
+      if (diff >= 1) {
+        _(diff).times(function() {
+          return pad += padStr;
+        });
+        str = pad + str;
+      }
+      return str;
     }
   });
   BrowserType = {

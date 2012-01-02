@@ -70,7 +70,7 @@ time = null
 $(->
 
   # create instances
-  message = new Message('#msg-box')
+  message = new MessageComponent('#msg-box')
   words = new WordList('#word-list')
   time = new TimeComponent()
 
@@ -188,7 +188,7 @@ socketInit = () ->
   socket.on 'update', (docs) ->
     words.empty()
     for doc in docs
-      word = new Word(doc, _i < 2, _i is 0)
+      word = new Word(doc, _i is 0)
       word.render()
       word.attachTime(time)
       words.push(word)
