@@ -218,6 +218,7 @@ class TimeComponent
       pos = elm.offset()
       pos.left += elm.width()
       pos.top += elm.height()/2
+
     $(elm)
       .bind 'mouseover', () =>
         window.clearTimeout(@hideTimer)

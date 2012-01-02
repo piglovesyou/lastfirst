@@ -1,6 +1,7 @@
 
 /* mobile.css */
 #word-list {
-  width: 120px;
-  overflow: visible;
+}
+.word {
+  width: 140px;
 }

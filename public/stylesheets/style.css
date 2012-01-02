@@ -97,7 +97,7 @@ p {
 
 
 
-#word-list {
+.word {
   width: 300px;
 }
 .word:hover {
@@ -289,7 +289,6 @@ a {
   width: 3px;
   height: 3px;
 }
-
 .time-title {
   display: table;
   padding: 0 0 0 2px;
