@@ -232,10 +232,9 @@
       return this.titleElm = $('.time-title-content', this.element);
     };
     TimeComponent.prototype.attachElement = function(elm, time) {
-      var date, hourDeg, minuteDeg, pos, titleHTML;
+      var date, hourDeg, minuteDeg, pos;
       elm = $(elm);
       date = new Date(time);
-      titleHTML = this.createTitleHTML(date);
       hourDeg = this.getHourDeg_(date);
       minuteDeg = this.getMinuteDeg_(date);
       pos = null;
@@ -246,11 +245,9 @@
       });
       return $(elm).bind('mouseover', __bind(function() {
         window.clearTimeout(this.hideTimer);
-        _.defer(__bind(function() {
-          this.setRotate_(this.shortTickElm, hourDeg);
-          return this.setRotate_(this.longTickElm, minuteDeg);
-        }, this));
-        this.titleElm.html(titleHTML);
+        this.setRotate_(this.shortTickElm, hourDeg);
+        this.setRotate_(this.longTickElm, minuteDeg);
+        this.titleElm.html(this.createTitleHTML(date));
         return this.element.css({
           top: pos.top,
           left: pos.left

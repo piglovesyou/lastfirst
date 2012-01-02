@@ -212,7 +212,6 @@ class TimeComponent
   attachElement: (elm, time) ->
     elm = $(elm)
     date = new Date(time)
-    titleHTML = @createTitleHTML(date)
     hourDeg = @getHourDeg_(date)
     minuteDeg = @getMinuteDeg_(date)
     pos = null
@@ -223,10 +222,9 @@ class TimeComponent
     $(elm)
       .bind 'mouseover', () =>
         window.clearTimeout(@hideTimer)
-        _.defer () =>
-          @setRotate_ @shortTickElm, hourDeg
-          @setRotate_ @longTickElm, minuteDeg
-        @titleElm.html(titleHTML)
+        @setRotate_ @shortTickElm, hourDeg
+        @setRotate_ @longTickElm, minuteDeg
+        @titleElm.html(@createTitleHTML(date))
         @element.css
           top: pos.top
           left: pos.left
@@ -237,7 +235,9 @@ class TimeComponent
         , 3000
 
   createTitleHTML: (date) ->
-    digits = _.padString(date.getHours(), 2) + ':' + _.padString(date.getMinutes(), 2)
+    digits =
+      _.padString(date.getHours(), 2) + ':' +
+      _.padString(date.getMinutes(), 2)
     niceDate = _.niceDate(date)
     """
     <span class="time-title-digits">#{digits}</span><br />
