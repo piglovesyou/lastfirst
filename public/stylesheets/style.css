@@ -98,7 +98,7 @@ p {
 
 
 .word {
-  width: 300px;
+  max-width: 300px;
 }
 .word:hover {
   background-color: #f6f6f6;

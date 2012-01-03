@@ -216,7 +216,7 @@ class TimeComponent
     pos = null
     _.defer () ->
       pos = elm.offset()
-      pos.left += elm.width()
+      pos.left += elm.width()/2
       pos.top += elm.height()/2
 
     $(elm)

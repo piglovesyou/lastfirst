@@ -240,7 +240,7 @@
       pos = null;
       _.defer(function() {
         pos = elm.offset();
-        pos.left += elm.width();
+        pos.left += elm.width() / 2;
         return pos.top += elm.height() / 2;
       });
       return $(elm).bind('mouseover', __bind(function() {
