@@ -70,9 +70,12 @@ time = null
 $(->
 
   # create instances
-  message = new MessageComponent('#msg-box')
-  words = new WordList('#word-list')
-  time = new TimeComponent()
+  message = Message.getInstance()
+  message.render()
+  words = WordList.getInstance()
+  words.decorate('#word-list')
+  time = Time.getInstance()
+  time.render()
 
 
   socketInit()

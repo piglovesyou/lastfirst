@@ -78,6 +78,11 @@
    Client side utils.
   */
   _.mixin({
+    addSingletonGetter: function(ctor) {
+      return ctor.getInstance = function() {
+        return ctor.instance_ || (ctor.instance_ = new ctor());
+      };
+    },
     parseParamString: function(str, sep) {
       var pairArr, pairStr, result, _i, _len, _ref;
       if (sep == null) {

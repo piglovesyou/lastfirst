@@ -10,20 +10,49 @@
 ###
 
 exports = window
-    
+
+
+###
+ Abstract class to manage DOM components.
+ usage:
+    # create instance
+    component = new Component() 
+    # append dom in body
+    component.render()          
+    # unbind all eventHandlers and remove dom
+    component.dispose()         
+###
+class AbstractComponent
+  element: null
+  getElement: () ->
+    @element
+  isInDocument: false
+  canRender: () ->
+    true
+  render: () ->
+    @isInDocument = true
+  decorate: (elmSelector) ->
+    @isInDocument = true
+    @element = $(elmSelector)
+  dispose: () ->
+    if @isInDocument
+      @element.unbind()
+      @element.remove()
+      for prop of @
+        @[prop] = null  if _.isObject(@[prop])
+
+
+
+
+
 
 
 ###
  Singleton class for words.
 ###
-class WordList
+class WordList extends AbstractComponent
   wordInstances_: []
-  element: null
-  getElement: () ->
-    @element
 
-  constructor: (containerSelector) ->
-    @element = $(containerSelector)
   empty: () ->
     for word in @wordInstances_
       word.dispose()
@@ -48,30 +77,35 @@ class WordList
       return word.id == id
   getLastWord: () ->
     @wordInstances_[0]
+_.addSingletonGetter(WordList)
     
+
+
+
+
+
+
+
+
 
 
 ###
  Class for a word.
 ###
-class Word
-  element: null
-  getElement: () ->
-    @element
-  canRender: false
-
-  constructor: (data, @lastPost) ->
+class Word extends AbstractComponent
+  constructor: (data, @isLastPost) ->
     @id = data._id
     @content = data.content
     @createdBy = data.createdBy
     @createdAt = data.createdAt
     @liked = data.liked
-    @canRender = !!(@id and @content and @createdBy and @createdAt and @liked)
-    if @canRender
-      className = 'word'
-      @element = $("<div class='#{className}'></div>")
+    if @canRender()
+      @element = $('<div class="word"></div>')
+  canRender: () ->
+    !!(@id and @content and @createdBy and @createdAt and @liked)
   render: () ->
-    if @canRender
+    if @canRender()
+      super()
       @element.empty()
       text = ''
       userId = _.getUserId()
@@ -93,7 +127,7 @@ class Word
           .bind 'click', @sendLike
         @element.append(likeButtonElm)
 
-      if @lastPost
+      if @isLastPost
         lastPostElm = $('<span class="last-post">&lt-last post</span>')
         @element.append(lastPostElm)
 
@@ -110,12 +144,7 @@ class Word
       socket.emit 'like',
         wordId: @id
         userId: _.getUserId()
-  dispose: () ->
-    @element.unbind()
-    @element.remove()
-    for prop of @
-      @[prop] = null
-
+_.addSingletonGetter(Word)
 
 
 
@@ -123,16 +152,16 @@ class Word
 ###
  Singleton class for showing messages.
 ###
-class MessageComponent
-  element: null
+class Message extends AbstractComponent
   messageElm_: null
   importantMessageElm_: null
 
-  constructor: (containerSelector) ->
+  render: () ->  # @override
+    super()
     importantMessageTimer = null
     messageTimer = null
 
-    @element = $(containerSelector)
+    @element = $('<div id="msg-box" title="close this message"></div>')
 
     # important message
     onDocMouseMove = (e) ->
@@ -174,29 +203,32 @@ class MessageComponent
     @element
       .append(@importantMessageElm_)
       .append(@messageElm_)
+      .appendTo('body')
 
   show: (str) ->
     @messageElm_.trigger('show', str)
   showImportant: (str) ->
     @importantMessageElm_.trigger('show', str)
+  dispose: () ->  # @override
+    @importantMessageElm_.unbind()
+    @messageElm_.unbind()
+    super()
+_.addSingletonGetter(Message)
       
     
     
 ###
  Singleton class for time.
 ###
-class TimeComponent
-  element: null
+class Time extends AbstractComponent
   shortTickElm: null
   longTickElm: null
   titleElm: null
   height: 0
   hideTimer: null
 
-  constructor: () ->
-    @render()
-
   render: () ->
+    super()
     @element = $("""
       <div class="time" style="display:none"><div class="time-arrow"></div><div class="time-bg"><div class="time-round clearfix"><div class="time-label"><div class="time-label-twelve">12</div><div class="time-label-three">3</div><div class="time-label-six">6</div><div class="time-label-nine">9</div></div><div class="time-tick"><div class="time-tick-short"></div><div class="time-tick-long"></div></div><div class="time-tick-center"></div></div><div class="time-title"><div class="time-title-content"></div></div></div></div>
     """)
@@ -252,14 +284,13 @@ class TimeComponent
 
   getMinuteDeg_: (date) ->
     Math.floor(360 / 60 * date.getMinutes())
-
-
+_.addSingletonGetter(Time)
 
 
 
 
 exports.WordList = WordList
 exports.Word = Word
-exports.MessageComponent = MessageComponent
-exports.TimeComponent = TimeComponent
+exports.Message = Message
+exports.Time = Time
 

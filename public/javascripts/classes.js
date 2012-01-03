@@ -8,21 +8,66 @@
      underscore.js
      jquery-1.7.js
   */
-  var MessageComponent, TimeComponent, Word, WordList, exports;
-  var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+  var AbstractComponent, Message, Time, Word, WordList, exports;
+  var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
+    for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
+    function ctor() { this.constructor = child; }
+    ctor.prototype = parent.prototype;
+    child.prototype = new ctor;
+    child.__super__ = parent.prototype;
+    return child;
+  }, __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
   exports = window;
+  /*
+   Abstract class to manage DOM components.
+   usage:
+      # create instance
+      component = new Component() 
+      # append dom in body
+      component.render()          
+      # unbind all eventHandlers and remove dom
+      component.dispose()         
+  */
+  AbstractComponent = (function() {
+    function AbstractComponent() {}
+    AbstractComponent.prototype.element = null;
+    AbstractComponent.prototype.getElement = function() {
+      return this.element;
+    };
+    AbstractComponent.prototype.isInDocument = false;
+    AbstractComponent.prototype.canRender = function() {
+      return true;
+    };
+    AbstractComponent.prototype.render = function() {
+      return this.isInDocument = true;
+    };
+    AbstractComponent.prototype.decorate = function(elmSelector) {
+      this.isInDocument = true;
+      return this.element = $(elmSelector);
+    };
+    AbstractComponent.prototype.dispose = function() {
+      var prop, _results;
+      if (this.isInDocument) {
+        this.element.unbind();
+        this.element.remove();
+        _results = [];
+        for (prop in this) {
+          _results.push(_.isObject(this[prop]) ? this[prop] = null : void 0);
+        }
+        return _results;
+      }
+    };
+    return AbstractComponent;
+  })();
   /*
    Singleton class for words.
   */
   WordList = (function() {
-    WordList.prototype.wordInstances_ = [];
-    WordList.prototype.element = null;
-    WordList.prototype.getElement = function() {
-      return this.element;
-    };
-    function WordList(containerSelector) {
-      this.element = $(containerSelector);
+    __extends(WordList, AbstractComponent);
+    function WordList() {
+      WordList.__super__.constructor.apply(this, arguments);
     }
+    WordList.prototype.wordInstances_ = [];
     WordList.prototype.empty = function() {
       var word, _i, _len, _ref;
       _ref = this.wordInstances_;
@@ -66,33 +111,31 @@
     };
     return WordList;
   })();
+  _.addSingletonGetter(WordList);
   /*
    Class for a word.
   */
   Word = (function() {
-    Word.prototype.element = null;
-    Word.prototype.getElement = function() {
-      return this.element;
-    };
-    Word.prototype.canRender = false;
-    function Word(data, lastPost) {
-      var className;
-      this.lastPost = lastPost;
+    __extends(Word, AbstractComponent);
+    function Word(data, isLastPost) {
+      this.isLastPost = isLastPost;
       this.sendLike = __bind(this.sendLike, this);
       this.id = data._id;
       this.content = data.content;
       this.createdBy = data.createdBy;
       this.createdAt = data.createdAt;
       this.liked = data.liked;
-      this.canRender = !!(this.id && this.content && this.createdBy && this.createdAt && this.liked);
-      if (this.canRender) {
-        className = 'word';
-        this.element = $("<div class='" + className + "'></div>");
+      if (this.canRender()) {
+        this.element = $('<div class="word"></div>');
       }
     }
+    Word.prototype.canRender = function() {
+      return !!(this.id && this.content && this.createdBy && this.createdAt && this.liked);
+    };
     Word.prototype.render = function() {
       var content, i, lastPostElm, likeButtonElm, likedElm, text, userId, yourPostElm, _i, _len, _ref;
-      if (this.canRender) {
+      if (this.canRender()) {
+        Word.__super__.render.call(this);
         this.element.empty();
         text = '';
         userId = _.getUserId();
@@ -113,7 +156,7 @@
           likeButtonElm = $("<span class='like i' title='like it'>6</span>").bind('click', this.sendLike);
           this.element.append(likeButtonElm);
         }
-        if (this.lastPost) {
+        if (this.isLastPost) {
           lastPostElm = $('<span class="last-post">&lt-last post</span>');
           this.element.append(lastPostElm);
         }
@@ -137,30 +180,25 @@
         });
       }
     };
-    Word.prototype.dispose = function() {
-      var prop, _results;
-      this.element.unbind();
-      this.element.remove();
-      _results = [];
-      for (prop in this) {
-        _results.push(this[prop] = null);
-      }
-      return _results;
-    };
     return Word;
   })();
+  _.addSingletonGetter(Word);
   /*
    Singleton class for showing messages.
   */
-  MessageComponent = (function() {
-    MessageComponent.prototype.element = null;
-    MessageComponent.prototype.messageElm_ = null;
-    MessageComponent.prototype.importantMessageElm_ = null;
-    function MessageComponent(containerSelector) {
+  Message = (function() {
+    __extends(Message, AbstractComponent);
+    function Message() {
+      Message.__super__.constructor.apply(this, arguments);
+    }
+    Message.prototype.messageElm_ = null;
+    Message.prototype.importantMessageElm_ = null;
+    Message.prototype.render = function() {
       var importantMessageTimer, messageTimer, onDocMouseMove;
+      Message.__super__.render.call(this);
       importantMessageTimer = null;
       messageTimer = null;
-      this.element = $(containerSelector);
+      this.element = $('<div id="msg-box" title="close this message"></div>');
       onDocMouseMove = function(e) {
         var $that;
         $that = e.data.$that;
@@ -198,30 +236,37 @@
       }).bind('click', function(e) {
         return $(this).trigger('hide');
       });
-      this.element.append(this.importantMessageElm_).append(this.messageElm_);
-    }
-    MessageComponent.prototype.show = function(str) {
+      return this.element.append(this.importantMessageElm_).append(this.messageElm_).appendTo('body');
+    };
+    Message.prototype.show = function(str) {
       return this.messageElm_.trigger('show', str);
     };
-    MessageComponent.prototype.showImportant = function(str) {
+    Message.prototype.showImportant = function(str) {
       return this.importantMessageElm_.trigger('show', str);
     };
-    return MessageComponent;
+    Message.prototype.dispose = function() {
+      this.importantMessageElm_.unbind();
+      this.messageElm_.unbind();
+      return Message.__super__.dispose.call(this);
+    };
+    return Message;
   })();
+  _.addSingletonGetter(Message);
   /*
    Singleton class for time.
   */
-  TimeComponent = (function() {
-    TimeComponent.prototype.element = null;
-    TimeComponent.prototype.shortTickElm = null;
-    TimeComponent.prototype.longTickElm = null;
-    TimeComponent.prototype.titleElm = null;
-    TimeComponent.prototype.height = 0;
-    TimeComponent.prototype.hideTimer = null;
-    function TimeComponent() {
-      this.render();
+  Time = (function() {
+    __extends(Time, AbstractComponent);
+    function Time() {
+      Time.__super__.constructor.apply(this, arguments);
     }
-    TimeComponent.prototype.render = function() {
+    Time.prototype.shortTickElm = null;
+    Time.prototype.longTickElm = null;
+    Time.prototype.titleElm = null;
+    Time.prototype.height = 0;
+    Time.prototype.hideTimer = null;
+    Time.prototype.render = function() {
+      Time.__super__.render.call(this);
       this.element = $("<div class=\"time\" style=\"display:none\"><div class=\"time-arrow\"></div><div class=\"time-bg\"><div class=\"time-round clearfix\"><div class=\"time-label\"><div class=\"time-label-twelve\">12</div><div class=\"time-label-three\">3</div><div class=\"time-label-six\">6</div><div class=\"time-label-nine\">9</div></div><div class=\"time-tick\"><div class=\"time-tick-short\"></div><div class=\"time-tick-long\"></div></div><div class=\"time-tick-center\"></div></div><div class=\"time-title\"><div class=\"time-title-content\"></div></div></div></div>");
       $('body').append(this.element);
       this.element.css({
@@ -231,7 +276,7 @@
       this.longTickElm = $('.time-tick-long', this.element);
       return this.titleElm = $('.time-title-content', this.element);
     };
-    TimeComponent.prototype.attachElement = function(elm, time) {
+    Time.prototype.attachElement = function(elm, time) {
       var date, hourDeg, minuteDeg, pos;
       elm = $(elm);
       date = new Date(time);
@@ -258,25 +303,26 @@
         }, this), 3000);
       }, this));
     };
-    TimeComponent.prototype.createTitleHTML = function(date) {
+    Time.prototype.createTitleHTML = function(date) {
       var digits, niceDate;
       digits = _.padString(date.getHours(), 2) + ':' + _.padString(date.getMinutes(), 2);
       niceDate = _.niceDate(date);
       return "<span class=\"time-title-digits\">" + digits + "</span><br />\n<span class=\"time-title-nice\">" + niceDate + "</span>";
     };
-    TimeComponent.prototype.setRotate_ = function(elm, deg) {
+    Time.prototype.setRotate_ = function(elm, deg) {
       return elm.css(_.getCssPrefix() + 'transform', "rotate(" + deg + "deg)");
     };
-    TimeComponent.prototype.getHourDeg_ = function(date) {
+    Time.prototype.getHourDeg_ = function(date) {
       return Math.floor(360 / 12 * date.getHours());
     };
-    TimeComponent.prototype.getMinuteDeg_ = function(date) {
+    Time.prototype.getMinuteDeg_ = function(date) {
       return Math.floor(360 / 60 * date.getMinutes());
     };
-    return TimeComponent;
+    return Time;
   })();
+  _.addSingletonGetter(Time);
   exports.WordList = WordList;
   exports.Word = Word;
-  exports.MessageComponent = MessageComponent;
-  exports.TimeComponent = TimeComponent;
+  exports.Message = Message;
+  exports.Time = Time;
 }).call(this);

@@ -64,6 +64,9 @@ _.mixin
  Client side utils.
 ###
 _.mixin
+  addSingletonGetter: (ctor) ->  # Code by google closure lib.
+    ctor.getInstance = () ->
+      ctor.instance_ || (ctor.instance_ = new ctor())
   parseParamString: (str, sep='&') ->
     result = {}
     for pairStr in str.split(sep)
