@@ -1,9 +1,12 @@
 (function() {
   var getFirstLetter_, getLastLetter_, _;
+
   _ = require("underscore");
+
   /*
    Utils common in server and client.
   */
+
   getFirstLetter_ = function(str) {
     var count, len, result;
     count = 1;
@@ -21,6 +24,7 @@
     });
     return result;
   };
+
   getLastLetter_ = function(str) {
     var count, lastIndex, len;
     count = 1;
@@ -34,10 +38,9 @@
       }
     }
     str = _.last(str, count);
-    if (_.isArray(str)) {
-      return str = str.join('');
-    }
+    if (_.isArray(str)) return str = str.join('');
   };
+
   _.mixin({
     isValidWord: function(str) {
       if (_.isString(str) && /^[あ-ん|ー]+$/.test(str) && /^[^を]+$/.test(str) && !/っ$/.test(str)) {
@@ -48,9 +51,7 @@
             if (/^[ゃゅょ]$/.test(letter)) {
               return /^[きしちにひみりぎじぢび]$/.test(array[index - 1]);
             }
-            if (letter === 'っ') {
-              return /^[^っ]$/.test(array[index - 1]);
-            }
+            if (letter === 'っ') return /^[^っ]$/.test(array[index - 1]);
             return true;
           }
         });
@@ -65,4 +66,5 @@
       return _.include(getFirstLetter_(first), getLastLetter_(last));
     }
   });
+
 }).call(this);

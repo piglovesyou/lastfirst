@@ -1,6 +1,6 @@
 
 ###
- Include libraries.
+ Include libraries. 
 ###
 
 SECRET = require('secret-strings').LAST_FIRST
@@ -28,6 +28,8 @@ WordSchema = new mongoose.Schema(
 mongoose.model('Words', WordSchema)
 mongoose.connect('mongodb://localhost/lastFirst')
 Words = mongoose.model('Words')
+
+console.log Words
 
 findOptions =
   sort: [['createdAt', 'descending']]
@@ -187,7 +189,6 @@ io.sockets.on 'connection', (socket) ->
 
 
 
-# GET requests. 
 oauthScopes = [
   'https://www.googleapis.com/auth/userinfo.profile'
 ]
@@ -199,6 +200,7 @@ oauthQuery =
 oauthUrl = 'https://accounts.google.com/o/oauth2/auth?' +
     querystring.stringify(oauthQuery)
 
+# GET requests. 
 app.get "/", (req, res) ->
   res.render "index",
     title: "LastFirstApp"
