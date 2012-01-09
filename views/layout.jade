@@ -5,9 +5,9 @@ html
     meta(name="viewport", content="width=device-width,initial-scale=1.0,user-scalable=no,maximum-scale=1")
     link(rel='stylesheet', href='/stylesheets/style.css')
     link(rel='stylesheet', href='/stylesheets/mobile.css', media="only screen and (max-width: 800px)")
-    script(src='/javascripts/libs/head.load.min.js')
+    script(src='/javascripts/head.load.min.js')
     script
-      head.js(!{isProduction} ? '/javascripts/client.min.js' : '/javascripts/client.js' );
+      head.js( !{isProduction} ? '/javascripts/client.min.js' : '/javascripts/client.js' );
     - if (isProduction)
       include google-analytics
   body!= body

@@ -1,8 +1,6 @@
 
 
 
-
-
 ###
  Global accessor to the base info
 ###

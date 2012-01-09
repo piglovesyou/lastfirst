@@ -48,11 +48,11 @@
    Include resources.
   */
 
-  User = require('./resources/user').User;
+  User = require('./lib/user').User;
 
-  Word = require('./resources/word').set(Words);
+  Word = require('./lib/word').set(Words);
 
-  users = require('./resources/users').getInstance();
+  users = require('./lib/users').getInstance();
 
   /*
    App initialize.

@@ -1,51 +1,81 @@
 
-{exec} = (require 'child_process')
+# Include required libraries.
 
-BASE_PATH = 'public/javascripts/'
-addBasePath = (paths) ->
-  paths[_i] = BASE_PATH + path  for path in paths
+muffin = require 'muffin'
+Q = require 'q'
+_ = require 'underscore'
+temp = require 'temp'
+tempdir = temp.mkdirSync()
 
-LIBS = addBasePath([
-  'libs/socket.io.js'
-  'libs/underscore-min.js'
-  'libs/jquery-1.7.min.js'
-])
 
-FILES = addBasePath([
+
+# Client scripts setting.
+
+addPath = (path, files) ->
+  path += '/'  if /[^\/]$/.test(path)
+  files[_i] = path + file  for file in files
+
+LIBS = addPath 'resources/client/libs', [
+  'socket.io.js'
+  'underscore-min.js'
+  'jquery-1.7.min.js'
+]
+FILES = addPath 'resources/client', [
   'utils/utils.coffee'
   'classes/classes.coffee'
   'init/init.coffee'
-])
-
-MY_SCRIPT_FILENAME = "#{BASE_PATH}my"
-OUTPUT_FILENAME = "#{BASE_PATH}client"
+]
+OUTPUT = "public/javascripts/client"
 
 
 
-outputHandling = (err, stdout, stderr) ->
-  throw err if err
-  if stdout or stderr
-    console.log "#{stdout} #{stderr}"
+# Internal functions.
 
-onCoffeeCompiled = (err, stdout, stderr) ->
-  outputHandling(err, stdout, stderr)
-  exec "yuicompressor #{MY_SCRIPT_FILENAME}.js > #{MY_SCRIPT_FILENAME}.min.js", onYUICompressed
+concat = (minify) ->
+  min = if minify then '.min' else ''
+  my = "#{tempdir}/my#{min}.js"
+  q = muffin.exec "cat #{LIBS.join ' '} #{my} > #{OUTPUT}#{min}.js", (err) ->
+  Q.when q, (err) ->
+    console.log "compiled CLIENT SIDE scripts"
+  
+minify = (callback) ->
+  q = muffin.minifyScript "#{tempdir}/my.js"
+  Q.when q, concat.bind(null)
 
-onYUICompressed = (err, stdout, stderr) ->
-  outputHandling(err, stdout, stderr)
-  coms = []
-  for min in ['', '.min']
-    coms[_i] = "cat #{LIBS.join ' '} #{MY_SCRIPT_FILENAME}#{min}.js > #{OUTPUT_FILENAME}#{min}.js"
-  exec coms.join(' | '), onConcatFile
-
-onConcatFile = (err, stdout, stderr) ->
-  outputHandling(err, stdout, stderr)
-  exec "rm #{MY_SCRIPT_FILENAME}.js #{MY_SCRIPT_FILENAME}.min.js", outputHandling
+joinAndCompile = (options) ->
+  q = muffin.exec "coffee -cj #{tempdir}/my.js #{FILES.join ' '}"  
+  Q.when q[1], (err) ->
+    if options.minify
+      minify(concat.bind(null, true))
+    else
+      concat(false)
 
 
 
-# tasks
-task 'c', "compile and minify #{MY_SCRIPT_FILENAME}.", (options) ->
-  exec "coffee -cj #{MY_SCRIPT_FILENAME} #{FILES.join ' '}", onCoffeeCompiled
+# Options.
+
+option '-w', '--watch', 'continue to watch the files and rebuild them when they change'
+option '-m', '--minify', 'minify client side scripts'
+
+
+
+# Tasks.
+
+task 'build', 'Build coffeescripts.', (options) ->
+  compileClientScripts = true
+  muffin.run
+    files: './resources/**/*.coffee'
+    options: options
+    map:
+      'resources/server/(.+?).coffee': (matches) ->
+        q = muffin.compileScript matches[0], "./lib/#{matches[1]}.js", options
+        Q.when q, -> console.log "compiled SERVER SIDE script"
+      'resources/client/(.+?).coffee': (matches) ->
+        if compileClientScripts
+          compileClientScripts = false  # prevent first wasted compiles
+          joinAndCompile(options)
+    after: ->
+      compileClientScripts = true
+
 
 

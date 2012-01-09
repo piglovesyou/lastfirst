@@ -1,0 +1,8 @@
+
+LastFirstApp
+
+== Start developing
+  cake -w build
+
+== Compile as production mode(minify client scripts)
+  cake -m build
