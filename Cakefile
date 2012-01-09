@@ -34,8 +34,8 @@ OUTPUT = "public/javascripts/client"
 concat = (minify) ->
   min = if minify then '.min' else ''
   my = "#{tempdir}/my#{min}.js"
-  q = muffin.exec "cat #{LIBS.join ' '} #{my} > #{OUTPUT}#{min}.js", (err) ->
-  Q.when q, (err) ->
+  q = muffin.exec "cat #{LIBS.join ' '} #{my} > #{OUTPUT}#{min}.js"
+  Q.when q[1], (err) ->
     console.log "compiled CLIENT SIDE scripts"
   
 minify = (callback) ->
