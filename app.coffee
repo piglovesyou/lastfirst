@@ -5,7 +5,7 @@
 
 SECRET = require('secret-strings').LAST_FIRST
 _ = require("underscore")
-require('./underscore_extention')
+require('./lib/ext_validate')
 express = require("express")
 mongoose = require("mongoose")
 url = require('url')
@@ -43,6 +43,7 @@ findOptions =
 User  = require('./lib/user').User
 Word  = require('./lib/word').set(Words)
 users = require('./lib/users').getInstance()
+
 
 
 

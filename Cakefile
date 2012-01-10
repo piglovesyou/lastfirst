@@ -20,10 +20,11 @@ LIBS = addPath 'resources/client/libs', [
   'underscore-min.js'
   'jquery-1.7.min.js'
 ]
-FILES = addPath 'resources/client', [
-  'utils/utils.coffee'
-  'classes/classes.coffee'
-  'init/init.coffee'
+FILES = addPath 'resources', [
+  'share/ext_validate.coffee'
+  'client/utils/utils.coffee'
+  'client/classes/classes.coffee'
+  'client/init/init.coffee'
 ]
 OUTPUT = "public/javascripts/client"
 
@@ -64,13 +65,14 @@ option '-m', '--minify', 'minify client side scripts'
 task 'build', 'Build coffeescripts.', (options) ->
   compileClientScripts = true
   muffin.run
-    files: './resources/**/*.coffee'
+    files: './**/*.coffee'
     options: options
     map:
-      'resources/server/(.+?).coffee': (matches) ->
-        q = muffin.compileScript matches[0], "./lib/#{matches[1]}.js", options
-        Q.when q, -> console.log "compiled SERVER SIDE script"
-      'resources/client/(.+?).coffee': (matches) ->
+      'app.coffee': (matches) ->
+        muffin.compileScript matches[0], "./app.js", options
+      'resources/(server|share)/(.+?).coffee': (matches) ->
+        muffin.compileScript matches[0], "./lib/#{matches[2]}.js", options
+      'resources/(client|share)/(.+?).coffee': (matches) ->
         if compileClientScripts
           compileClientScripts = false  # prevent first wasted compiles
           joinAndCompile(options)

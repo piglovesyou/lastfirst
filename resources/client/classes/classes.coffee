@@ -9,10 +9,6 @@
    jquery-1.7.js
 ###
 
-exports = window
-
-
-
 
 
 ###
@@ -81,13 +77,6 @@ class WordList extends AbstractComponent
   getLastWord: () ->
     @wordInstances_[0]
 _.addSingletonGetter(WordList)
-    
-
-
-
-
-
-
 
 
 
@@ -290,10 +279,4 @@ class Time extends AbstractComponent
 _.addSingletonGetter(Time)
 
 
-
-
-exports.WordList = WordList
-exports.Word = Word
-exports.Message = Message
-exports.Time = Time
 

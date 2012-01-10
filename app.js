@@ -1,16 +1,16 @@
-
-/*
- Include libraries.
-*/
-
 (function() {
+
+  /*
+   Include libraries.
+  */
+
   var SECRET, User, Word, WordSchema, Words, app, express, findOptions, findRecentWords, getInitialWord, getLastDoc, io, lastDoc_, mongoose, oauthQuery, oauthScopes, oauthUrl, querystring, saveInitialWord, updateWords, updateWords_, url, users, _;
 
   SECRET = require('secret-strings').LAST_FIRST;
 
   _ = require("underscore");
 
-  require('./underscore_extention');
+  require('./lib/ext_validate');
 
   express = require("express");
 
