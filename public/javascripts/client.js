@@ -3863,11 +3863,10 @@ this._chain)}});j(["concat","join","slice"],function(a){var b=k[a];n.prototype[a
       date = new Date(time);
       hourDeg = this.getHourDeg_(date);
       minuteDeg = this.getMinuteDeg_(date);
-      pos = null;
+      pos = {};
       _.defer(function() {
-        pos = elm.offset();
-        pos.left += elm.width() / 2;
-        return pos.top += elm.height() / 2;
+        pos.top = elm.offset().top + elm.height() / 2;
+        return pos.left = elm.width() * .8;
       });
       return $(elm).bind('mouseover', function() {
         window.clearTimeout(_this.hideTimer);

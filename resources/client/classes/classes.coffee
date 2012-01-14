@@ -237,11 +237,10 @@ class Time extends AbstractComponent
     date = new Date(time)
     hourDeg = @getHourDeg_(date)
     minuteDeg = @getMinuteDeg_(date)
-    pos = null
+    pos = {}
     _.defer () ->
-      pos = elm.offset()
-      pos.left += elm.width()/2
-      pos.top += elm.height()/2
+      pos.top = elm.offset().top + elm.height()/2
+      pos.left = elm.width() * .8
 
     $(elm)
       .bind 'mouseover', () =>

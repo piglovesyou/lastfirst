@@ -135,19 +135,24 @@ io.sockets.on 'connection', (socket) ->
     result = validate.postedWord(user, users, post, getLastDoc(), postLocked)
     switch (result)
       when validateResult.IS_NOT_VALID_POST, validateResult.IS_INVALID_USER 
-        socket.emit 'error message', message: 'you bad boy.'
+        socket.emit 'error message', 
+          message: 'you bad boy.'
 
       when validateResult.IS_PENALTY_USER 
-       socket.emit 'error message', message: 'ん! you can\'t post for a while.'
+        socket.emit 'error message', 
+          message: 'ん! you can\'t post for a while.'
 
       when validateResult.POST_LOCKED     
-        socket.emit 'error message', message: 'post conflicted with someones post!'
+        socket.emit 'error message', 
+          message: 'post conflicted with someones post!'
 
       when validateResult.IS_INVALID_WORD 
-        socket.emit 'error message', message: 'Please enter a Japanese word in HIRAGANA.'
+        socket.emit 'error message', 
+          message: 'Please enter a Japanese word in HIRAGANA.'
 
       when validateResult.IS_NOT_LASTFIRST
-        socket.emit 'error message', message: 'I\'m not sure it\'s being Last and First.'
+        socket.emit 'error message', 
+          message: 'I\'m not sure it\'s being Last and First.'
 
       when validateResult.WORD_ENDS_N     
         users.setPenaltyUser(user.id)
@@ -156,7 +161,8 @@ io.sockets.on 'connection', (socket) ->
           word2 = new Word(getInitialWord())
           word2.save () ->
             updateWords(io.sockets)
-            socket.emit 'got penalty', message: 'ん! you can\'t post for a while.'
+            socket.emit 'got penalty', 
+              message: 'ん! you can\'t post for a while.'
 
       when validateResult.IS_VALID        
         postLocked = true
