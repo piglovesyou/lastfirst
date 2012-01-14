@@ -196,7 +196,6 @@ socketInit = () ->
 
   socket.on 'need login', () ->
     message.show('Expired. Need another login.')
-    #message.show('Expired. Need another login.')
     _.showLoginLink()
 
   socket.on 'validated nicely!', (data) ->

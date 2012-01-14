@@ -109,9 +109,11 @@ updateWords = (socket) ->
     else
       updateWords_(socket, err, docs)
 
-  
+ 
 
 
+validate = require('./lib/validate_util')
+validateResult = validate.RESULT
 
 ###
  Socket IO listening.
@@ -130,39 +132,75 @@ io.sockets.on 'connection', (socket) ->
         socket.emit 'got penalty',
           message: 'ん! you can\'t post for a while.'
   socket.on 'post word', (post) ->
-    if not user.isValid()
-      socket.emit 'error message',
-        message: 'you bad boy.'
-    if users.isPenaltyUser(user.id)
-      socket.emit 'error message',
-        message: 'ん! you can\'t post for a while.'
-    else if postLocked
-      socket.emit 'error message',
-        message: 'post conflicted with someones post!'
-    else if not _.isValidWord(post.content)
-      socket.emit 'error message',
-        message: 'Please enter a Japanese word in HIRAGANA.'
-    else if not _.isValidLastFirst(getLastDoc().content, post.content)
-      socket.emit 'error message',
-        message: 'I\'m not sure it\'s being Last and First.'
-    else if _.isEndsN(post.content)
-      # user.gotPenalty()
-      users.setPenaltyUser(user.id)
-      word1 = new Word(post)
-      word1.save () ->
-        word2 = new Word(getInitialWord())
-        word2.save () ->
-          updateWords(io.sockets)
-          socket.emit 'got penalty',
-            message: 'ん! you can\'t post for a while.'
-    else
-      postLocked = true
-      word = new Word(post)
-      word.save (err) ->
-        postLocked = false
-        unless err
-          socket.emit 'posted successfully', post
-          updateWords(io.sockets)
+    result = validate.postedWord(user, users, post, getLastDoc(), postLocked)
+    switch (result)
+      when validateResult.IS_NOT_VALID_POST, validateResult.IS_INVALID_USER 
+        socket.emit 'error message', message: 'you bad boy.'
+
+      when validateResult.IS_PENALTY_USER 
+       socket.emit 'error message', message: 'ん! you can\'t post for a while.'
+
+      when validateResult.POST_LOCKED     
+        socket.emit 'error message', message: 'post conflicted with someones post!'
+
+      when validateResult.IS_INVALID_WORD 
+        socket.emit 'error message', message: 'Please enter a Japanese word in HIRAGANA.'
+
+      when validateResult.IS_NOT_LASTFIRST
+        socket.emit 'error message', message: 'I\'m not sure it\'s being Last and First.'
+
+      when validateResult.WORD_ENDS_N     
+        users.setPenaltyUser(user.id)
+        word1 = new Word(post)
+        word1.save () ->
+          word2 = new Word(getInitialWord())
+          word2.save () ->
+            updateWords(io.sockets)
+            socket.emit 'got penalty', message: 'ん! you can\'t post for a while.'
+
+      when validateResult.IS_VALID        
+        postLocked = true
+        word = new Word(post)
+        word.save (err) ->
+          postLocked = false
+          unless err
+            socket.emit 'posted successfully', post
+            updateWords(io.sockets)
+
+
+    # if not user.isValid()
+    #   socket.emit 'error message',
+    #     message: 'you bad boy.'
+    # if users.isPenaltyUser(user.id)
+    #   socket.emit 'error message',
+    #     message: 'ん! you can\'t post for a while.'
+    # else if postLocked
+    #   socket.emit 'error message',
+    #     message: 'post conflicted with someones post!'
+    # else if not _.isValidWord(post.content)
+    #   socket.emit 'error message',
+    #     message: 'Please enter a Japanese word in HIRAGANA.'
+    # else if not _.isValidLastFirst(getLastDoc().content, post.content)
+    #   socket.emit 'error message',
+    #     message: 'I\'m not sure it\'s being Last and First.'
+    # else if _.isEndsN(post.content)
+    #   # user.gotPenalty()
+    #   users.setPenaltyUser(user.id)
+    #   word1 = new Word(post)
+    #   word1.save () ->
+    #     word2 = new Word(getInitialWord())
+    #     word2.save () ->
+    #       updateWords(io.sockets)
+    #       socket.emit 'got penalty',
+    #         message: 'ん! you can\'t post for a while.'
+    # else
+    #   postLocked = true
+    #   word = new Word(post)
+    #   word.save (err) ->
+    #     postLocked = false
+    #     unless err
+    #       socket.emit 'posted successfully', post
+    #       updateWords(io.sockets)
 
   socket.on 'like', (data) ->
     userId = data.userId

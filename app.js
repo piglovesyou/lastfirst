@@ -4,7 +4,7 @@
    Include libraries.
   */
 
-  var SECRET, User, Word, WordSchema, Words, app, express, findOptions, findRecentWords, getInitialWord, getLastDoc, io, lastDoc_, mongoose, oauthQuery, oauthScopes, oauthUrl, querystring, saveInitialWord, updateWords, updateWords_, url, users, _;
+  var SECRET, User, Word, WordSchema, Words, app, express, findOptions, findRecentWords, getInitialWord, getLastDoc, io, lastDoc_, mongoose, oauthQuery, oauthScopes, oauthUrl, querystring, saveInitialWord, updateWords, updateWords_, url, users, validate, validateResult, _;
 
   SECRET = require('secret-strings').LAST_FIRST;
 
@@ -121,6 +121,10 @@
     });
   };
 
+  validate = require('./lib/validate_util');
+
+  validateResult = validate.RESULT;
+
   /*
    Socket IO listening.
   */
@@ -144,51 +148,53 @@
       });
     });
     socket.on('post word', function(post) {
-      var postLocked, word, word1;
-      if (!user.isValid()) {
-        socket.emit('error message', {
-          message: 'you bad boy.'
-        });
-      }
-      if (users.isPenaltyUser(user.id)) {
-        return socket.emit('error message', {
-          message: 'ん! you can\'t post for a while.'
-        });
-      } else if (postLocked) {
-        return socket.emit('error message', {
-          message: 'post conflicted with someones post!'
-        });
-      } else if (!_.isValidWord(post.content)) {
-        return socket.emit('error message', {
-          message: 'Please enter a Japanese word in HIRAGANA.'
-        });
-      } else if (!_.isValidLastFirst(getLastDoc().content, post.content)) {
-        return socket.emit('error message', {
-          message: 'I\'m not sure it\'s being Last and First.'
-        });
-      } else if (_.isEndsN(post.content)) {
-        users.setPenaltyUser(user.id);
-        word1 = new Word(post);
-        return word1.save(function() {
-          var word2;
-          word2 = new Word(getInitialWord());
-          return word2.save(function() {
-            updateWords(io.sockets);
-            return socket.emit('got penalty', {
-              message: 'ん! you can\'t post for a while.'
+      var postLocked, result, word, word1;
+      result = validate.postedWord(user, users, post, getLastDoc(), postLocked);
+      switch (result) {
+        case validateResult.IS_NOT_VALID_POST:
+        case validateResult.IS_INVALID_USER:
+          return socket.emit('error message', {
+            message: 'you bad boy.'
+          });
+        case validateResult.IS_PENALTY_USER:
+          return socket.emit('error message', {
+            message: 'ん! you can\'t post for a while.'
+          });
+        case validateResult.POST_LOCKED:
+          return socket.emit('error message', {
+            message: 'post conflicted with someones post!'
+          });
+        case validateResult.IS_INVALID_WORD:
+          return socket.emit('error message', {
+            message: 'Please enter a Japanese word in HIRAGANA.'
+          });
+        case validateResult.IS_NOT_LASTFIRST:
+          return socket.emit('error message', {
+            message: 'I\'m not sure it\'s being Last and First.'
+          });
+        case validateResult.WORD_ENDS_N:
+          users.setPenaltyUser(user.id);
+          word1 = new Word(post);
+          return word1.save(function() {
+            var word2;
+            word2 = new Word(getInitialWord());
+            return word2.save(function() {
+              updateWords(io.sockets);
+              return socket.emit('got penalty', {
+                message: 'ん! you can\'t post for a while.'
+              });
             });
           });
-        });
-      } else {
-        postLocked = true;
-        word = new Word(post);
-        return word.save(function(err) {
-          postLocked = false;
-          if (!err) {
-            socket.emit('posted successfully', post);
-            return updateWords(io.sockets);
-          }
-        });
+        case validateResult.IS_VALID:
+          postLocked = true;
+          word = new Word(post);
+          return word.save(function(err) {
+            postLocked = false;
+            if (!err) {
+              socket.emit('posted successfully', post);
+              return updateWords(io.sockets);
+            }
+          });
       }
     });
     socket.on('like', function(data) {
