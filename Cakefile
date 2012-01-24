@@ -76,6 +76,9 @@ option '-m', '--minify', 'minify client side scripts'
 # Tasks.
 
 task 'build', 'Build coffeescripts.', (options) ->
+  options = _.defaults
+    watch: true
+  , options
   compileClientScripts = true
   muffin.run
     files: './**/*'
@@ -97,6 +100,7 @@ task 'build', 'Build coffeescripts.', (options) ->
 
     after: ->
       compileClientScripts = true
+  muffin.exec 'node-dev app.js'
 
 
 
