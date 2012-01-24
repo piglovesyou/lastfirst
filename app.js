@@ -4,7 +4,7 @@
    Include libraries.
   */
 
-  var SECRET, User, Word, WordSchema, Words, app, express, findOptions, findRecentWords, getInitialWord, getLastDoc, io, lastDoc_, mongoose, oauthQuery, oauthScopes, oauthUrl, querystring, saveInitialWord, updateWords, updateWords_, url, users, validate, validateResult, _;
+  var SECRET, User, Word, WordSchema, Words, app, express, findOptions, findRecentWords, getInitialWord, getLastDoc, io, lastDoc_, mongoose, nib, oauthQuery, oauthScopes, oauthUrl, querystring, saveInitialWord, stylus, updateWords, updateWords_, url, users, validate, validateResult, _;
 
   SECRET = require('secret-strings').LAST_FIRST;
 
@@ -19,6 +19,10 @@
   url = require('url');
 
   querystring = require('querystring');
+
+  stylus = require('stylus');
+
+  nib = require('nib');
 
   /*
    DB setting.
@@ -36,8 +40,6 @@
   mongoose.connect('mongodb://localhost/lastFirst');
 
   Words = mongoose.model('Words');
-
-  console.log(Words);
 
   findOptions = {
     sort: [['createdAt', 'descending']],
@@ -67,6 +69,12 @@
     app.set("view engine", "jade");
     app.use(express.bodyParser());
     app.use(express.methodOverride());
+    app.use(stylus.middleware({
+      src: __dirname + '/public',
+      compile: function(str, path) {
+        return stylus(str).set('filename', path).set('compress', true).use(nib());
+      }
+    }));
     app.use(app.router);
     return app.use(express.static(__dirname + "/public"));
   });
@@ -74,7 +82,8 @@
   app.configure("development", function() {
     return app.use(express.errorHandler({
       dumpExceptions: true,
-      showStack: true
+      showStack: true,
+      force: true
     }));
   });
 

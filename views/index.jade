@@ -1,3 +1,39 @@
+
+
+
+.toolbar
+  .logo
+    a(href='#') LastFirstApp
+  .buttons
+    a(href='#') @stakamur
+    a(href='#') log in
+
+script
+  setTimeout(function () {
+    var item = document.getElementsByClassName('item')[0];
+    item.parentNode.removeChild(item);
+  }, 800);
+    
+
+.wrapper
+  -for(var i=0;i<10;i++)
+    .item
+      .inner
+        .image
+          img(src='/images/dev2.png')
+        .text
+          span.title しりとり
+          span.like.i 6
+
+
+
+
+
+
+
+
+
+
 h1= title
 p Welcome to #{title}
 

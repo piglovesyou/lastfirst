@@ -1,0 +1,49 @@
+
+
+script
+
+
+style
+  body {background: #ccc;}
+  @font-face{font-family:'Dingbats2SamplerOT';src:url("Dingbats2SamplerOT.otf") format('opentype')}
+  .i{font-family:'Dingbats2SamplerOT'}
+
+
+  .wrapper {
+    position: relative;
+    width: 600px;
+    margin: 0 auto;
+  }
+  .item {
+    position: absolute;
+    text-align: center;
+    height: 240px;
+    -webkit-transition: top .4s, left .4s;
+    -moz-transition: top .4s, left .4s;
+  }
+
+  .item:nth-child(1),
+  .item:nth-child(2),
+  .item:nth-child(3) { top: 0; }
+  .item:nth-child(4),
+  .item:nth-child(5),
+  .item:nth-child(6) { top: 240px; }
+  .item:nth-child(7),
+  .item:nth-child(8),
+  .item:nth-child(9) { top: 480px; }
+
+  .item:nth-child(3n-2) { left: 400px; }
+  .item:nth-child(3n-1) { left: 200px; }
+  .item:nth-child(3n) { left: 0; }
+
+
+
+.wrapper
+  -for(var i=0;i<9;i++)
+    .item
+      .image
+        img(src='/images/dev2.png')
+      .text
+        span.title しりとり
+        span.like.i 6
+

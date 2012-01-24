@@ -1,55 +1,15 @@
-.clearfix
-  width: 100%
 
-.clearfix:after
-  content: ""
-  display: block
-  clear: both
+@import 'nib'
+@import './lib/extention'
 
-/* http://meyerweb.com/eric/tools/css/reset/ 
-   v2.0 | 20110126
-   License: none (public domain)
-*/
-html, body, div, span, applet, object, iframe,
-h1, h2, h3, h4, h5, h6, p, blockquote, pre,
-a, abbr, acronym, address, big, cite, code,
-del, dfn, em, img, ins, kbd, q, s, samp,
-small, strike, strong, sub, sup, tt, var,
-b, u, i, center,
-dl, dt, dd, ol, ul, li,
-fieldset, form, label, legend,
-table, caption, tbody, tfoot, thead, tr, th, td,
-article, aside, canvas, details, embed, 
-figure, figcaption, footer, header, hgroup, 
-menu, nav, output, ruby, section, summary,
-time, mark, audio, video
-  margin: 0
-  padding: 0
-  border: 0
-  font-size: 100%
-  font: inherit
-  vertical-align: baseline
+@font-face
+  font-family: 'Dingbats2SamplerOT'
+  src: url('Dingbats2SamplerOT.otf') format('opentype')
 
-article, aside, details, figcaption, figure, 
-footer, header, hgroup, menu, nav, section
-  display: block
 
-body
-  line-height: 1
+global-reset()
 
-ol, ul
-  list-style: none
 
-blockquote, q
-  quotes: none
-
-blockquote:before, blockquote:after,
-q:before, q:after
-  content: none
-
-table
-  border-collapse: collapse
-  border-spacing: 0
 
 h1
   display: block
@@ -69,12 +29,9 @@ p
 .word:hover
   background-color: #f6f6f6
 
-@font-face
-  font-family: 'Dingbats2SamplerOT'
-  src: url('Dingbats2SamplerOT.otf') format('opentype')
 
 body
-  padding: 0 50px
+  overflow-x hidden
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif
 
 a
@@ -132,8 +89,7 @@ a
 .time
   position: absolute
   z-index: 9999
-  -moz-transition: top .2s, left .2s
-  -webkit-transition: top .2s, left .2s
+  transition top .2s, left .2s
 
 .time-arrow,
 .time-bg
@@ -169,10 +125,8 @@ a
 .time-label div
   position: absolute
   text-indent: -.25em
-  -moz-transform-origin: left top
-  -webkit-transform-origin: left top
-  -moz-transform: scale(.4,.4)
-  -webkit-transform: scale(.4,.4)
+  transform-origin left top
+  transform scale(.4,.4)
 
 .time-label .time-label-twelve
   text-indent: -.6em
@@ -238,4 +192,132 @@ a
 
 .time-title-nice
   color: #777
+
+
+
+
+
+
+// aaa 
+.toolbar
+  clearfix()
+  padding 0 10px
+  background-color #f5bce7
+  line-height 28px
+  & .logo
+    float left
+  & .buttons
+    float right
+
+.wrapper 
+  position relative
+  margin 38px auto
+  clear both
+
+
+
+// @media only screen and (min-width: 801px)
+
+windowSizeMin = 750px
+windowSizeMid = 750px
+windowSizeMax = 750px
+itemWidth = 190px
+itemHeight = 240px
+
+.wrapper
+  margin-left 30px
+  margin-right 30px
+
+
+
+.item
+  position absolute
+  text-align center
+  width itemWidth
+  height itemHeight
+  transition top .4s, left .4s
+  & .inner
+    position relative
+    left -50%
+
+
+@media only screen and (max-width: 749px)
+  .item:nth-child(1)
+  .item:nth-child(2)
+    top: 0
+  .item:nth-child(3)
+  .item:nth-child(4)
+    top: itemHeight
+  .item:nth-child(5)
+  .item:nth-child(6)
+    top: itemHeight * 2
+  .item:nth-child(7)
+  .item:nth-child(8)
+    top: itemHeight * 3
+  .item:nth-child(9)
+  .item:nth-child(10)
+    top: itemHeight * 4
+
+  half = (100% / 2)
+  quoter = (half / 2)
+  .item:nth-child(2n-1)
+    left: half + quoter
+  .item:nth-child(2n)
+    left: quoter
+
+@media only screen and (min-width: 750px)
+  .item:nth-child(1)
+  .item:nth-child(2)
+  .item:nth-child(3)
+    top: 0
+  .item:nth-child(4)
+  .item:nth-child(5)
+  .item:nth-child(6)
+    top: itemHeight
+  .item:nth-child(7)
+  .item:nth-child(8)
+  .item:nth-child(9)
+    top: itemHeight * 2
+  .item:nth-child(10)
+  .item:nth-child(11)
+  .item:nth-child(12)
+    top: itemHeight * 3
+
+  half = (100% / 3)
+  quoter = (half / 2)
+  .item:nth-child(3n-2)
+    left: (half * 2) + quoter
+  .item:nth-child(3n-1)
+    left: half + quoter
+  .item:nth-child(3n)
+    left: quoter
+
+@media only screen and (min-width: 1000px)
+  .item:nth-child(1)
+  .item:nth-child(2)
+  .item:nth-child(3)
+  .item:nth-child(4)
+    top: 0
+  .item:nth-child(5)
+  .item:nth-child(6)
+  .item:nth-child(7)
+  .item:nth-child(8)
+    top: itemHeight
+  .item:nth-child(9)
+  .item:nth-child(10)
+  .item:nth-child(11)
+  .item:nth-child(12)
+    top: itemHeight * 2
+
+  half = (100% / 4)
+  quoter = (half / 2)
+  .item:nth-child(4n-3)
+    left: (half * 3) + quoter
+  .item:nth-child(4n-2)
+    left: (half * 2) + quoter
+  .item:nth-child(4n-1)
+    left: half + quoter
+  .item:nth-child(4n)
+    left: quoter
+
 

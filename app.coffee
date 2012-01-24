@@ -10,6 +10,8 @@ express = require("express")
 mongoose = require("mongoose")
 url = require('url')
 querystring = require('querystring')
+stylus = require 'stylus'
+nib = require 'nib'
 
 
 
@@ -19,17 +21,15 @@ querystring = require('querystring')
 ###
  DB setting.
 ###
-WordSchema = new mongoose.Schema(
+WordSchema = new mongoose.Schema
   content: String
   createdBy: String
   createdAt: Date
   liked: Array
-)
+
 mongoose.model('Words', WordSchema)
 mongoose.connect('mongodb://localhost/lastFirst')
 Words = mongoose.model('Words')
-
-console.log Words
 
 findOptions =
   sort: [['createdAt', 'descending']]
@@ -57,12 +57,21 @@ app.configure ->
   app.set "view engine", "jade"
   app.use express.bodyParser()
   app.use express.methodOverride()
+  app.use stylus.middleware(
+    src: __dirname + '/public'
+    compile: (str, path) ->
+      stylus(str)
+      .set('filename', path)
+      .set('compress', true)
+      .use(nib())
+  )
   app.use app.router
   app.use express.static(__dirname + "/public")
 app.configure "development", ->
   app.use express.errorHandler
     dumpExceptions: true
     showStack: true
+    force: true
 app.configure "production", ->
   app.use express.errorHandler()
 
