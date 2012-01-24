@@ -3678,7 +3678,7 @@ this._chain)}});j(["concat","join","slice"],function(a){var b=k[a];n.prototype[a
       this.createdBy = data.createdBy;
       this.createdAt = data.createdAt;
       this.liked = data.liked;
-      if (this.canRender()) this.element = $('<div class="word"></div>');
+      if (this.canRender()) this.element = $('<div class="word item"></div>');
     }
 
     Word.prototype.canRender = function() {
@@ -3686,12 +3686,13 @@ this._chain)}});j(["concat","join","slice"],function(a){var b=k[a];n.prototype[a
     };
 
     Word.prototype.render = function() {
-      var content, i, lastPostElm, likeButtonElm, likedElm, text, userId, yourPostElm, _i, _len, _ref;
+      var content, i, inner, label, likeButtonElm, likedElm, text, userId, _i, _len, _ref;
       if (this.canRender()) {
         Word.__super__.render.call(this);
         this.element.empty();
         text = '';
         userId = _.getUserId();
+        label = $("<div class='label'></div>");
         text = this.content;
         if (_.isEndsN(this.content)) text += '*';
         content = $("<span class='content' title='" + this.createdAt + "'>" + text + "</span>");
@@ -3702,18 +3703,22 @@ this._chain)}});j(["concat","join","slice"],function(a){var b=k[a];n.prototype[a
           text += '6';
         }
         likedElm = $("<span class='liked i'>" + text + "</span>");
-        this.element.append(content).append(likedElm);
+        label.append(content).append(likedElm);
         if (userId && userId !== this.createdBy && !_.include(this.liked, userId)) {
           likeButtonElm = $("<span class='like i' title='like it'>6</span>").bind('click', this.sendLike);
-          this.element.append(likeButtonElm);
+          label.append(likeButtonElm);
         }
+        inner = $("<div class='inner'></div>").append(label);
+        this.element.append(inner);
         if (this.isLastPost) {
-          lastPostElm = $('<span class="last-post">&lt-last post</span>');
-          this.element.append(lastPostElm);
+          this.element.addClass("last-post");
+        } else {
+          this.element.removeClass("last-post");
         }
         if (userId === this.createdBy) {
-          yourPostElm = $('<span class="your-post">&lt-your post!</span>');
-          return this.element.append(yourPostElm);
+          return this.element.addClass("your-post");
+        } else {
+          return this.element.removeClass("your-post");
         }
       }
     };
@@ -3741,7 +3746,7 @@ this._chain)}});j(["concat","join","slice"],function(a){var b=k[a];n.prototype[a
   _.addSingletonGetter(Word);
 
   /*
-   Singleton class for showing messages.
+   ingleton class for showing messages.
   */
 
   Message = (function(_super) {
@@ -3857,18 +3862,20 @@ this._chain)}});j(["concat","join","slice"],function(a){var b=k[a];n.prototype[a
     };
 
     Time.prototype.attachElement = function(elm, time) {
-      var date, hourDeg, minuteDeg, pos,
+      var date, hourDeg, minuteDeg, pos, size,
         _this = this;
       elm = $(elm);
       date = new Date(time);
       hourDeg = this.getHourDeg_(date);
       minuteDeg = this.getMinuteDeg_(date);
+      size = {
+        width: $(elm).width(),
+        height: $(elm).height()
+      };
       pos = {};
-      _.defer(function() {
-        pos.top = elm.offset().top + elm.height() / 2;
-        return pos.left = elm.width() * .8;
-      });
       return $(elm).bind('mouseover', function() {
+        pos = elm.offset();
+        pos.left += size.width / 2;
         window.clearTimeout(_this.hideTimer);
         _this.setRotate_(_this.shortTickElm, hourDeg);
         _this.setRotate_(_this.longTickElm, minuteDeg);
@@ -3977,7 +3984,7 @@ this._chain)}});j(["concat","join","slice"],function(a){var b=k[a];n.prototype[a
     message = Message.getInstance();
     message.render();
     words = WordList.getInstance();
-    words.decorate('#word-list');
+    words.decorate('.wrapper');
     time = Time.getInstance();
     time.render();
     socketInit();

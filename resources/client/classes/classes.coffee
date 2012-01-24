@@ -92,7 +92,7 @@ class Word extends AbstractComponent
     @createdAt = data.createdAt
     @liked = data.liked
     if @canRender()
-      @element = $('<div class="word"></div>')
+      @element = $('<div class="word item"></div>')
   canRender: () ->
     !!(@id and @content and @createdBy and @createdAt and @liked)
   render: () ->
@@ -102,6 +102,8 @@ class Word extends AbstractComponent
       text = ''
       userId = _.getUserId()
 
+      label = $("<div class='label'></div>")
+
       text = @content
       text += '*' if _.isEndsN(@content)
       content = $("<span class='content' title='#{@createdAt}'>#{text}</span>")
@@ -109,23 +111,28 @@ class Word extends AbstractComponent
       text = ''
       text += '6' for i in @liked
       likedElm = $("<span class='liked i'>#{text}</span>")
-      
-      @element
+
+      label
         .append(content)
         .append(likedElm)
 
       if userId and userId isnt @createdBy and not _.include(@liked, userId)
         likeButtonElm = $("<span class='like i' title='like it'>6</span>")
           .bind 'click', @sendLike
-        @element.append(likeButtonElm)
+        label.append(likeButtonElm)
+
+      inner = $("<div class='inner'></div>").append label
+      @element.append inner
 
       if @isLastPost
-        lastPostElm = $('<span class="last-post">&lt-last post</span>')
-        @element.append(lastPostElm)
+        @element.addClass("last-post")
+      else
+        @element.removeClass("last-post")
 
       if userId is @createdBy
-        yourPostElm = $('<span class="your-post">&lt-your post!</span>')
-        @element.append(yourPostElm)
+        @element.addClass("your-post")
+      else
+        @element.removeClass("your-post")
 
   attachTime: (@time) ->
     @time.attachElement(@element, @createdAt)
@@ -142,7 +149,7 @@ _.addSingletonGetter(Word)
 
 
 ###
- Singleton class for showing messages.
+ ingleton class for showing messages.
 ###
 class Message extends AbstractComponent
   messageElm_: null
@@ -237,13 +244,16 @@ class Time extends AbstractComponent
     date = new Date(time)
     hourDeg = @getHourDeg_(date)
     minuteDeg = @getMinuteDeg_(date)
+    size = 
+      width: $(elm).width()
+      height: $(elm).height()
     pos = {}
-    _.defer () ->
-      pos.top = elm.offset().top + elm.height()/2
-      pos.left = elm.width() * .8
 
     $(elm)
       .bind 'mouseover', () =>
+        pos = elm.offset()
+        pos.left += size.width / 2
+
         window.clearTimeout(@hideTimer)
         @setRotate_ @shortTickElm, hourDeg
         @setRotate_ @longTickElm, minuteDeg

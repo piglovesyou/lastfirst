@@ -7,8 +7,7 @@ caption,th,td{text-align:left;font-weight:normal;vertical-align:middle}
 a img{border:none}
 h1{display:block;font-size:2em;margin-top:.67em;margin-bottom:.67em;font-weight:bold}
 p{display:block;margin-top:1em;margin-bottom:1em}
-.word{max-width:300px}
-.word:hover{background-color:#f6f6f6}
+html,body,.wrapper{height:100%}
 body{overflow-x:hidden;font:14px "Lucida Grande",Helvetica,Arial,sans-serif}
 a{color:#00b7ff}
 #msg-box{position:fixed;top:2px;right:2px}

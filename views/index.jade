@@ -8,22 +8,22 @@
     a(href='#') @stakamur
     a(href='#') log in
 
-script
-  setTimeout(function () {
-    var item = document.getElementsByClassName('item')[0];
-    item.parentNode.removeChild(item);
-  }, 800);
+// script
+//   setTimeout(function () {
+//     var item = document.getElementsByClassName('item')[0];
+//     item.parentNode.removeChild(item);
+//   }, 800);
     
 
-.wrapper
-  -for(var i=0;i<10;i++)
-    .item
-      .inner
-        .image
-          img(src='/images/dev2.png')
-        .text
-          span.title しりとり
-          span.like.i 6
+// .wrapper
+//   -for(var i=0;i<10;i++)
+//     .item
+//       .inner
+//         .image
+//           img(src='/images/dev2.png')
+//         .text
+//           span.title しりとり
+//           span.like.i 6
 
 
 
@@ -41,19 +41,19 @@ p Welcome to #{title}
 
 - var onclick = 'javascript:window.open("' + oauthUrl + '", "oauth", "width=700, height=400, top=200, left=600, menubar=no, toolbar=no, scrollbars=yes");'
 
-div#wait-sec-message
+#wait-sec-message
   | Wait for a sec...
   img.loading(src='/images/spacer.gif',width='16',height='16')
 
-div#login-link(style='display:none')
+#login-link(style='display:none')
   a(href='javascript:void(0)', onclick=onclick) To post, please authorize with google.
 
-div#post-form(style='display:none')
+#post-form(style='display:none')
   form#post(action='javascript:void(0)', method='POST')
     label(for='content') * しりとり、どうぞ
     input(type='text', name='content')
     input(type='submit', name='GO!')
     img#indicator(src='/images/spacer.gif',width='16',height='16')
 
-div#word-list
+.wrapper 
   

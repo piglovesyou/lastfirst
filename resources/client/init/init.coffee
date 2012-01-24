@@ -71,7 +71,7 @@ $(->
   message = Message.getInstance()
   message.render()
   words = WordList.getInstance()
-  words.decorate('#word-list')
+  words.decorate('.wrapper')
   time = Time.getInstance()
   time.render()
 
