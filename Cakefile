@@ -50,15 +50,16 @@ minify = (callback) ->
   Q.when q, concat.bind(null, false)
 
 joinAndCompile = (options) ->
-  q = muffin.exec "coffee -cj #{tempdir}/my.js #{FILES.join ' '}"  
+  q = muffin.exec "cat #{FILES.join ' '} > #{tempdir}/concatnated.coffee"  
   Q.when q[1], (result) ->
     err = outputResult(result)
     unless err
-      if options.minify
-        minify(concat.bind(null, true))
-      else
-        concat(false)
-
+      q = muffin.compileScript "#{tempdir}/concatnated.coffee", "#{tempdir}/my.js", options
+      Q.when q, (result) ->
+        if options.minify
+          minify(concat.bind(null, true))
+        else
+          concat(false)
 
 
 
