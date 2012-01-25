@@ -271,6 +271,13 @@
     });
   });
 
+  app.get("/dev2", function(req, res) {
+    return res.render("dev2", {
+      isProduction: true,
+      title: "dev"
+    });
+  });
+
   app.get("/oauth2callback", function(req, res) {
     var token;
     token = req.query.code;

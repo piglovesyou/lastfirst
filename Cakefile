@@ -59,10 +59,6 @@ joinAndCompile = (options) ->
       else
         concat(false)
 
-compileStylus = (file) ->
-  q = muffin.exec "stylus -c -o ./public/stylesheets/ #{file}"
-  Q.when q[1], outputResult
-
 
 
 
@@ -94,9 +90,6 @@ task 'build', 'Build coffeescripts.', (options) ->
         if compileClientScripts
           compileClientScripts = false  # To prevent wasted compiles
           joinAndCompile(options)
-
-      'resources/client/stylus/(.+?).styl': (matches) ->
-        compileStylus matches[0]
 
     after: ->
       compileClientScripts = true

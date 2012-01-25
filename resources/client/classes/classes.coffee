@@ -102,6 +102,11 @@ class Word extends AbstractComponent
       text = ''
       userId = _.getUserId()
 
+      image = $("""
+        <div class='image'>
+        <img src="/images/dev2.png" />
+        </div>
+        """)
       label = $("<div class='label'></div>")
 
       text = @content
@@ -121,7 +126,8 @@ class Word extends AbstractComponent
           .bind 'click', @sendLike
         label.append(likeButtonElm)
 
-      inner = $("<div class='inner'></div>").append label
+      inner = $("<div class='inner'></div>").append(image)
+      console.log inner
       @element.append inner
 
       if @isLastPost

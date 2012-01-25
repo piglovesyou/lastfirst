@@ -272,6 +272,12 @@ app.get "/dev", (req, res) ->
     isProduction: true
     title: "dev"
 
+# dev2
+app.get "/dev2", (req, res) ->
+  res.render "dev2",
+    isProduction: true
+    title: "dev"
+
 app.get "/oauth2callback", (req, res) ->
   token = req.query.code
   res.render "oauth2callback"
