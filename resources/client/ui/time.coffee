@@ -32,7 +32,7 @@ class Time extends AbstractComponent
       .bind 'mouseover', () =>
         span = $('.label span:last-child', elm)
         pos = span.offset()
-        pos.top -= 6 # 0.5em
+        pos.top += span.height() / 2
         pos.left += span.width()
 
         window.clearTimeout(@hideTimer)

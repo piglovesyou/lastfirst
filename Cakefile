@@ -22,7 +22,7 @@ LIBS = addPath 'resources/client/libs', [
 ]
 FILES = addPath 'resources', [
   'share/ext_validate.coffee'
-  'client/utils/utils.coffee'
+  'client/utils.coffee'
 
   'client/ui/abstractcomponent.coffee'
   'client/ui/wordlist.coffee'
@@ -30,7 +30,7 @@ FILES = addPath 'resources', [
   'client/ui/message.coffee'
   'client/ui/time.coffee'
 
-  'client/init/init.coffee'
+  'client/init.coffee'
 ]
 OUTPUT = "public/javascripts/client"
 
@@ -58,6 +58,7 @@ minify = (callback) ->
 joinAndCompile = (options) ->
   q = muffin.exec "cat #{FILES.join ' '} > #{tempdir}/concatnated.coffee"  
   Q.when q[1], (result) ->
+    # muffin.exec "open #{tempdir}"
     err = outputResult(result)
     unless err
       q = muffin.compileScript "#{tempdir}/concatnated.coffee", "#{tempdir}/my.js", options

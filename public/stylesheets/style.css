@@ -25,8 +25,8 @@ a{color:#00b7ff}
 .time{position:absolute;z-index:9999;-webkit-transition:top .2s,left .2s;-moz-transition:top .2s,left .2s;transition:top .2s,left .2s}
 .time-arrow,.time-bg{display:inline-block;vertical-align:bottom}
 .time-bg{-webkit-box-shadow:2px 2px 2px rgba(0,0,0,0.30);-moz-box-shadow:2px 2px 2px rgba(0,0,0,0.30);box-shadow:2px 2px 2px rgba(0,0,0,0.30)}
-.time-arrow{display:inline-block;border-right:7px solid #ccc;border-top:15px solid transparent;border-bottom:15px solid transparent}
-.time-bg{position:relative;height:30px;background-color:#ccc;-webkit-border-radius:0 50px 50px 0;-moz-border-radius:0 50px 50px 0;border-radius:0 50px 50px 0;width:82px}
+.time-arrow{display:inline-block;border-right:7px solid #222;border-top:15px solid transparent;border-bottom:15px solid transparent}
+.time-bg{position:relative;height:30px;background-color:#222;-webkit-border-radius:0 50px 50px 0;-moz-border-radius:0 50px 50px 0;border-radius:0 50px 50px 0;width:82px}
 .time-round{position:relative;width:0;float:left;margin:3px 0 0 0;border-style:solid;border-color:#fff;border-width:12px;-webkit-border-radius:12px;-moz-border-radius:12px;border-radius:12px}
 .time-label div{position:absolute;text-indent:-.25em;-webkit-transform-origin:left top;-moz-transform-origin:left top;transform-origin:left top;-webkit-transform:scale(.4,.4);-moz-transform:scale(.4,.4);transform:scale(.4,.4)}
 .time-label .time-label-twelve{text-indent:-.6em;top:-11px}
@@ -41,6 +41,7 @@ a{color:#00b7ff}
 .time-title{display:table;padding:0 0 0 2px;height:30px;font-size:73%}
 .time-title-content{display:table-cell;vertical-align:middle;line-height:1.2}
 .time-title-nice{color:#777}
+.time-title-digits{color:#fff}
 .toolbar{zoom:1;padding:0 10px;background-color:#222;line-height:28px;}
 .toolbar:before,.toolbar:after{content:"";display:table}
 .toolbar:after{clear:both}

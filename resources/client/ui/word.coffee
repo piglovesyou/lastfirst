@@ -10,8 +10,10 @@ class Word extends AbstractComponent
     @liked = data.liked
     if @canRender()
       @element = $('<div class="word item"></div>')
+
   canRender: () ->
     !!(@id and @content and @createdBy and @createdAt and @liked)
+
   render: () ->
     if @canRender()
       super()
@@ -26,17 +28,17 @@ class Word extends AbstractComponent
         """)
       label = $("<div class='label'></div>")
 
-      text = @content
-      text += '*' if _.isEndsN(@content)
-      content = $("<span class='content' title='#{@createdAt}'>#{text}</span>")
+      title = @content
+      title += '*' if _.isEndsN(@content)
+      titleElm = $("<span class='titleElm' title='#{@createdAt}'>#{title}</span>")
 
-      text = ''
-      text += '6' for i in @liked
-      likedElm = $("<span class='liked i'>#{text}</span>")
+      label.append(titleElm)
 
-      label
-        .append(content)
-        .append(likedElm)
+      if not _.isEmpty(@liked)
+        likeText = ''
+        likeText += '6' for i in @liked
+        likedElm = $("<span class='liked i'>#{likeText}</span>")
+        label.append(likedElm)
 
       if userId and userId isnt @createdBy and not _.include(@liked, userId)
         likeButtonElm = $("<span class='like i' title='like it'>6</span>")
