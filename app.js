@@ -4,17 +4,17 @@
    Include libraries.
   */
 
-  var SECRET, User, Word, WordSchema, Words, app, express, findOptions, findRecentWords, getInitialWord, getLastDoc, io, lastDoc_, mongoose, nib, oauthQuery, oauthScopes, oauthUrl, querystring, saveInitialWord, stylus, updateWords, updateWords_, url, users, validate, validateResult, _;
+  var OAuth, SECRET, User, Word, WordSchema, Words, app, express, findOptions, findRecentWords, getInitialWord, getLastDoc, io, lastDoc_, mongoose, nib, oauthQuery, oauthScopes, oauthUrl, querystring, saveInitialWord, stylus, updateWords, updateWords_, url, users, validate, validateResult, _;
 
   SECRET = require('secret-strings').LAST_FIRST;
 
-  _ = require("underscore");
+  _ = require('underscore');
 
   require('./lib/ext_validate');
 
-  express = require("express");
+  express = require('express');
 
-  mongoose = require("mongoose");
+  mongoose = require('mongoose');
 
   url = require('url');
 
@@ -23,6 +23,8 @@
   stylus = require('stylus');
 
   nib = require('nib');
+
+  OAuth = require('oauth').OAuth;
 
   /*
    DB setting.
@@ -43,7 +45,7 @@
 
   findOptions = {
     sort: [['createdAt', 'descending']],
-    limit: 5
+    limit: 12
   };
 
   /*
@@ -65,8 +67,8 @@
   io = require('socket.io').listen(app);
 
   app.configure(function() {
-    app.set("views", __dirname + "/views");
-    app.set("view engine", "jade");
+    app.set('views', __dirname + '/views');
+    app.set('view engine', 'jade');
     app.use(express.bodyParser());
     app.use(express.methodOverride());
     app.use(stylus.middleware({
@@ -76,10 +78,10 @@
       }
     }));
     app.use(app.router);
-    return app.use(express.static(__dirname + "/public"));
+    return app.use(express.static(__dirname + '/public'));
   });
 
-  app.configure("development", function() {
+  app.configure('development', function() {
     return app.use(express.errorHandler({
       dumpExceptions: true,
       showStack: true,
@@ -87,7 +89,7 @@
     }));
   });
 
-  app.configure("production", function() {
+  app.configure('production', function() {
     return app.use(express.errorHandler());
   });
 
@@ -249,41 +251,42 @@
 
   oauthUrl = 'https://accounts.google.com/o/oauth2/auth?' + querystring.stringify(oauthQuery);
 
-  app.get("/", function(req, res) {
-    return res.render("index", {
-      title: "LastFirstApp",
+  app.get('/', function(req, res) {
+    return res.render('index', {
+      title: 'LastFirstApp',
       oauthUrl: oauthUrl,
       isProduction: SECRET.IS_PRODUCTION
     });
   });
 
-  app.get("/about", function(req, res) {
-    return res.render("about", {
-      title: "LastFirstApp - about",
-      oauthUrl: oauthUrl
+  app.get('/about', function(req, res) {
+    return res.render('about', {
+      title: 'LastFirstApp - about',
+      oauthUrl: oauthUrl,
+      isProduction: SECRET.IS_PRODUCTION
     });
   });
 
-  app.get("/dev", function(req, res) {
-    return res.render("dev", {
+  app.get('/dev', function(req, res) {
+    return res.render('dev', {
       isProduction: true,
-      title: "dev"
+      title: 'dev'
     });
   });
 
-  app.get("/dev2", function(req, res) {
-    return res.render("dev2", {
+  app.get('/dev2', function(req, res) {
+    return res.render('dev2', {
       isProduction: true,
-      title: "dev"
+      title: 'dev'
     });
   });
 
-  app.get("/oauth2callback", function(req, res) {
+  app.get('/oauth2callback', function(req, res) {
     var token;
     token = req.query.code;
-    return res.render("oauth2callback", {
+    return res.render('oauth2callback', {
       layout: false,
-      title: "LastFirstApp"
+      title: 'LastFirstApp'
     });
   });
 

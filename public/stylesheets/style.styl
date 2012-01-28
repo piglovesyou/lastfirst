@@ -195,16 +195,28 @@ a
 
 
 
-// aaa 
 .toolbar
   clearfix()
   padding 0 10px
-  background-color #f5bce7
+  background-color #222
   line-height 28px
+  & a
+    color #fff
+    text-decoration none
+  & a:hover
+    text-decoration underline
+
   & .logo
     float left
+    font-weight bold
+    margin-right 8px
   & .buttons
     float right
+    & a
+      margin-left 8px
+  & .message
+    background #f22
+    overflow ellipsis
 
 .wrapper 
   position relative
@@ -231,13 +243,13 @@ itemHeight = 240px
   position absolute
   text-align center
   width itemWidth
-  height itemHeight
   transition top .4s, left .4s
   & .inner
-    position relative
+    position absolute
+    height itemHeight
     left -50%
   & .image
-    border-radius itemWidth / 2
+    border-radius (itemWidth / 2)
     overflow hidden
     
 
@@ -258,6 +270,9 @@ itemHeight = 240px
   .item:nth-child(9)
   .item:nth-child(10)
     top: itemHeight * 4
+  .item:nth-child(11)
+  .item:nth-child(12)
+    top: itemHeight * 5
 
   half = (100% / 2)
   quoter = (half / 2)

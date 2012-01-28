@@ -3525,6 +3525,215 @@ this._chain)}});j(["concat","join","slice"],function(a){var b=k[a];n.prototype[a
   });
 
   /*
+   Abstract class to manage DOM components.
+   usage:
+      # create instance
+      component = new Component() 
+      # append dom in body
+      component.render()          
+      # unbind all eventHandlers and remove dom
+      component.dispose()
+  */
+
+  AbstractComponent = (function() {
+
+    function AbstractComponent() {}
+
+    AbstractComponent.prototype.element = null;
+
+    AbstractComponent.prototype.getElement = function() {
+      return this.element;
+    };
+
+    AbstractComponent.prototype.isInDocument = false;
+
+    AbstractComponent.prototype.canRender = function() {
+      return true;
+    };
+
+    AbstractComponent.prototype.render = function() {
+      return this.isInDocument = true;
+    };
+
+    AbstractComponent.prototype.decorate = function(elmSelector) {
+      this.isInDocument = true;
+      return this.element = $(elmSelector);
+    };
+
+    AbstractComponent.prototype.dispose = function() {
+      var prop, _results;
+      if (this.isInDocument) {
+        this.element.unbind();
+        this.element.remove();
+        _results = [];
+        for (prop in this) {
+          if (_.isObject(this[prop])) {
+            _results.push(this[prop] = null);
+          } else {
+            _results.push(void 0);
+          }
+        }
+        return _results;
+      }
+    };
+
+    return AbstractComponent;
+
+  })();
+
+  /*
+   Singleton class for words.
+  */
+
+  WordList = (function() {
+
+    __extends(WordList, AbstractComponent);
+
+    function WordList() {
+      WordList.__super__.constructor.apply(this, arguments);
+    }
+
+    WordList.prototype.wordInstances_ = [];
+
+    WordList.prototype.empty = function() {
+      var word, _i, _len, _ref;
+      _ref = this.wordInstances_;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        word = _ref[_i];
+        word.dispose();
+      }
+      this.wordInstances_ = [];
+      return this.element.empty();
+    };
+
+    WordList.prototype.renderWords = function() {
+      var word, _i, _len, _ref, _results;
+      this.element.empty();
+      _ref = this.wordInstances_;
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        word = _ref[_i];
+        _results.push(word.render());
+      }
+      return _results;
+    };
+
+    WordList.prototype.push = function(word) {
+      this.wordInstances_.push(word);
+      return this.element.append(word.getElement());
+    };
+
+    WordList.prototype.shift = function(word) {
+      return this.wordInstances_.shift(word);
+    };
+
+    WordList.prototype.pop = function() {
+      var word;
+      word = this.wordInstances_.pop();
+      return word.dispose();
+    };
+
+    WordList.prototype.get = function(id) {
+      return _.find(this.wordInstances_, function(word) {
+        return word.id === id;
+      });
+    };
+
+    WordList.prototype.getLastWord = function() {
+      return this.wordInstances_[0];
+    };
+
+    return WordList;
+
+  })();
+
+  _.addSingletonGetter(WordList);
+
+  /*
+   Class for a word.
+  */
+
+  Word = (function() {
+
+    __extends(Word, AbstractComponent);
+
+    function Word(data, isLastPost) {
+      this.isLastPost = isLastPost;
+      this.sendLike = __bind(this.sendLike, this);
+      this.id = data._id;
+      this.content = data.content;
+      this.createdBy = data.createdBy;
+      this.createdAt = data.createdAt;
+      this.liked = data.liked;
+      if (this.canRender()) this.element = $('<div class="word item"></div>');
+    }
+
+    Word.prototype.canRender = function() {
+      return !!(this.id && this.content && this.createdBy && this.createdAt && this.liked);
+    };
+
+    Word.prototype.render = function() {
+      var content, i, image, inner, label, likeButtonElm, likedElm, text, userId, _i, _len, _ref;
+      if (this.canRender()) {
+        Word.__super__.render.call(this);
+        this.element.empty();
+        text = '';
+        userId = _.getUserId();
+        image = $("<div class='image'>\n<img src=\"/images/dev2.png\" />\n</div>");
+        label = $("<div class='label'></div>");
+        text = this.content;
+        if (_.isEndsN(this.content)) text += '*';
+        content = $("<span class='content' title='" + this.createdAt + "'>" + text + "</span>");
+        text = '';
+        _ref = this.liked;
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          i = _ref[_i];
+          text += '6';
+        }
+        likedElm = $("<span class='liked i'>" + text + "</span>");
+        label.append(content).append(likedElm);
+        if (userId && userId !== this.createdBy && !_.include(this.liked, userId)) {
+          likeButtonElm = $("<span class='like i' title='like it'>6</span>").bind('click', this.sendLike);
+          label.append(likeButtonElm);
+        }
+        inner = $("<div class='inner'></div>").append(image).append(label);
+        this.element.append(inner);
+        if (this.isLastPost) {
+          this.element.addClass("last-post");
+        } else {
+          this.element.removeClass("last-post");
+        }
+        if (userId === this.createdBy) {
+          return this.element.addClass("your-post");
+        } else {
+          return this.element.removeClass("your-post");
+        }
+      }
+    };
+
+    Word.prototype.attachTime = function(time) {
+      this.time = time;
+      return this.time.attachElement(this.element, this.createdAt);
+    };
+
+    Word.prototype.sendLike = function(e) {
+      var socket;
+      socket = _.getSocket();
+      if (socket) {
+        return socket.emit('like', {
+          wordId: this.id,
+          userId: _.getUserId()
+        });
+      }
+    };
+
+    return Word;
+
+  })();
+
+  _.addSingletonGetter(Word);
+
+  /*
    Classes used in LastFirstApp
    http://lastfirst.stakam.net/
   
@@ -3706,8 +3915,7 @@ this._chain)}});j(["concat","join","slice"],function(a){var b=k[a];n.prototype[a
           likeButtonElm = $("<span class='like i' title='like it'>6</span>").bind('click', this.sendLike);
           label.append(likeButtonElm);
         }
-        inner = $("<div class='inner'></div>").append(image);
-        console.log(inner);
+        inner = $("<div class='inner'></div>").append(image).append(label);
         this.element.append(inner);
         if (this.isLastPost) {
           this.element.addClass("last-post");
@@ -3875,6 +4083,94 @@ this._chain)}});j(["concat","join","slice"],function(a){var b=k[a];n.prototype[a
       return $(elm).bind('mouseover', function() {
         pos = elm.offset();
         pos.left += size.width / 2;
+        window.clearTimeout(_this.hideTimer);
+        _this.setRotate_(_this.shortTickElm, hourDeg);
+        _this.setRotate_(_this.longTickElm, minuteDeg);
+        _this.titleElm.html(_this.createTitleHTML(date));
+        return _this.element.css({
+          top: pos.top,
+          left: pos.left
+        }).fadeIn();
+      }).bind('mouseout', function() {
+        return _this.hideTimer = _.delay(function() {
+          return _this.element.fadeOut();
+        }, 3000);
+      });
+    };
+
+    Time.prototype.createTitleHTML = function(date) {
+      var digits, niceDate;
+      digits = _.padString(date.getHours(), 2) + ':' + _.padString(date.getMinutes(), 2);
+      niceDate = _.niceDate(date);
+      return "<span class=\"time-title-digits\">" + digits + "</span><br />\n<span class=\"time-title-nice\">" + niceDate + "</span>";
+    };
+
+    Time.prototype.setRotate_ = function(elm, deg) {
+      return elm.css(_.getCssPrefix() + 'transform', "rotate(" + deg + "deg)");
+    };
+
+    Time.prototype.getHourDeg_ = function(date) {
+      return Math.floor(360 / 12 * date.getHours());
+    };
+
+    Time.prototype.getMinuteDeg_ = function(date) {
+      return Math.floor(360 / 60 * date.getMinutes());
+    };
+
+    return Time;
+
+  })();
+
+  _.addSingletonGetter(Time);
+
+  /*
+   Singleton class for time.
+  */
+
+  Time = (function() {
+
+    __extends(Time, AbstractComponent);
+
+    function Time() {
+      Time.__super__.constructor.apply(this, arguments);
+    }
+
+    Time.prototype.shortTickElm = null;
+
+    Time.prototype.longTickElm = null;
+
+    Time.prototype.titleElm = null;
+
+    Time.prototype.height = 0;
+
+    Time.prototype.hideTimer = null;
+
+    Time.prototype.render = function() {
+      Time.__super__.render.call(this);
+      this.element = $("<div class=\"time\" style=\"display:none\"><div class=\"time-arrow\"></div><div class=\"time-bg\"><div class=\"time-round clearfix\"><div class=\"time-label\"><div class=\"time-label-twelve\">12</div><div class=\"time-label-three\">3</div><div class=\"time-label-six\">6</div><div class=\"time-label-nine\">9</div></div><div class=\"time-tick\"><div class=\"time-tick-short\"></div><div class=\"time-tick-long\"></div></div><div class=\"time-tick-center\"></div></div><div class=\"time-title\"><div class=\"time-title-content\"></div></div></div></div>");
+      $('body').append(this.element);
+      this.element.css({
+        'margin-top': this.element.height() / -2
+      });
+      this.shortTickElm = $('.time-tick-short', this.element);
+      this.longTickElm = $('.time-tick-long', this.element);
+      return this.titleElm = $('.time-title-content', this.element);
+    };
+
+    Time.prototype.attachElement = function(elm, time) {
+      var date, hourDeg, minuteDeg, pos;
+      var _this = this;
+      elm = $(elm);
+      date = new Date(time);
+      hourDeg = this.getHourDeg_(date);
+      minuteDeg = this.getMinuteDeg_(date);
+      pos = {};
+      return $(elm).bind('mouseover', function() {
+        var span;
+        span = $('.label span:last-child', elm);
+        pos = span.offset();
+        pos.top -= 6;
+        pos.left += span.width();
         window.clearTimeout(_this.hideTimer);
         _this.setRotate_(_this.shortTickElm, hourDeg);
         _this.setRotate_(_this.longTickElm, minuteDeg);

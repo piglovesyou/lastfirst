@@ -126,8 +126,8 @@ class Word extends AbstractComponent
           .bind 'click', @sendLike
         label.append(likeButtonElm)
 
-      inner = $("<div class='inner'></div>").append(image)
-      console.log inner
+      inner = $("<div class='inner'></div>")
+        .append(image).append(label)
       @element.append inner
 
       if @isLastPost

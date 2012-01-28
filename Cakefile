@@ -23,7 +23,13 @@ LIBS = addPath 'resources/client/libs', [
 FILES = addPath 'resources', [
   'share/ext_validate.coffee'
   'client/utils/utils.coffee'
-  'client/classes/classes.coffee'
+
+  'client/ui/abstractcomponent.coffee'
+  'client/ui/wordlist.coffee'
+  'client/ui/word.coffee'
+  'client/ui/message.coffee'
+  'client/ui/time.coffee'
+
   'client/init/init.coffee'
 ]
 OUTPUT = "public/javascripts/client"

@@ -41,21 +41,26 @@ a{color:#00b7ff}
 .time-title{display:table;padding:0 0 0 2px;height:30px;font-size:73%}
 .time-title-content{display:table-cell;vertical-align:middle;line-height:1.2}
 .time-title-nice{color:#777}
-.toolbar{zoom:1;padding:0 10px;background-color:#f5bce7;line-height:28px;}
+.toolbar{zoom:1;padding:0 10px;background-color:#222;line-height:28px;}
 .toolbar:before,.toolbar:after{content:"";display:table}
 .toolbar:after{clear:both}
-.toolbar .logo{float:left}
-.toolbar .buttons{float:right}
+.toolbar a{color:#fff;text-decoration:none}
+.toolbar a:hover{text-decoration:underline}
+.toolbar .logo{float:left;font-weight:bold;margin-right:8px}
+.toolbar .buttons{float:right;}
+.toolbar .buttons a{margin-left:8px}
+.toolbar .message{background:#f22;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .wrapper{position:relative;margin:38px auto;clear:both}
 .wrapper{margin-left:30px;margin-right:30px}
-.item{position:absolute;text-align:center;width:190px;height:240px;-webkit-transition:top .4s,left .4s;-moz-transition:top .4s,left .4s;transition:top .4s,left .4s;}
-.item .inner{position:relative;left:-50%}
-.item .image{-webkit-border-radius:190px/2;-moz-border-radius:190px/2;border-radius:190px/2;overflow:hidden}
+.item{position:absolute;text-align:center;width:190px;-webkit-transition:top .4s,left .4s;-moz-transition:top .4s,left .4s;transition:top .4s,left .4s;}
+.item .inner{position:absolute;height:240px;left:-50%}
+.item .image{-webkit-border-radius:95px;-moz-border-radius:95px;border-radius:95px;overflow:hidden}
 @media only screen and (max-width: 749px){.item:nth-child(1),.item:nth-child(2){top:0}
 .item:nth-child(3),.item:nth-child(4){top:240px}
 .item:nth-child(5),.item:nth-child(6){top:480px}
 .item:nth-child(7),.item:nth-child(8){top:720px}
 .item:nth-child(9),.item:nth-child(10){top:960px}
+.item:nth-child(11),.item:nth-child(12){top:1200px}
 .item:nth-child(2n-1){left:75%}
 .item:nth-child(2n){left:25%}
 }@media only screen and (min-width: 750px) and (max-width: 999px){.item:nth-child(1),.item:nth-child(2),.item:nth-child(3){top:0}
