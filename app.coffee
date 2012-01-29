@@ -7,7 +7,7 @@ SECRET = require('secret-strings').LAST_FIRST
 _ = require 'underscore'
 require './lib/ext_validate'
 express = require 'express'
-mongoose = require 'mongoose'
+# mongoose = require 'mongoose'
 url = require 'url'
 querystring = require 'querystring'
 stylus = require 'stylus'
@@ -22,28 +22,27 @@ nib = require 'nib'
 ###
  DB setting.
 ###
-WordSchema = new mongoose.Schema
-  content: String
-  createdBy: String
-  createdAt: Date
-  liked: Array
+# WordSchema = new mongoose.Schema
+#   content: String
+#   createdBy: String
+#   createdAt: Date
+#   liked: Array
+# 
+# mongoose.model('Words', WordSchema)
+# mongoose.connect('mongodb://localhost/lastFirst')
+# Words = mongoose.model('Words')
+{Words} = require './lib/words'
 
-mongoose.model('Words', WordSchema)
-mongoose.connect('mongodb://localhost/lastFirst')
-Words = mongoose.model('Words')
-
-findOptions =
-  sort: [['createdAt', 'descending']]
-  limit: 12
 
 
 
 ###
  Include resources.
 ###
-User  = require('./lib/user').User
-Word  = require('./lib/word').set(Words)
+{User}  = require('./lib/user')
+{Word}  = require('./lib/word')
 users = require('./lib/users').getInstance()
+NO_AUTH_FOR_DEV = not SECRET.IS_PRODUCTION and SECRET.NO_AUTH_FOR_DEV
 
 
 
@@ -88,61 +87,30 @@ app.configure 'production', ->
 
 
 
-   
-getInitialWord = () ->
-  {
-    content: 'しりとり'
-    createdBy: 'initial post by server'
-  }
-
-saveInitialWord = (fn) ->
-  word = new Word(getInitialWord())
-  word.save(fn)
-
-findRecentWords = (fn) ->
-  Words.find {},[],findOptions,fn
-
-lastDoc_ = {}
-getLastDoc = () ->
-  lastDoc_ or {}
-
-# could be `io.socket'
-updateWords_ = (socket, err, docs) ->
-  return  if err
-  lastDoc_ = docs[0]
-  socket.emit 'update', docs
-
-updateWords = (socket) ->
-  findRecentWords (err,docs) ->
-    if _.isEmpty(docs)
-      saveInitialWord(updateWords_.bind(@, socket))
-    else
-      updateWords_(socket, err, docs)
+{updateWords} = require './lib/socket_util'
 
 
 
-
-validate = require('./lib/validate_util')
-validateResult = validate.RESULT
 
 ###
  Socket IO listening.
 ###
  
+validateUtil = require('./lib/validate_util')
+validateResult = validateUtil.RESULT_TYPE
+
 io.sockets.on 'connection', (socket) ->
   user = new User(socket)
-  updateWords(socket)
   socket.on 'got token', (data) ->
     token = data.token
     user.setToken(token)
     user.validate () ->
       users.add(user)
-      updateWords(socket)
       if users.isPenaltyUser(user.id)
         socket.emit 'got penalty',
           message: 'ん! you can\'t post for a while.'
   socket.on 'post word', (post) ->
-    result = validate.postedWord(user, users, post, getLastDoc(), postLocked)
+    result = validateUtil.postedWord(user, users, post, getLastDoc(), postLocked)
     switch (result)
       when validateResult.IS_NOT_VALID_POST, validateResult.IS_INVALID_USER
         socket.emit 'error message',
@@ -226,6 +194,7 @@ app.get '/', (req, res) ->
     title: 'LastFirstApp'
     oauthUrl: oauthUrl
     isProduction: SECRET.IS_PRODUCTION
+    noAuthForDev: NO_AUTH_FOR_DEV
 
 app.get '/about', (req, res) ->
   res.render 'about',
