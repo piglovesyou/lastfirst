@@ -181,6 +181,7 @@ app.get '/about', (req, res) ->
     title: 'LastFirstApp - about'
     oauthUrl: oauthUrl
     isProduction: SECRET.IS_PRODUCTION
+    noAuthForDev: NO_AUTH_FOR_DEV
 
 # dev
 app.get '/dev', (req, res) ->

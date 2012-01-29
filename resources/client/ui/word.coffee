@@ -25,7 +25,7 @@ class Word extends AbstractComponent
 
       image = $("""
         <div class='image'>
-        <img src="/images/dev2.png" />
+        <img src="/images/spacer.gif" width="188" height="188" />
         </div>
         """)
       label = $("<div class='label'></div>")

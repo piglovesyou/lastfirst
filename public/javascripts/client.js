@@ -492,7 +492,7 @@ Word = (function() {
       this.element.empty();
       text = '';
       userId = _.getUserId();
-      image = $("<div class='image'>\n<img src=\"/images/dev2.png\" />\n</div>");
+      image = $("<div class='image'>\n<img src=\"/images/spacer.gif\" width=\"188\" height=\"188\" />\n</div>");
       label = $("<div class='label'></div>");
       title = this.content;
       if (_.isEndsN(this.content)) title += '*';
@@ -570,61 +570,29 @@ Message = (function() {
     Message.__super__.constructor.apply(this, arguments);
   }
 
-  Message.prototype.messageElm_ = null;
-
-  Message.prototype.importantMessageElm_ = null;
-
-  Message.prototype.decorate = function(elmSelector) {
-    var importantMessageTimer, messageTimer, onDocMouseMove;
-    Message.__super__.decorate.call(this, elmSelector);
-    importantMessageTimer = null;
-    messageTimer = null;
-    this.element = $('<div id="msg-box" title="close this message"></div>');
-    onDocMouseMove = function(e) {
-      var $that;
-      $that = e.data.$that;
-      $(window.document).unbind('mousemove', onDocMouseMove);
-      return importantMessageTimer = _.delay(function() {
-        return $that.trigger('hide');
-      }, 7 * 1000);
-    };
-    this.importantMessageElm_ = $('<div class="msg important"></div>').hide().bind('hide', function(e) {
-      window.clearTimeout(importantMessageTimer);
-      $(window.document).unbind('mousemove', onDocMouseMove);
-      return $(this).fadeOut();
-    }).bind('show', function(e, msg) {
-      var $that;
-      window.clearTimeout(importantMessageTimer);
-      $that = $(this).text(msg);
-      $that.fadeIn();
-      return $(window.document).bind('mousemove', {
-        $that: $that
-      }, onDocMouseMove);
-    }).bind('click', function(e) {
-      return $(this).trigger('hide');
-    });
-    this.messageElm_ = $('<div class="msg"></div>').hide().bind('hide', function(e) {
-      window.clearTimeout(messageTimer);
-      return $(this).fadeOut();
-    }).bind('show', function(e, msg) {
-      var $that;
-      window.clearTimeout(messageTimer);
-      $that = $(this).text(msg);
-      $that.fadeIn();
-      return messageTimer = _.delay(function() {
-        return $that.trigger('hide');
-      }, 7 * 1000);
-    }).bind('click', function(e) {
-      return $(this).trigger('hide');
-    });
-    return this.element.append(this.importantMessageElm_).append(this.messageElm_).appendTo('body');
+  Message.prototype.createMsg_ = function(className, str) {
+    return $("<span class=\'" + className + "\' style='display:none'></span>").text(str).prependTo(this.element).fadeIn();
   };
 
-  Message.prototype.show = function(str) {};
+  Message.prototype.decorate = function(elmSelector) {
+    return Message.__super__.decorate.call(this, elmSelector);
+  };
 
-  Message.prototype.showImportant = function(str) {};
+  Message.prototype.show = function(str) {
+    var msgElm;
+    msgElm = this.createMsg_('msg-general', str);
+    return _.delay(function() {
+      return msgElm.fadeOut();
+    }, 7 * 1000);
+  };
 
-  Message.prototype.dispose = function() {};
+  Message.prototype.showImportant = function(str) {
+    var msgElm;
+    msgElm = this.createMsg_('msg-important', str);
+    return _.delay(function() {
+      return msgElm.fadeOut();
+    }, 25 * 1000);
+  };
 
   return Message;
 

@@ -210,7 +210,8 @@ app.get('/about', function(req, res) {
   return res.render('about', {
     title: 'LastFirstApp - about',
     oauthUrl: oauthUrl,
-    isProduction: SECRET.IS_PRODUCTION
+    isProduction: SECRET.IS_PRODUCTION,
+    noAuthForDev: NO_AUTH_FOR_DEV
   });
 });
 
