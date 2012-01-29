@@ -76,11 +76,11 @@ app.configure('production', function() {
   return app.use(express.errorHandler());
 });
 
-updateWords = require('./lib/socket_util').updateWords;
-
 /*
  Socket IO listening.
 */
+
+updateWords = require('./lib/socket_util').updateWords;
 
 validateUtil = require('./lib/validate_util');
 

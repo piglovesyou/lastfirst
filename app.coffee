@@ -7,7 +7,6 @@ SECRET = require('secret-strings').LAST_FIRST
 _ = require 'underscore'
 require './lib/ext_validate'
 express = require 'express'
-# mongoose = require 'mongoose'
 url = require 'url'
 querystring = require 'querystring'
 stylus = require 'stylus'
@@ -18,19 +17,9 @@ nib = require 'nib'
 
 
 
-
 ###
  DB setting.
 ###
-# WordSchema = new mongoose.Schema
-#   content: String
-#   createdBy: String
-#   createdAt: Date
-#   liked: Array
-# 
-# mongoose.model('Words', WordSchema)
-# mongoose.connect('mongodb://localhost/lastFirst')
-# Words = mongoose.model('Words')
 {Words} = require './lib/words'
 
 
@@ -79,23 +68,11 @@ app.configure 'production', ->
 
 
 
-
- 
-
-
-
-
-
-
-{updateWords} = require './lib/socket_util'
-
-
-
-
 ###
  Socket IO listening.
 ###
  
+{updateWords} = require './lib/socket_util'
 validateUtil = require('./lib/validate_util')
 validateResult = validateUtil.RESULT_TYPE
 
