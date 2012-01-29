@@ -7,7 +7,6 @@
 currentDocs_ = []
 userId_ = ''
 socket = null
-words = null  # @type {WordList}
 message = null  # @type {Message}
 _.mixin
   setToken: (token, expires) ->
@@ -63,7 +62,7 @@ _.mixin
 
 # DOM init.
 message == null
-words = null
+words = null  # @type {WordList}
 time = null
 $(->
 
@@ -71,7 +70,7 @@ $(->
   message = Message.getInstance()
   message.render()
   words = WordList.getInstance()
-  words.decorate('.wrapper')
+  words.decorate('.word-list')
   time = Time.getInstance()
   time.render()
 
@@ -87,31 +86,31 @@ $(->
     # first login.
     _.showLoginLink()
 
-  _.disableForm(false)
+  # _.disableForm(false)
   $form = $('#post')
   $form.submit (e) ->
     return false if _.isLocked()
-    _.disableForm(true)
+    # _.disableForm(true)
     id = _.getUserId()
     content = $('input[name="content"]',$form).val()
     
     if _.isEmpty(id) or _.isEmpty(content)
-      _.disableForm(false)
+      # _.disableForm(false)
     else if _.isValidWord(content)
       lastDoc = words.getLastWord()
       if id is lastDoc.createdBy
         message.show('It\'s not your turn.')
-        _.disableForm(false)
+        # _.disableForm(false)
       else if _.isValidLastFirst(lastDoc.content, content)
         socket.emit 'post word',
           content: content
           createdBy: id
       else
         message.show('I\'m not sure it\'s being Last and First.')
-        _.disableForm(false)
+        # _.disableForm(false)
     else
       message.show('Please enter a word in HIRAGANA.')
-      _.disableForm(false)
+      # _.disableForm(false)
     false
   # for dev
   # $("#login-link > a").click()
@@ -129,41 +128,38 @@ $(->
 $msgBox_ = null
 postLocked_ = false
 $indicator_ = null
-$inputs_ = null
 _.mixin
   isLocked: () ->
     postLocked_
-  disableForm: (lock, withoutIndicator) ->
-    postLocked_ = lock
-    $inputs = $inputs_ ||
-        ($inputs_ = $('#post-form input'))
-    if lock
-      $inputs.attr(disabled: 'disabled')
-    else
-      $inputs.removeAttr('disabled')
-    unless withoutIndicator
-      _.showIndicator(lock)
+  # disableForm: (lock, withoutIndicator) ->
+  #   postLocked_ = lock
+  #   $inputs = $('#post-form input')
+  #   if lock
+  #     $inputs.attr(disabled: 'disabled')
+  #   else
+  #     $inputs.removeAttr('disabled')
+  #   # unless withoutIndicator
+  #   #   _.showIndicator(lock)
 # DOM functions.
 delayTimerId_ = null
 _.mixin
-  hideWaitSecMessage: () ->
-    $('#wait-sec-message').hide()
-  showIndicator: (show) ->
-    $indicator = $indicator_ ||
-        ($indicator_ = $('#post-form #indicator'))
-    if $indicator
-      if show
-        $indicator.addClass('loading')
-      else
-        $indicator.removeClass('loading')
+  # hideWaitSecMessage: () ->
+  #   $('#wait-sec-message').hide()
+  # showIndicator: (show) ->
+  #   $indicator = $('#post-form #indicator')
+  #   if $indicator
+  #     if show
+  #       $indicator.addClass('loading')
+  #     else
+  #       $indicator.removeClass('loading')
 _.mixin
   showLoginLink: () ->
-    _.hideWaitSecMessage()
+    # _.hideWaitSecMessage()
     $('#login-link').show()
   hideLoginLink: () ->
     $('#login-link').hide()
   showPostForm: () ->
-    _.hideWaitSecMessage()
+    # _.hideWaitSecMessage()
     $('#post-form').show()
   setUserIdToHiddenInput: () ->
     $('#user-id-input').val(_.getUserId())
@@ -209,20 +205,20 @@ socketInit = () ->
 
   socket.on 'error message', (data) ->
     message.show(data.message)
-    _.disableForm(false)
+    # _.disableForm(false)
 
   socket.on 'posted successfully', (post) ->
     message.show('"' + post.content + '" posted!')
-    _.disableForm(false)
+    # _.disableForm(false)
 
   socket.on 'got penalty', (data) ->
     message.show(data.message)
-    _.disableForm(true)
-    _.showIndicator(false)
+    # _.disableForm(true)
+    # _.showIndicator(false)
 
   socket.on 'release penalty', (data) ->
     message.show(data.message)
-    _.disableForm(false)
+    # _.disableForm(false)
 
   socket.on 'update like', (data) ->
     word = words.get(data._id)

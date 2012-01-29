@@ -7,7 +7,7 @@ _ = require 'underscore'
 
 findOptions =
   sort: [['createdAt', 'descending']]
-  limit: 12
+  limit: 10
 
 getInitialWord = () ->
   {

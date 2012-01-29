@@ -8,8 +8,10 @@ class Word extends AbstractComponent
     @createdBy = data.createdBy
     @createdAt = data.createdAt
     @liked = data.liked
+    @words_ = null  # @type {WordList}
+    @wasAttachedAsLastWord = false
     if @canRender()
-      @element = $('<div class="word item"></div>')
+      @element = $('<div class="word"></div>')
 
   canRender: () ->
     !!(@id and @content and @createdBy and @createdAt and @liked)
@@ -45,12 +47,13 @@ class Word extends AbstractComponent
           .bind 'click', @sendLike
         label.append(likeButtonElm)
 
-      inner = $("<div class='inner'></div>")
+      @elementInner = $("<div class='inner'></div>")
         .append(image).append(label)
-      @element.append inner
+      @element.append @elementInner
 
       if @isLastPost
-        @element.addClass("last-post")
+        WordList.getInstance().setAsLastWord(@)
+        # @asLastWord()
       else
         @element.removeClass("last-post")
 
@@ -58,6 +61,18 @@ class Word extends AbstractComponent
         @element.addClass("your-post")
       else
         @element.removeClass("your-post")
+
+
+
+
+
+
+  notAsLastWord: =>
+    @element.removeClass("last-post")
+    if @wasAttachedAsLastWord
+      @elementInner.unbind('mouseenter')
+      @elementInner.unbind('mouseleave')
+      @wasAttachedAsLastWord = false
 
   attachTime: (@time) ->
     @time.attachElement(@element, @createdAt)
@@ -68,4 +83,6 @@ class Word extends AbstractComponent
       socket.emit 'like',
         wordId: @id
         userId: _.getUserId()
+
 _.addSingletonGetter(Word)
+

@@ -3240,8 +3240,8 @@ this._chain)}});j(["concat","join","slice"],function(a){var b=k[a];n.prototype[a
  Extends underscore with word validation function.
 */
 
-var $indicator_, $inputs_, $msgBox_, AbstractComponent, BrowserType, CSS_PREFIX, Message, Time, Word, WordList, currentDocs_, delayTimerId_, message, postLocked_, socket, socketInit, time, userId_, words;
-var __slice = Array.prototype.slice, __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; }, __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+var $indicator_, $msgBox_, AbstractComponent, BrowserType, CSS_PREFIX, Message, Time, Word, WordList, currentDocs_, delayTimerId_, message, postLocked_, socket, socketInit, time, userId_, words;
+var __slice = Array.prototype.slice, __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; }, __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
 (function() {
   var getFirstLetter_, getLastLetter_, _;
@@ -3588,11 +3588,20 @@ WordList = (function() {
 
   __extends(WordList, AbstractComponent);
 
-  function WordList() {
-    WordList.__super__.constructor.apply(this, arguments);
-  }
+  WordList.prototype.onEnterLastWordTimer = null;
+
+  WordList.prototype.onLeaveBlankTimer = null;
 
   WordList.prototype.wordInstances_ = [];
+
+  WordList.prototype.lastWord_ = null;
+
+  function WordList() {
+    this.onMouseleaveBlankElm = __bind(this.onMouseleaveBlankElm, this);
+    this.onMouseEnterBlankElm = __bind(this.onMouseEnterBlankElm, this);
+    this.onEnterLastWord = __bind(this.onEnterLastWord, this);    this.blankElmInner = $('<div class="inner"><div class="image"></div><div class="label"></div></div>');
+    this.blankElm = $('<div class="word word-blank" style="display:none"></div>').append(this.blankElmInner);
+  }
 
   WordList.prototype.empty = function() {
     var word, _i, _len, _ref;
@@ -3642,6 +3651,36 @@ WordList = (function() {
     return this.wordInstances_[0];
   };
 
+  WordList.prototype.setAsLastWord = function(lastWord_) {
+    this.lastWord_ = lastWord_;
+    this.lastWord_.element.addClass("last-post");
+    return this.lastWord_.elementInner.bind('click', this.onEnterLastWord);
+  };
+
+  WordList.prototype.onEnterLastWord = function() {
+    var _this = this;
+    window.clearTimeout(this.onEnterLastWordTimer);
+    return this.onEnterLastWordTimer = _.delay(function() {
+      _this.element.prepend(_this.blankElm);
+      _this.blankElm.fadeIn();
+      return _this.blankElmInner.bind('mouseenter', _this.onMouseEnterBlankElm).bind('mouseleave', _this.onMouseleaveBlankElm);
+    }, 400);
+  };
+
+  WordList.prototype.onMouseEnterBlankElm = function() {
+    return window.clearTimeout(this.onLeaveBlankTimer);
+  };
+
+  WordList.prototype.onMouseleaveBlankElm = function() {
+    var _this = this;
+    console.log('leave');
+    window.clearTimeout(this.onLeaveBlankTimer);
+    return this.onLeaveBlankTimer = _.delay(function() {
+      _this.blankElmInner.unbind('mouseleave');
+      return _this.blankElm.hide().remove();
+    }, 1800);
+  };
+
   return WordList;
 
 })();
@@ -3659,12 +3698,15 @@ Word = (function() {
   function Word(data, isLastPost) {
     this.isLastPost = isLastPost;
     this.sendLike = __bind(this.sendLike, this);
+    this.notAsLastWord = __bind(this.notAsLastWord, this);
     this.id = data._id;
     this.content = data.content;
     this.createdBy = data.createdBy;
     this.createdAt = data.createdAt;
     this.liked = data.liked;
-    if (this.canRender()) this.element = $('<div class="word item"></div>');
+    this.words_ = null;
+    this.wasAttachedAsLastWord = false;
+    if (this.canRender()) this.element = $('<div class="word"></div>');
   }
 
   Word.prototype.canRender = function() {
@@ -3672,7 +3714,7 @@ Word = (function() {
   };
 
   Word.prototype.render = function() {
-    var i, image, inner, label, likeButtonElm, likeText, likedElm, text, title, titleElm, userId, _i, _len, _ref;
+    var i, image, label, likeButtonElm, likeText, likedElm, text, title, titleElm, userId, _i, _len, _ref;
     if (this.canRender()) {
       Word.__super__.render.call(this);
       this.element.empty();
@@ -3698,10 +3740,10 @@ Word = (function() {
         likeButtonElm = $("<span class='like i' title='like it'>6</span>").bind('click', this.sendLike);
         label.append(likeButtonElm);
       }
-      inner = $("<div class='inner'></div>").append(image).append(label);
-      this.element.append(inner);
+      this.elementInner = $("<div class='inner'></div>").append(image).append(label);
+      this.element.append(this.elementInner);
       if (this.isLastPost) {
-        this.element.addClass("last-post");
+        WordList.getInstance().setAsLastWord(this);
       } else {
         this.element.removeClass("last-post");
       }
@@ -3710,6 +3752,15 @@ Word = (function() {
       } else {
         return this.element.removeClass("your-post");
       }
+    }
+  };
+
+  Word.prototype.notAsLastWord = function() {
+    this.element.removeClass("last-post");
+    if (this.wasAttachedAsLastWord) {
+      this.elementInner.unbind('mouseenter');
+      this.elementInner.unbind('mouseleave');
+      return this.wasAttachedAsLastWord = false;
     }
   };
 
@@ -4015,8 +4066,6 @@ userId_ = '';
 
 socket = null;
 
-words = null;
-
 message = null;
 
 _.mixin({
@@ -4073,7 +4122,7 @@ $(function() {
   message = Message.getInstance();
   message.render();
   words = WordList.getInstance();
-  words.decorate('.wrapper');
+  words.decorate('.word-list');
   time = Time.getInstance();
   time.render();
   socketInit();
@@ -4085,21 +4134,16 @@ $(function() {
   } else if (window.noAuthForDev) {} else {
     _.showLoginLink();
   }
-  _.disableForm(false);
   $form = $('#post');
   return $form.submit(function(e) {
     var content, id, lastDoc;
     if (_.isLocked()) return false;
-    _.disableForm(true);
     id = _.getUserId();
     content = $('input[name="content"]', $form).val();
-    if (_.isEmpty(id) || _.isEmpty(content)) {
-      _.disableForm(false);
-    } else if (_.isValidWord(content)) {
+    if (_.isEmpty(id) || _.isEmpty(content)) {} else if (_.isValidWord(content)) {
       lastDoc = words.getLastWord();
       if (id === lastDoc.createdBy) {
         message.show('It\'s not your turn.');
-        _.disableForm(false);
       } else if (_.isValidLastFirst(lastDoc.content, content)) {
         socket.emit('post word', {
           content: content,
@@ -4107,11 +4151,9 @@ $(function() {
         });
       } else {
         message.show('I\'m not sure it\'s being Last and First.');
-        _.disableForm(false);
       }
     } else {
       message.show('Please enter a word in HIRAGANA.');
-      _.disableForm(false);
     }
     return false;
   });
@@ -4123,56 +4165,24 @@ postLocked_ = false;
 
 $indicator_ = null;
 
-$inputs_ = null;
-
 _.mixin({
   isLocked: function() {
     return postLocked_;
-  },
-  disableForm: function(lock, withoutIndicator) {
-    var $inputs;
-    postLocked_ = lock;
-    $inputs = $inputs_ || ($inputs_ = $('#post-form input'));
-    if (lock) {
-      $inputs.attr({
-        disabled: 'disabled'
-      });
-    } else {
-      $inputs.removeAttr('disabled');
-    }
-    if (!withoutIndicator) return _.showIndicator(lock);
   }
 });
 
 delayTimerId_ = null;
 
-_.mixin({
-  hideWaitSecMessage: function() {
-    return $('#wait-sec-message').hide();
-  },
-  showIndicator: function(show) {
-    var $indicator;
-    $indicator = $indicator_ || ($indicator_ = $('#post-form #indicator'));
-    if ($indicator) {
-      if (show) {
-        return $indicator.addClass('loading');
-      } else {
-        return $indicator.removeClass('loading');
-      }
-    }
-  }
-});
+_.mixin;
 
 _.mixin({
   showLoginLink: function() {
-    _.hideWaitSecMessage();
     return $('#login-link').show();
   },
   hideLoginLink: function() {
     return $('#login-link').hide();
   },
   showPostForm: function() {
-    _.hideWaitSecMessage();
     return $('#post-form').show();
   },
   setUserIdToHiddenInput: function() {
@@ -4225,21 +4235,16 @@ socketInit = function() {
     return socket.emit('pull update');
   });
   socket.on('error message', function(data) {
-    message.show(data.message);
-    return _.disableForm(false);
+    return message.show(data.message);
   });
   socket.on('posted successfully', function(post) {
-    message.show('"' + post.content + '" posted!');
-    return _.disableForm(false);
+    return message.show('"' + post.content + '" posted!');
   });
   socket.on('got penalty', function(data) {
-    message.show(data.message);
-    _.disableForm(true);
-    return _.showIndicator(false);
+    return message.show(data.message);
   });
   socket.on('release penalty', function(data) {
-    message.show(data.message);
-    return _.disableForm(false);
+    return message.show(data.message);
   });
   return socket.on('update like', function(data) {
     var word;
