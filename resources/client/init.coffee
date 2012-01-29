@@ -87,12 +87,11 @@ $(->
     _.showLoginLink()
 
   # _.disableForm(false)
-  $form = $('#post')
-  $form.submit (e) ->
+  $('#post-form').on 'submit', (e) ->
     return false if _.isLocked()
     # _.disableForm(true)
     id = _.getUserId()
-    content = $('input[name="content"]',$form).val()
+    content = $('input[name="content"]', @).val()
     
     if _.isEmpty(id) or _.isEmpty(content)
       # _.disableForm(false)

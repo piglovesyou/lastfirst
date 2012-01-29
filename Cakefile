@@ -15,11 +15,11 @@ addPath = (path, files) ->
   path += '/'  if /[^\/]$/.test(path)
   files[_i] = path + file  for file in files
 
-LIBS = addPath 'resources/client/libs', [
-  'socket.io.js'
-  'underscore-min.js'
-  'jquery-1.7.min.js'
-]
+# LIBS = addPath 'resources/client/libs', [
+#   'socket.io.js'
+#   'underscore-min.js'
+#   'jquery-1.7.min.js'
+# ]
 FILES = addPath 'resources', [
   'share/ext_validate.coffee'
   'client/utils.coffee'
@@ -32,7 +32,7 @@ FILES = addPath 'resources', [
 
   'client/init.coffee'
 ]
-OUTPUT = "public/javascripts/client"
+OUTPUT = "public/javascripts"
 
 
 
@@ -45,28 +45,34 @@ outputResult = (result) ->
     console.log out
   err
 
-concat = (minify) ->
-  min = if minify then '.min' else ''
-  my = "#{tempdir}/my#{min}.js"
-  q = muffin.exec "cat #{LIBS.join ' '} #{my} > #{OUTPUT}#{min}.js"
-  Q.when q[1], outputResult
+# concat = (minify) ->
+#   min = if minify then '.min' else ''
+#   my = "#{tempdir}/my#{min}.js"
+#   q = muffin.exec "cat #{LIBS.join ' '} #{my} > #{OUTPUT}#{min}.js"
+#   Q.when q[1], outputResult
   
-minify = (callback) ->
-  q = muffin.minifyScript "#{tempdir}/my.js"
-  Q.when q, concat.bind(null, false)
+# minify = (callback) ->
+#   q = muffin.minifyScript "#{tempdir}/my.js"
+#   Q.when q, concat.bind(null, false)
 
 joinAndCompile = (options) ->
   q = muffin.exec "cat #{FILES.join ' '} > #{tempdir}/concatnated.coffee"  
   Q.when q[1], (result) ->
-    # muffin.exec "open #{tempdir}"
     err = outputResult(result)
     unless err
-      q = muffin.compileScript "#{tempdir}/concatnated.coffee", "#{tempdir}/my.js", options
-      Q.when q, (result) ->
-        if options.minify
-          minify(concat.bind(null, true))
-        else
-          concat(false)
+      q = muffin.compileScript "#{tempdir}/concatnated.coffee", "#{OUTPUT}/client.js", options
+      if options.minify
+        Q.when q, (result) ->
+          muffin.minifyScript "#{OUTPUT}/client.js", "#{OUTPUT}/client.min.js", options
+
+
+
+      # q = muffin.compileScript "#{tempdir}/concatnated.coffee", "#{tempdir}/my.js", options
+      # Q.when q, (result) ->
+      #   if options.minify
+      #     minify(concat.bind(null, true))
+      #   else
+      #     concat(false)
 
 
 
