@@ -39,6 +39,15 @@ _.mixin
   setCookies: (keyValuePairs) ->
     for key of keyValuePairs
       document.cookie = key + '=' + keyValuePairs[key]
+  clearCookies: ->
+    _.setCookies 
+      token: ''
+      expires: new Date(_.now() - 60 * 60 * 1000).toString()
+
+
+
+
+
   padString: (str, howmany, padStr="0") ->
     str = str.toString()  if not _.isString(str)
     diff = howmany - str.length

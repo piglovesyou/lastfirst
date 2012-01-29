@@ -131,6 +131,12 @@ _.mixin({
     }
     return _results;
   },
+  clearCookies: function() {
+    return _.setCookies({
+      token: '',
+      expires: new Date(_.now() - 60 * 60 * 1000).toString()
+    });
+  },
   padString: function(str, howmany, padStr) {
     var diff, pad;
     if (padStr == null) padStr = "0";
@@ -318,8 +324,8 @@ AbstractComponent = (function() {
   };
 
   AbstractComponent.prototype.decorate = function(elmSelector) {
-    this.isInDocument = true;
-    return this.element = $(elmSelector);
+    this.element = $(elmSelector);
+    if (this.element) return this.isInDocument = true;
   };
 
   AbstractComponent.prototype.dispose = function() {
@@ -365,7 +371,6 @@ WordList = (function() {
     this.onClickLastWord = __bind(this.onClickLastWord, this);
     var inner;
     inner = "<div class=\"inner\">\n  <div class=\"image\"></div>\n  <div class=\"label\">\n    <div id=\"post-form\">\n    	<form id=\"post\" action=\"javascript:void(0)\" method=\"POST\">\n    		<input name=\"content\" type=\"text\">\n        <input style=\"display:none\" type=\"submit\" />\n    	</form>\n    </div>\n    <div class=\"please-login yeah\">(Please login.)</div> \n  </div>\n</div>".replace(/(<\/.+?>)[\s\S]*?(<)/g, "$1$2");
-    console.log(inner);
     this.blankElmInner = $(inner);
     this.blankElm = $('<div class="word word-blank" style="display:none"></div>').append(this.blankElmInner);
   }
@@ -441,7 +446,6 @@ WordList = (function() {
 
   WordList.prototype.onMouseleaveBlankElm = function() {
     var _this = this;
-    console.log('leave');
     window.clearTimeout(this.onLeaveBlankTimer);
     return this.onLeaveBlankTimer = _.delay(function() {
       _this.blankElmInner.unbind('mouseleave');
@@ -570,9 +574,9 @@ Message = (function() {
 
   Message.prototype.importantMessageElm_ = null;
 
-  Message.prototype.render = function() {
+  Message.prototype.decorate = function(elmSelector) {
     var importantMessageTimer, messageTimer, onDocMouseMove;
-    Message.__super__.render.call(this);
+    Message.__super__.decorate.call(this, elmSelector);
     importantMessageTimer = null;
     messageTimer = null;
     this.element = $('<div id="msg-box" title="close this message"></div>');
@@ -616,114 +620,17 @@ Message = (function() {
     return this.element.append(this.importantMessageElm_).append(this.messageElm_).appendTo('body');
   };
 
-  Message.prototype.show = function(str) {
-    return this.messageElm_.trigger('show', str);
-  };
+  Message.prototype.show = function(str) {};
 
-  Message.prototype.showImportant = function(str) {
-    return this.importantMessageElm_.trigger('show', str);
-  };
+  Message.prototype.showImportant = function(str) {};
 
-  Message.prototype.dispose = function() {
-    this.importantMessageElm_.unbind();
-    this.messageElm_.unbind();
-    return Message.__super__.dispose.call(this);
-  };
+  Message.prototype.dispose = function() {};
 
   return Message;
 
 })();
 
 _.addSingletonGetter(Message);
-
-/*
- Singleton class for time.
-*/
-
-Time = (function() {
-
-  __extends(Time, AbstractComponent);
-
-  function Time() {
-    Time.__super__.constructor.apply(this, arguments);
-  }
-
-  Time.prototype.shortTickElm = null;
-
-  Time.prototype.longTickElm = null;
-
-  Time.prototype.titleElm = null;
-
-  Time.prototype.height = 0;
-
-  Time.prototype.hideTimer = null;
-
-  Time.prototype.render = function() {
-    Time.__super__.render.call(this);
-    this.element = $("<div class=\"time\" style=\"display:none\"><div class=\"time-arrow\"></div><div class=\"time-bg\"><div class=\"time-round clearfix\"><div class=\"time-label\"><div class=\"time-label-twelve\">12</div><div class=\"time-label-three\">3</div><div class=\"time-label-six\">6</div><div class=\"time-label-nine\">9</div></div><div class=\"time-tick\"><div class=\"time-tick-short\"></div><div class=\"time-tick-long\"></div></div><div class=\"time-tick-center\"></div></div><div class=\"time-title\"><div class=\"time-title-content\"></div></div></div></div>");
-    $('body').append(this.element);
-    this.element.css({
-      'margin-top': this.element.height() / -2
-    });
-    this.shortTickElm = $('.time-tick-short', this.element);
-    this.longTickElm = $('.time-tick-long', this.element);
-    return this.titleElm = $('.time-title-content', this.element);
-  };
-
-  Time.prototype.attachElement = function(elm, time) {
-    var date, hourDeg, minuteDeg, pos, size;
-    var _this = this;
-    elm = $(elm);
-    date = new Date(time);
-    hourDeg = this.getHourDeg_(date);
-    minuteDeg = this.getMinuteDeg_(date);
-    size = {
-      width: $(elm).width(),
-      height: $(elm).height()
-    };
-    pos = {};
-    return $(elm).bind('mouseover', function() {
-      pos = elm.offset();
-      pos.left += size.width / 2;
-      window.clearTimeout(_this.hideTimer);
-      _this.setRotate_(_this.shortTickElm, hourDeg);
-      _this.setRotate_(_this.longTickElm, minuteDeg);
-      _this.titleElm.html(_this.createTitleHTML(date));
-      return _this.element.css({
-        top: pos.top,
-        left: pos.left
-      }).fadeIn();
-    }).bind('mouseout', function() {
-      return _this.hideTimer = _.delay(function() {
-        return _this.element.fadeOut();
-      }, 3000);
-    });
-  };
-
-  Time.prototype.createTitleHTML = function(date) {
-    var digits, niceDate;
-    digits = _.padString(date.getHours(), 2) + ':' + _.padString(date.getMinutes(), 2);
-    niceDate = _.niceDate(date);
-    return "<span class=\"time-title-digits\">" + digits + "</span><br />\n<span class=\"time-title-nice\">" + niceDate + "</span>";
-  };
-
-  Time.prototype.setRotate_ = function(elm, deg) {
-    return elm.css(_.getCssPrefix() + 'transform', "rotate(" + deg + "deg)");
-  };
-
-  Time.prototype.getHourDeg_ = function(date) {
-    return Math.floor(360 / 12 * date.getHours());
-  };
-
-  Time.prototype.getMinuteDeg_ = function(date) {
-    return Math.floor(360 / 60 * date.getMinutes());
-  };
-
-  return Time;
-
-})();
-
-_.addSingletonGetter(Time);
 
 /*
  Singleton class for time.
@@ -950,6 +857,7 @@ socketInit = function() {
     _.setUserIdToHiddenInput(id);
     message.show('Authorized fine.');
     _.hideLoginLink();
+    $('#logout-link').show();
     $('body').addClass('logged-in').removeClass('not-logged-in');
     return socket.emit('pull update');
   });
@@ -987,14 +895,13 @@ time = null;
 $(function() {
   var token;
   message = Message.getInstance();
-  message.render();
+  message.decorate('.message');
   words = WordList.getInstance();
   words.decorate('.word-list');
   time = Time.getInstance();
   time.render();
   socketInit();
   token = _.getToken();
-  console.log(token);
   if (token) {
     socket.emit('got token', {
       token: token

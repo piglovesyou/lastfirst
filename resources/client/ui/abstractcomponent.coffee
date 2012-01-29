@@ -18,8 +18,8 @@ class AbstractComponent
   render: () ->
     @isInDocument = true
   decorate: (elmSelector) ->
-    @isInDocument = true
     @element = $(elmSelector)
+    @isInDocument = true  if @element
   dispose: () ->
     if @isInDocument
       @element.unbind()

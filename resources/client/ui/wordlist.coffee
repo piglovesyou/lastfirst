@@ -22,7 +22,6 @@ class WordList extends AbstractComponent
       </div>
     </div>
     """.replace(/(<\/.+?>)[\s\S]*?(<)/g, "$1$2")
-    console.log inner
     @blankElmInner = $(inner)
     @blankElm = $('<div class="word word-blank" style="display:none"></div>').append @blankElmInner
 
@@ -72,7 +71,6 @@ class WordList extends AbstractComponent
 
   onMouseEnterBlankElm: => window.clearTimeout @onLeaveBlankTimer
   onMouseleaveBlankElm: =>
-    console.log 'leave'
     window.clearTimeout @onLeaveBlankTimer
     @onLeaveBlankTimer = _.delay =>
       @blankElmInner.unbind('mouseleave')

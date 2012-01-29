@@ -135,6 +135,7 @@ socketInit = () ->
     _.setUserIdToHiddenInput(id)
     message.show('Authorized fine.')
     _.hideLoginLink()
+    $('#logout-link').show()
     # _.showPostForm()
     $('body').addClass('logged-in').removeClass('not-logged-in')
     socket.emit 'pull update'
@@ -176,7 +177,7 @@ $(->
 
   # create instances
   message = Message.getInstance()
-  message.render()
+  message.decorate('.message')
   words = WordList.getInstance()
   words.decorate('.word-list')
   time = Time.getInstance()
@@ -185,7 +186,6 @@ $(->
   socketInit()
 
   token = _.getToken()
-  console.log token
   if token
     # verify the token
     socket.emit 'got token',
