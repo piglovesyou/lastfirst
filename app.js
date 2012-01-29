@@ -3,7 +3,7 @@
  Include libraries.
 */
 
-var NO_AUTH_FOR_DEV, OAuth, SECRET, User, Word, Words, app, express, io, nib, oauthQuery, oauthScopes, oauthUrl, querystring, stylus, updateWords, url, users, validateResult, validateUtil, _;
+var NO_AUTH_FOR_DEV, OAuth, SECRET, User, Word, Words, app, express, getLastDoc, io, nib, oauthQuery, oauthScopes, oauthUrl, querystring, stylus, updateWords, url, users, validateResult, validateUtil, _, _ref;
 
 SECRET = require('secret-strings').LAST_FIRST;
 
@@ -80,7 +80,7 @@ app.configure('production', function() {
  Socket IO listening.
 */
 
-updateWords = require('./lib/socket_util').updateWords;
+_ref = require('./lib/socket_util'), updateWords = _ref.updateWords, getLastDoc = _ref.getLastDoc;
 
 validateUtil = require('./lib/validate_util');
 
@@ -94,7 +94,6 @@ io.sockets.on('connection', function(socket) {
     token = data.token;
     user.setToken(token);
     return user.validate(function() {
-      users.add(user);
       if (users.isPenaltyUser(user.id)) {
         return socket.emit('got penalty', {
           message: 'ん! you can\'t post for a while.'

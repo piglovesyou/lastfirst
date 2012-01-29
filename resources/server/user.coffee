@@ -6,6 +6,7 @@ https = require('https')
 crypto = require('crypto')
 md5 = (str) -> crypto.createHash('md5').update(str).digest('hex')
 {updateWords} = require './socket_util'
+users = require('./users').getInstance()
 
 ###
  Class for user.
@@ -21,13 +22,19 @@ class User
   # private
   updateWords_: ->
     updateWords(@socket)
+  validateOK_: (@id) ->
+    @isValid_ = true
+    users.add(this)
+    @socket.emit 'validated nicely!', userId: @id
+    @updateWords_()
 
   # public
   constructor: (@socket) ->
     return false  if not @socket
     @updateWords_()
     if NO_AUTH_FOR_DEV
-      @isValid_ = true
+      console.log '\nNO_AUTH_FOR_DEV......!!!!!\n'
+      @validateOK_('dummy_account')
   setToken: (@token) ->
   validate: (fn) ->
     return if not @socket or not @token
@@ -38,11 +45,7 @@ class User
       res.on 'data', (data) =>
         json = JSON.parse(data.toString())
         if !json.error
-          @id = md5(json.user_id)
-          @isValid_ = true
-          @socket.emit 'validated nicely!',
-            userId: @id
-          @updateWords_()
+          @validateOK_(md5(json.user_id))
           fn()
         else
           @socket.emit 'need login'

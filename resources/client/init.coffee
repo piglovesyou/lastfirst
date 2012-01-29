@@ -75,7 +75,6 @@ $(->
   time = Time.getInstance()
   time.render()
 
-
   socketInit()
 
   token = _.getToken()
@@ -84,7 +83,6 @@ $(->
     socket.emit 'got token',
       token: token
   else if window.noAuthForDev
-    _.setUserId('dummy_userId_for_dev')
   else
     # first login.
     _.showLoginLink()

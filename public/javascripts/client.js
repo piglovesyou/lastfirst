@@ -4071,9 +4071,7 @@ $(function() {
     socket.emit('got token', {
       token: token
     });
-  } else if (window.noAuthForDev) {
-    _.setUserId('dummy_userId_for_dev');
-  } else {
+  } else if (window.noAuthForDev) {} else {
     _.showLoginLink();
   }
   _.disableForm(false);

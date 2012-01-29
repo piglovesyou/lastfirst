@@ -23,7 +23,7 @@ findRecentWords = (fn) ->
   Words.find {},[],findOptions,fn
 
 lastDoc_ = {}
-getLastDoc = () ->
+exports.getLastDoc = () ->
   lastDoc_ or {}
 
 # could be `io.socket'

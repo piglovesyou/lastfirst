@@ -72,7 +72,7 @@ app.configure 'production', ->
  Socket IO listening.
 ###
  
-{updateWords} = require './lib/socket_util'
+{updateWords, getLastDoc} = require './lib/socket_util'
 validateUtil = require('./lib/validate_util')
 validateResult = validateUtil.RESULT_TYPE
 
@@ -82,10 +82,10 @@ io.sockets.on 'connection', (socket) ->
     token = data.token
     user.setToken(token)
     user.validate () ->
-      users.add(user)
       if users.isPenaltyUser(user.id)
         socket.emit 'got penalty',
           message: 'ん! you can\'t post for a while.'
+
   socket.on 'post word', (post) ->
     result = validateUtil.postedWord(user, users, post, getLastDoc(), postLocked)
     switch (result)
