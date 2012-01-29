@@ -89,6 +89,7 @@ task 'build', 'Build coffeescripts.', (options) ->
     options: options
     map:
       'app.coffee': (matches) ->
+        options.bare = true
         muffin.compileScript matches[0], "./app.js", options
 
       'resources/(server|share)/(.+?).coffee': (matches) ->
@@ -101,7 +102,6 @@ task 'build', 'Build coffeescripts.', (options) ->
 
     after: ->
       compileClientScripts = true
-  muffin.exec 'node-dev app.js'
 
 
 

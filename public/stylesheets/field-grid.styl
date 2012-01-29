@@ -1,0 +1,124 @@
+
+/* field-grid.styl */
+
+/*
+ Can't I use them in media-query declaration?
+ windowSizeMin = 750px
+ windowSizeMid = 750px
+ windowSizeMax = 750px
+*/
+
+itemWidth = 190px
+itemHeight = 240px
+itemHorizontalMargin = 30px
+
+HUNDRED_PERCENT = 100%
+
+
+.wrapper 
+  position relative
+  margin 38px auto
+  clear both
+  margin-left itemHorizontalMargin
+  margin-right itemHorizontalMargin
+
+
+.item
+  position absolute
+  text-align center
+  width itemWidth
+  transition top .4s, left .4s
+  & .inner
+    position absolute
+    height itemHeight
+    left (HUNDRED_PERCENT / -2)
+  & .image
+    border-radius (itemWidth / 2)
+    overflow hidden
+  & .label
+    line-height 1.6
+
+/* TODO: Use stylus iterator */
+@media only screen and (max-width: 749px)
+  .item:nth-child(1)
+  .item:nth-child(2)
+    top 0
+  .item:nth-child(3)
+  .item:nth-child(4)
+    top itemHeight
+  .item:nth-child(5)
+  .item:nth-child(6)
+    top itemHeight * 2
+  .item:nth-child(7)
+  .item:nth-child(8)
+    top itemHeight * 3
+  .item:nth-child(9)
+  .item:nth-child(10)
+    top itemHeight * 4
+  .item:nth-child(11)
+  .item:nth-child(12)
+    top itemHeight * 5
+
+  half = (HUNDRED_PERCENT / 2)
+  quoter = (half / 2)
+  .item:nth-child(2n-1)
+    left half + quoter
+  .item:nth-child(2n)
+    left quoter
+
+@media only screen and (min-width: 750px) and (max-width: 999px)
+  .item:nth-child(1)
+  .item:nth-child(2)
+  .item:nth-child(3)
+    top 0
+  .item:nth-child(4)
+  .item:nth-child(5)
+  .item:nth-child(6)
+    top itemHeight
+  .item:nth-child(7)
+  .item:nth-child(8)
+  .item:nth-child(9)
+    top itemHeight * 2
+  .item:nth-child(10)
+  .item:nth-child(11)
+  .item:nth-child(12)
+    top itemHeight * 3
+
+  half = (HUNDRED_PERCENT / 3)
+  quoter = (half / 2)
+  .item:nth-child(3n-2)
+    left (half * 2) + quoter
+  .item:nth-child(3n-1)
+    left half + quoter
+  .item:nth-child(3n)
+    left quoter
+
+@media only screen and (min-width: 1000px)
+  .item:nth-child(1)
+  .item:nth-child(2)
+  .item:nth-child(3)
+  .item:nth-child(4)
+    top 0
+  .item:nth-child(5)
+  .item:nth-child(6)
+  .item:nth-child(7)
+  .item:nth-child(8)
+    top itemHeight
+  .item:nth-child(9)
+  .item:nth-child(10)
+  .item:nth-child(11)
+  .item:nth-child(12)
+    top itemHeight * 2
+
+  half = (HUNDRED_PERCENT / 4)
+  quoter = (half / 2)
+  .item:nth-child(4n-3)
+    left (half * 3) + quoter
+  .item:nth-child(4n-2)
+    left (half * 2) + quoter
+  .item:nth-child(4n-1)
+    left half + quoter
+  .item:nth-child(4n)
+    left quoter
+
+

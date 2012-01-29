@@ -8,7 +8,6 @@ class Users
   users_: {}  # only validated users are here.
   penaltyUserIds_: []
 
-
   constructor: () ->
   # @param {User} user
   add: (user) ->

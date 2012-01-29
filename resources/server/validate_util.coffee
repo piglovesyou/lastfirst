@@ -4,7 +4,7 @@ require('./ext_validate')
 
 
 
-exports.RESULT = RESULT =
+exports.RESULT_TYPE = RESULT_TYPE =
   IS_NOT_VALID_POST: 0
   IS_INVALID_USER:   1
   IS_PENALTY_USER:   2
@@ -17,23 +17,26 @@ exports.RESULT = RESULT =
 
 
 exports.postedWord = (user, users, post, lastDoc, postLocked) ->
-  if not _.isObject(post) or _.keys(post).length isnt 2 or
-      not post.content or _.isEmpty(post.content) or
-      not post.createdBy or _.isEmpty(post.createdBy)
-    RESULT.IS_NOT_VALID_POST
+  if not _.isObject(post)         or
+      _.keys(post).length isnt 2  or
+      not post.content            or
+      _.isEmpty(post.content)     or
+      not post.createdBy          or
+      _.isEmpty(post.createdBy)
+    RESULT_TYPE.IS_NOT_VALID_POST
   else if not user.isValid()
-    RESULT.IS_INVALID_USER
+    RESULT_TYPE.IS_INVALID_USER
   else if users.isPenaltyUser(user.id)
-    RESULT.IS_PENALTY_USER
+    RESULT_TYPE.IS_PENALTY_USER
   else if postLocked
-    RESULT.POST_LOCKED
+    RESULT_TYPE.POST_LOCKED
   else if not _.isValidWord(post.content)
-    RESULT.IS_INVALID_WORD
+    RESULT_TYPE.IS_INVALID_WORD
   else if not _.isValidLastFirst(lastDoc.content, post.content)
-    RESULT.IS_NOT_LASTFIRST
+    RESULT_TYPE.IS_NOT_LASTFIRST
   else if _.isEndsN(post.content)
-    RESULT.WORD_ENDS_N
+    RESULT_TYPE.WORD_ENDS_N
   else
-    RESULT.IS_VALID
+    RESULT_TYPE.IS_VALID
 
 

@@ -8,6 +8,9 @@ html
     script(src='/javascripts/head.load.min.js')
     script
       head.js( !{isProduction} ? '/javascripts/client.min.js' : '/javascripts/client.js' );
+      window.noAuthForDev = !{noAuthForDev}
     - if (isProduction)
       include google-analytics
+  - if (noAuthForDev)
+    | noAuthForDev..
   body!= body

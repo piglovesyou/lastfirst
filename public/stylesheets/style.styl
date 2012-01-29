@@ -1,27 +1,22 @@
 
+/* style.styl */
+
 @import 'nib'
 @import './lib/extention'
-
-@font-face
-  font-family: 'Dingbats2SamplerOT'
-  src: url('Dingbats2SamplerOT.otf') format('opentype')
-
-
 global-reset()
 
 
 
-h1
-  display: block
-  font-size: 2em
-  margin-top: 0.67em
-  margin-bottom: 0.67em
-  font-weight: bold
+BG_DARK = #222
+FONT_COLOR_ON_DARK = #fff
 
-p
-  display: block
-  margin-top: 1em
-  margin-bottom: 1em
+
+
+@font-face
+  font-family: 'Dingbats2SamplerOT'
+  src: url('Dingbats2SamplerOT.otf') format('opentype')
+.i
+  font-family: 'Dingbats2SamplerOT'
 
 html
 body
@@ -34,41 +29,40 @@ body
 a
   color: #00B7FF
 
-#msg-box
-  position: fixed
-  top: 2px
-  right: 2px
 
-#msg-box .msg
-  display: inline-block
-  padding: 4px 10px
-  border-color: #ccc #999 #999 #ccc
-  border-style: solid
-  border-width: 1px
-  background-color: #e9e9e9
-  box-shadow: 2px 2px 4px rgba(0,0,0,.2)
-  cursor: pointer
 
-#msg-box .msg:hover
-  background-color: #fff
-
-#msg-box .important
-  border: 1px outset #FFCCCC
-  background-color: #f33
-  color: #fff
-
-#msg-box .important:hover
-  background-color: #f99
-  color: #fff
+// #msg-box
+//   position: fixed
+//   top: 2px
+//   right: 2px
+// 
+// #msg-box .msg
+//   display: inline-block
+//   padding: 4px 10px
+//   border-color: #ccc #999 #999 #ccc
+//   border-style: solid
+//   border-width: 1px
+//   background-color: #e9e9e9
+//   box-shadow: 2px 2px 4px rgba(0,0,0,.2)
+//   cursor: pointer
+// 
+// #msg-box .msg:hover
+//   background-color: #fff
+// 
+// #msg-box .important
+//   border: 1px outset #FFCCCC
+//   background-color: #f33
+//   color: #fff
+// 
+// #msg-box .important:hover
+//   background-color: #f99
+//   color: #fff
 
 #post-form #indicator
   vertical-align: middle
 
 .loading
   background: url(/images/loading.gif) scroll 0 0 no-repeat
-
-.i
-  font-family: 'Dingbats2SamplerOT'
 
 .warn
   color: #f99
@@ -89,8 +83,9 @@ a
 
 .toolbar
   clearfix()
+  box-shadow-depth()
   padding 0 10px
-  background-color #222
+  background-color BG_DARK
   line-height 28px
   & a
     color #fff
@@ -110,122 +105,7 @@ a
     background #f22
     overflow ellipsis
 
-.wrapper 
-  position relative
-  margin 38px auto
-  clear both
+@import field-grid
 
-
-
-// @media only screen and (min-width: 801px)
-
-windowSizeMin = 750px
-windowSizeMid = 750px
-windowSizeMax = 750px
-itemWidth = 190px
-itemHeight = 240px
-
-.wrapper
-  margin-left 30px
-  margin-right 30px
-
-
-
-.item
-  position absolute
-  text-align center
-  width itemWidth
-  transition top .4s, left .4s
-  & .inner
-    position absolute
-    height itemHeight
-    left -50%
-  & .image
-    border-radius (itemWidth / 2)
-    overflow hidden
-    
-
-
-@media only screen and (max-width: 749px)
-  .item:nth-child(1)
-  .item:nth-child(2)
-    top: 0
-  .item:nth-child(3)
-  .item:nth-child(4)
-    top: itemHeight
-  .item:nth-child(5)
-  .item:nth-child(6)
-    top: itemHeight * 2
-  .item:nth-child(7)
-  .item:nth-child(8)
-    top: itemHeight * 3
-  .item:nth-child(9)
-  .item:nth-child(10)
-    top: itemHeight * 4
-  .item:nth-child(11)
-  .item:nth-child(12)
-    top: itemHeight * 5
-
-  half = (100% / 2)
-  quoter = (half / 2)
-  .item:nth-child(2n-1)
-    left: half + quoter
-  .item:nth-child(2n)
-    left: quoter
-
-@media only screen and (min-width: 750px) and (max-width: 999px)
-  .item:nth-child(1)
-  .item:nth-child(2)
-  .item:nth-child(3)
-    top: 0
-  .item:nth-child(4)
-  .item:nth-child(5)
-  .item:nth-child(6)
-    top: itemHeight
-  .item:nth-child(7)
-  .item:nth-child(8)
-  .item:nth-child(9)
-    top: itemHeight * 2
-  .item:nth-child(10)
-  .item:nth-child(11)
-  .item:nth-child(12)
-    top: itemHeight * 3
-
-  half = (100% / 3)
-  quoter = (half / 2)
-  .item:nth-child(3n-2)
-    left: (half * 2) + quoter
-  .item:nth-child(3n-1)
-    left: half + quoter
-  .item:nth-child(3n)
-    left: quoter
-
-@media only screen and (min-width: 1000px)
-  .item:nth-child(1)
-  .item:nth-child(2)
-  .item:nth-child(3)
-  .item:nth-child(4)
-    top: 0
-  .item:nth-child(5)
-  .item:nth-child(6)
-  .item:nth-child(7)
-  .item:nth-child(8)
-    top: itemHeight
-  .item:nth-child(9)
-  .item:nth-child(10)
-  .item:nth-child(11)
-  .item:nth-child(12)
-    top: itemHeight * 2
-
-  half = (100% / 4)
-  quoter = (half / 2)
-  .item:nth-child(4n-3)
-    left: (half * 3) + quoter
-  .item:nth-child(4n-2)
-    left: (half * 2) + quoter
-  .item:nth-child(4n-1)
-    left: half + quoter
-  .item:nth-child(4n)
-    left: quoter
 
 

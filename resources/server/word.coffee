@@ -1,11 +1,12 @@
 
 _ = require("underscore")
-Words = null
 
 ###
  Class for word.
  @extends Word_
 ###
+
+{Words} = require './words'
 
 class Word
   content: null
@@ -28,10 +29,5 @@ class Word
         @isSaved = true
         fn()
 
-exports.set = (Words_) ->
-  Words = Words_
-  if Words
-    Word
-  else
-    null
+exports.Word = Word
 

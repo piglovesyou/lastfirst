@@ -1,9 +1,11 @@
 
+SECRET = require('secret-strings').LAST_FIRST
+NO_AUTH_FOR_DEV = not SECRET.IS_PRODUCTION and SECRET.NO_AUTH_FOR_DEV
 _ = require("underscore")
 https = require('https')
 crypto = require('crypto')
-md5 = (str) ->
-  crypto.createHash('md5').update(str).digest('hex')
+md5 = (str) -> crypto.createHash('md5').update(str).digest('hex')
+{updateWords} = require './socket_util'
 
 ###
  Class for user.
@@ -13,12 +15,19 @@ class User
   id: ''
   token: ''
   isValid_: false
-  isValid: () ->
-    @isValid_
-  setValid: (valid) ->
-    @isValid_ = valid
+  isValid: () -> @isValid_
+  setValid: (valid) -> @isValid_ = valid
 
+  # private
+  updateWords_: ->
+    updateWords(@socket)
+
+  # public
   constructor: (@socket) ->
+    return false  if not @socket
+    @updateWords_()
+    if NO_AUTH_FOR_DEV
+      @isValid_ = true
   setToken: (@token) ->
   validate: (fn) ->
     return if not @socket or not @token
@@ -33,9 +42,11 @@ class User
           @isValid_ = true
           @socket.emit 'validated nicely!',
             userId: @id
+          @updateWords_()
           fn()
         else
           @socket.emit 'need login'
 
 exports.User = User
+
 
