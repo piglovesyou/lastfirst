@@ -47,11 +47,13 @@ class Time extends AbstractComponent
             left: pos.left
           .fadeIn()
         , 400
-      .bind 'mouseout', () =>
-        @clearTimers()
-        @hideTimer = _.delay () =>
-          @element.fadeOut()
-        , 3000
+      .bind 'mouseout', @hideAfterDelay
+
+  hideAfterDelay: =>
+    @clearTimers()
+    @hideTimer = _.delay @hide, 3000
+  hide: =>
+    @element.fadeOut()
 
   createTitleHTML: (date) ->
     digits =

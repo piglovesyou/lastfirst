@@ -29,8 +29,7 @@ _.mixin
     if token and expires
       expires = new Date(_.now() + expires * 1000).toString()
       _.setToken(token, expires)
-      socket.emit 'got token',
-        token: token
+      socket.emit 'got token', token: token
     else
       # show error
   getSocket: () ->
@@ -60,76 +59,13 @@ _.mixin
 
 
 
-# DOM init.
-message == null
-words = null  # @type {WordList}
-time = null
-$(->
-
-  # create instances
-  message = Message.getInstance()
-  message.render()
-  words = WordList.getInstance()
-  words.decorate('.word-list')
-  time = Time.getInstance()
-  time.render()
-
-  socketInit()
-
-  token = _.getToken()
-  if token
-    # verify the token
-    socket.emit 'got token',
-      token: token
-  else if window.noAuthForDev
-  else
-    # first login.
-    _.showLoginLink()
-
-  # _.disableForm(false)
-  $('#post-form').on 'submit', (e) ->
-    return false if _.isLocked()
-    # _.disableForm(true)
-    id = _.getUserId()
-    content = $('input[name="content"]', @).val()
-    
-    if _.isEmpty(id) or _.isEmpty(content)
-      # _.disableForm(false)
-    else if _.isValidWord(content)
-      lastDoc = words.getLastWord()
-      if id is lastDoc.createdBy
-        message.show('It\'s not your turn.')
-        # _.disableForm(false)
-      else if _.isValidLastFirst(lastDoc.content, content)
-        socket.emit 'post word',
-          content: content
-          createdBy: id
-      else
-        message.show('I\'m not sure it\'s being Last and First.')
-        # _.disableForm(false)
-    else
-      message.show('Please enter a word in HIRAGANA.')
-      # _.disableForm(false)
-    false
-  # for dev
-  # $("#login-link > a").click()
-
-)
-
-
-
-
-
-
-
-
 # variables of DOM/jQuery manipulation
 $msgBox_ = null
 postLocked_ = false
 $indicator_ = null
 _.mixin
-  isLocked: () ->
-    postLocked_
+  # isLocked: () ->
+  #   postLocked_
   # disableForm: (lock, withoutIndicator) ->
   #   postLocked_ = lock
   #   $inputs = $('#post-form input')
@@ -157,9 +93,9 @@ _.mixin
     $('#login-link').show()
   hideLoginLink: () ->
     $('#login-link').hide()
-  showPostForm: () ->
-    # _.hideWaitSecMessage()
-    $('#post-form').show()
+  # showPostForm: () ->
+  #  _.hideWaitSecMessage()
+  #  $('#post-form').show()
   setUserIdToHiddenInput: () ->
     $('#user-id-input').val(_.getUserId())
   showMessage: (str) ->
@@ -199,7 +135,8 @@ socketInit = () ->
     _.setUserIdToHiddenInput(id)
     message.show('Authorized fine.')
     _.hideLoginLink()
-    _.showPostForm()
+    # _.showPostForm()
+    $('body').addClass('logged-in').removeClass('not-logged-in')
     socket.emit 'pull update'
 
   socket.on 'error message', (data) ->
@@ -227,4 +164,71 @@ socketInit = () ->
       if word.createdBy is _.getUserId()
         message.showImportant('Somebody liked your post, "' + word.content + '"')
     
+
+
+
+
+# DOM init.
+message == null
+words = null  # @type {WordList}
+time = null
+$(->
+
+  # create instances
+  message = Message.getInstance()
+  message.render()
+  words = WordList.getInstance()
+  words.decorate('.word-list')
+  time = Time.getInstance()
+  time.render()
+
+  socketInit()
+
+  token = _.getToken()
+  console.log token
+  if token
+    # verify the token
+    socket.emit 'got token',
+      token: token
+  else if window.noAuthForDev
+  else
+    # first login.
+    _.showLoginLink()
+
+  # _.disableForm(false)
+  words.element.on 'submit', '#post', (e) ->
+    # return false if _.isLocked()
+    # _.disableForm(true)
+    id = _.getUserId()
+    content = $('input[name="content"]', @).val()
+
+    if _.isEmpty(id) or _.isEmpty(content)
+      # _.disableForm(false)
+    else if _.isValidWord(content)
+      lastDoc = words.getLastWord()
+      if id is lastDoc.createdBy
+        message.show('It\'s not your turn.')
+        # _.disableForm(false)
+      else if _.isValidLastFirst(lastDoc.content, content)
+        socket.emit 'post word',
+          content: content
+          createdBy: id
+      else
+        message.show('I\'m not sure it\'s being Last and First.')
+        # _.disableForm(false)
+    else
+      message.show('Please enter a word in HIRAGANA.')
+      # _.disableForm(false)
+    false
+  # for dev
+  # $("#login-link > a").click()
+
+)
+
+
+
+
+
+
+
 

@@ -9,7 +9,7 @@ html
     script
       var clientjs = !{isProduction} ? '/javascripts/client.min.js' : '/javascripts/client.js';
       head.js(
-        '/javascripts/libs/socket.io.js'
+        '/socket.io/socket.io.js'
       , '/javascripts/libs/underscore-min.js'
       , '/javascripts/libs/jquery-1.7.min.js'
       , clientjs);
@@ -18,4 +18,4 @@ html
       include google-analytics
   - if (noAuthForDev)
     | noAuthForDev..
-  body!= body
+  body.not-logged-in!= body

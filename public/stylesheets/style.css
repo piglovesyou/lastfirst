@@ -46,12 +46,16 @@ a{color:#00b7ff}
 .toolbar .message{background:#f22;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .word-list{position:relative;margin:38px auto;clear:both;margin-left:30px;margin-right:30px}
 .word{position:absolute;text-align:center;width:190px;-webkit-transition:top .4s,left .4s;-moz-transition:top .4s,left .4s;transition:top .4s,left .4s;}
+.word:nth-child(1){cursor:pointer}
+.word:nth-child(1):hover{opacity:.8;filter:progid:DXImageTransform.Microsoft.Alpha(Opacity=80)}
 .word .inner{position:absolute;width:190px;height:240px;left:-50%}
 .word .image{-webkit-border-radius:95px;-moz-border-radius:95px;border-radius:95px;overflow:hidden}
 .word .label{line-height:1.6}
-.word-blank{-webkit-transition:none !important;-moz-transition:none !important;transition:none !important;}
-.word-blank .image{height:184px;border:3px #ccc dashed}
 .your-post .titleElm::before{content:'* '}
+.word-blank{opacity:1;filter:progid:DXImageTransform.Microsoft.Alpha(Opacity=100);-webkit-transition:none;-moz-transition:none;transition:none;cursor:pointer;}
+.word-blank .image{height:184px;border:3px #ccc dashed}
+.not-logged-in #post-form{display:none}
+.logged-in .please-login{display:none}
 @media only screen and (max-width: 749px){.word:nth-child(1),.word:nth-child(2){top:0}
 .word:nth-child(3),.word:nth-child(4){top:240px}
 .word:nth-child(5),.word:nth-child(6){top:480px}

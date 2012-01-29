@@ -28,6 +28,11 @@ HUNDRED_PERCENT = 100%
   text-align center
   width itemWidth
   transition top .4s, left .4s
+  &:nth-child(1)
+    cursor: pointer
+  &:nth-child(1):hover
+    opacity: .8
+
   & .inner
     position absolute
     width itemWidth
@@ -39,16 +44,38 @@ HUNDRED_PERCENT = 100%
   & .label
     line-height 1.6
 
+.your-post
+  & .titleElm::before
+    content: '* '
+
+
+
+
+
 blankElmBorderWidth = 3px
+
 .word-blank
-  transition none !important
+  opacity 1
+  transition none
+  cursor pointer
   & .image
     height itemWidth - (blankElmBorderWidth * 2)
     border blankElmBorderWidth #ccc dashed
 
-.your-post
-  & .titleElm::before
-    content: '* '
+.not-logged-in #post-form
+  display none
+.logged-in .please-login
+  display none
+
+
+
+
+
+
+
+
+
+
 
 /* TODO: Use stylus iterator */
 @media only screen and (max-width: 749px)

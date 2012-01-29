@@ -362,7 +362,11 @@ WordList = (function() {
   function WordList() {
     this.onMouseleaveBlankElm = __bind(this.onMouseleaveBlankElm, this);
     this.onMouseEnterBlankElm = __bind(this.onMouseEnterBlankElm, this);
-    this.onEnterLastWord = __bind(this.onEnterLastWord, this);    this.blankElmInner = $('<div class="inner"><div class="image"></div><div class="label"></div></div>');
+    this.onClickLastWord = __bind(this.onClickLastWord, this);
+    var inner;
+    inner = "<div class=\"inner\">\n  <div class=\"image\"></div>\n  <div class=\"label\">\n    <div id=\"post-form\">\n    	<form id=\"post\" action=\"javascript:void(0)\" method=\"POST\">\n    		<input name=\"content\" type=\"text\">\n        <input style=\"display:none\" type=\"submit\" />\n    	</form>\n    </div>\n    <div class=\"please-login yeah\">(Please login.)</div> \n  </div>\n</div>".replace(/(<\/.+?>)[\s\S]*?(<)/g, "$1$2");
+    console.log(inner);
+    this.blankElmInner = $(inner);
     this.blankElm = $('<div class="word word-blank" style="display:none"></div>').append(this.blankElmInner);
   }
 
@@ -417,16 +421,17 @@ WordList = (function() {
   WordList.prototype.setAsLastWord = function(lastWord_) {
     this.lastWord_ = lastWord_;
     this.lastWord_.element.addClass("last-post");
-    return this.lastWord_.elementInner.bind('click', this.onEnterLastWord);
+    return this.lastWord_.elementInner.bind('click', this.onClickLastWord);
   };
 
-  WordList.prototype.onEnterLastWord = function() {
+  WordList.prototype.onClickLastWord = function() {
     var _this = this;
     window.clearTimeout(this.onEnterLastWordTimer);
     return this.onEnterLastWordTimer = _.delay(function() {
       _this.element.prepend(_this.blankElm);
       _this.blankElm.fadeIn();
-      return _this.blankElmInner.bind('mouseenter', _this.onMouseEnterBlankElm).bind('mouseleave', _this.onMouseleaveBlankElm);
+      _this.blankElmInner.bind('mouseenter', _this.onMouseEnterBlankElm).bind('mouseleave', _this.onMouseleaveBlankElm).find('input[type="text"]').val('').focus();
+      return Time.getInstance().hide();
     }, 400);
   };
 
@@ -441,7 +446,7 @@ WordList = (function() {
     return this.onLeaveBlankTimer = _.delay(function() {
       _this.blankElmInner.unbind('mouseleave');
       return _this.blankElm.hide().remove();
-    }, 1800);
+    }, 3000);
   };
 
   return WordList;
@@ -729,6 +734,8 @@ Time = (function() {
   __extends(Time, AbstractComponent);
 
   function Time() {
+    this.hide = __bind(this.hide, this);
+    this.hideAfterDelay = __bind(this.hideAfterDelay, this);
     Time.__super__.constructor.apply(this, arguments);
   }
 
@@ -781,12 +788,16 @@ Time = (function() {
           left: pos.left
         }).fadeIn();
       }, 400);
-    }).bind('mouseout', function() {
-      _this.clearTimers();
-      return _this.hideTimer = _.delay(function() {
-        return _this.element.fadeOut();
-      }, 3000);
-    });
+    }).bind('mouseout', this.hideAfterDelay);
+  };
+
+  Time.prototype.hideAfterDelay = function() {
+    this.clearTimers();
+    return this.hideTimer = _.delay(this.hide, 3000);
+  };
+
+  Time.prototype.hide = function() {
+    return this.element.fadeOut();
   };
 
   Time.prototype.createTitleHTML = function(date) {
@@ -874,64 +885,13 @@ _.mixin({
  Initialize a page.
 */
 
-message === null;
-
-words = null;
-
-time = null;
-
-$(function() {
-  var token;
-  message = Message.getInstance();
-  message.render();
-  words = WordList.getInstance();
-  words.decorate('.word-list');
-  time = Time.getInstance();
-  time.render();
-  socketInit();
-  token = _.getToken();
-  if (token) {
-    socket.emit('got token', {
-      token: token
-    });
-  } else if (window.noAuthForDev) {} else {
-    _.showLoginLink();
-  }
-  return $('#post-form').on('submit', function(e) {
-    var content, id, lastDoc;
-    if (_.isLocked()) return false;
-    id = _.getUserId();
-    content = $('input[name="content"]', this).val();
-    if (_.isEmpty(id) || _.isEmpty(content)) {} else if (_.isValidWord(content)) {
-      lastDoc = words.getLastWord();
-      if (id === lastDoc.createdBy) {
-        message.show('It\'s not your turn.');
-      } else if (_.isValidLastFirst(lastDoc.content, content)) {
-        socket.emit('post word', {
-          content: content,
-          createdBy: id
-        });
-      } else {
-        message.show('I\'m not sure it\'s being Last and First.');
-      }
-    } else {
-      message.show('Please enter a word in HIRAGANA.');
-    }
-    return false;
-  });
-});
-
 $msgBox_ = null;
 
 postLocked_ = false;
 
 $indicator_ = null;
 
-_.mixin({
-  isLocked: function() {
-    return postLocked_;
-  }
-});
+_.mixin;
 
 delayTimerId_ = null;
 
@@ -943,9 +903,6 @@ _.mixin({
   },
   hideLoginLink: function() {
     return $('#login-link').hide();
-  },
-  showPostForm: function() {
-    return $('#post-form').show();
   },
   setUserIdToHiddenInput: function() {
     return $('#user-id-input').val(_.getUserId());
@@ -993,7 +950,7 @@ socketInit = function() {
     _.setUserIdToHiddenInput(id);
     message.show('Authorized fine.');
     _.hideLoginLink();
-    _.showPostForm();
+    $('body').addClass('logged-in').removeClass('not-logged-in');
     return socket.emit('pull update');
   });
   socket.on('error message', function(data) {
@@ -1020,3 +977,50 @@ socketInit = function() {
     }
   });
 };
+
+message === null;
+
+words = null;
+
+time = null;
+
+$(function() {
+  var token;
+  message = Message.getInstance();
+  message.render();
+  words = WordList.getInstance();
+  words.decorate('.word-list');
+  time = Time.getInstance();
+  time.render();
+  socketInit();
+  token = _.getToken();
+  console.log(token);
+  if (token) {
+    socket.emit('got token', {
+      token: token
+    });
+  } else if (window.noAuthForDev) {} else {
+    _.showLoginLink();
+  }
+  return words.element.on('submit', '#post', function(e) {
+    var content, id, lastDoc;
+    id = _.getUserId();
+    content = $('input[name="content"]', this).val();
+    if (_.isEmpty(id) || _.isEmpty(content)) {} else if (_.isValidWord(content)) {
+      lastDoc = words.getLastWord();
+      if (id === lastDoc.createdBy) {
+        message.show('It\'s not your turn.');
+      } else if (_.isValidLastFirst(lastDoc.content, content)) {
+        socket.emit('post word', {
+          content: content,
+          createdBy: id
+        });
+      } else {
+        message.show('I\'m not sure it\'s being Last and First.');
+      }
+    } else {
+      message.show('Please enter a word in HIRAGANA.');
+    }
+    return false;
+  });
+});
