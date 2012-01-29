@@ -3928,6 +3928,8 @@ Time = (function() {
 
   Time.prototype.hideTimer = null;
 
+  Time.prototype.hoverTimer = null;
+
   Time.prototype.render = function() {
     Time.__super__.render.call(this);
     this.element = $("<div class=\"time\" style=\"display:none\"><div class=\"time-arrow\"></div><div class=\"time-bg\"><div class=\"time-round clearfix\"><div class=\"time-label\"><div class=\"time-label-twelve\">12</div><div class=\"time-label-three\">3</div><div class=\"time-label-six\">6</div><div class=\"time-label-nine\">9</div></div><div class=\"time-tick\"><div class=\"time-tick-short\"></div><div class=\"time-tick-long\"></div></div><div class=\"time-tick-center\"></div></div><div class=\"time-title\"><div class=\"time-title-content\"></div></div></div></div>");
@@ -3949,20 +3951,24 @@ Time = (function() {
     minuteDeg = this.getMinuteDeg_(date);
     pos = {};
     return $(elm).bind('mouseover', function() {
-      var span;
-      span = $('.label span:last-child', elm);
-      pos = span.offset();
-      pos.top += span.height() / 2;
-      pos.left += span.width();
-      window.clearTimeout(_this.hideTimer);
-      _this.setRotate_(_this.shortTickElm, hourDeg);
-      _this.setRotate_(_this.longTickElm, minuteDeg);
-      _this.titleElm.html(_this.createTitleHTML(date));
-      return _this.element.css({
-        top: pos.top,
-        left: pos.left
-      }).fadeIn();
+      return _this.hoverTimer = _.delay(function() {
+        var span;
+        _this.clearTimers();
+        span = $('.label span:last-child', elm);
+        pos = span.offset();
+        pos.top += span.height() / 2;
+        pos.left += span.width();
+        window.clearTimeout(_this.hideTimer);
+        _this.setRotate_(_this.shortTickElm, hourDeg);
+        _this.setRotate_(_this.longTickElm, minuteDeg);
+        _this.titleElm.html(_this.createTitleHTML(date));
+        return _this.element.css({
+          top: pos.top,
+          left: pos.left
+        }).fadeIn();
+      }, 400);
     }).bind('mouseout', function() {
+      _this.clearTimers();
       return _this.hideTimer = _.delay(function() {
         return _this.element.fadeOut();
       }, 3000);
@@ -3974,6 +3980,11 @@ Time = (function() {
     digits = _.padString(date.getHours(), 2) + ':' + _.padString(date.getMinutes(), 2);
     niceDate = _.niceDate(date);
     return "<span class=\"time-title-digits\">" + digits + "</span><br />\n<span class=\"time-title-nice\">" + niceDate + "</span>";
+  };
+
+  Time.prototype.clearTimers = function() {
+    window.clearTimeout(this.hoverTimer);
+    return window.clearTimeout(this.hideTimer);
   };
 
   Time.prototype.setRotate_ = function(elm, deg) {
@@ -4210,7 +4221,8 @@ socketInit = function() {
     _.setUserIdToHiddenInput(id);
     message.show('Authorized fine.');
     _.hideLoginLink();
-    return _.showPostForm();
+    _.showPostForm();
+    return socket.emit('pull update');
   });
   socket.on('error message', function(data) {
     message.show(data.message);

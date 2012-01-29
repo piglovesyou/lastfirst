@@ -143,6 +143,9 @@ io.sockets.on 'connection', (socket) ->
             Words.update {_id: wordId}, {liked: liked}, null, () ->
               io.sockets.emit 'update like', word
    
+  socket.on 'pull update', ->
+    user.updateWords()
+   
   socket.on 'disconnect', () ->
     users.remove(user.id)
    

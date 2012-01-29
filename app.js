@@ -178,6 +178,9 @@ io.sockets.on('connection', function(socket) {
       });
     }
   });
+  socket.on('pull update', function() {
+    return user.updateWords();
+  });
   return socket.on('disconnect', function() {
     return users.remove(user.id);
   });

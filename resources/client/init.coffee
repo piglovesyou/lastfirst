@@ -205,6 +205,7 @@ socketInit = () ->
     message.show('Authorized fine.')
     _.hideLoginLink()
     _.showPostForm()
+    socket.emit 'pull update'
 
   socket.on 'error message', (data) ->
     message.show(data.message)

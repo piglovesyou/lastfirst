@@ -7,6 +7,7 @@ class Time extends AbstractComponent
   titleElm: null
   height: 0
   hideTimer: null
+  hoverTimer: null
 
   render: () ->
     super()
@@ -30,20 +31,24 @@ class Time extends AbstractComponent
 
     $(elm)
       .bind 'mouseover', () =>
-        span = $('.label span:last-child', elm)
-        pos = span.offset()
-        pos.top += span.height() / 2
-        pos.left += span.width()
+        @hoverTimer = _.delay =>
+          @clearTimers()
+          span = $('.label span:last-child', elm)
+          pos = span.offset()
+          pos.top += span.height() / 2
+          pos.left += span.width()
 
-        window.clearTimeout(@hideTimer)
-        @setRotate_ @shortTickElm, hourDeg
-        @setRotate_ @longTickElm, minuteDeg
-        @titleElm.html(@createTitleHTML(date))
-        @element.css
-          top: pos.top
-          left: pos.left
-        .fadeIn()
+          window.clearTimeout(@hideTimer)
+          @setRotate_ @shortTickElm, hourDeg
+          @setRotate_ @longTickElm, minuteDeg
+          @titleElm.html(@createTitleHTML(date))
+          @element.css
+            top: pos.top
+            left: pos.left
+          .fadeIn()
+        , 400
       .bind 'mouseout', () =>
+        @clearTimers()
         @hideTimer = _.delay () =>
           @element.fadeOut()
         , 3000
@@ -58,6 +63,10 @@ class Time extends AbstractComponent
     <span class="time-title-nice">#{niceDate}</span>
     """
 
+  clearTimers: ->
+    window.clearTimeout(@hoverTimer)
+    window.clearTimeout(@hideTimer)
+
   setRotate_: (elm, deg) ->
     elm.css(_.getCssPrefix() + 'transform',  "rotate(#{deg}deg)")
 
@@ -66,4 +75,6 @@ class Time extends AbstractComponent
 
   getMinuteDeg_: (date) ->
     Math.floor(360 / 60 * date.getMinutes())
+
 _.addSingletonGetter(Time)
+

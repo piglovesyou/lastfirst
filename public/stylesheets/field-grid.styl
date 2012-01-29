@@ -38,6 +38,10 @@ HUNDRED_PERCENT = 100%
   & .label
     line-height 1.6
 
+.your-post
+  & .titleElm::before
+    content: '* '
+
 /* TODO: Use stylus iterator */
 @media only screen and (max-width: 749px)
   .item:nth-child(1)

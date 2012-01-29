@@ -20,21 +20,19 @@ class User
   setValid: (valid) -> @isValid_ = valid
 
   # private
-  updateWords_: ->
-    updateWords(@socket)
   validateOK_: (@id) ->
     @isValid_ = true
     users.add(this)
     @socket.emit 'validated nicely!', userId: @id
-    @updateWords_()
+    # @updateWords()
 
   # public
   constructor: (@socket) ->
     return false  if not @socket
-    @updateWords_()
+    @updateWords()
     if NO_AUTH_FOR_DEV
       console.log '\nNO_AUTH_FOR_DEV......!!!!!\n'
-      @validateOK_('dummy_account')
+      @validateOK_(_.uniqueId('dummy_account_'))
   setToken: (@token) ->
   validate: (fn) ->
     return if not @socket or not @token
@@ -49,6 +47,8 @@ class User
           fn()
         else
           @socket.emit 'need login'
+  updateWords: ->
+    updateWords(@socket)
 
 exports.User = User
 

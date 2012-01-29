@@ -49,6 +49,7 @@ a{color:#00b7ff}
 .item .inner{position:absolute;height:240px;left:-50%}
 .item .image{-webkit-border-radius:95px;-moz-border-radius:95px;border-radius:95px;overflow:hidden}
 .item .label{line-height:1.6}
+.your-post .titleElm::before{content:'* '}
 @media only screen and (max-width: 749px){.item:nth-child(1),.item:nth-child(2){top:0}
 .item:nth-child(3),.item:nth-child(4){top:240px}
 .item:nth-child(5),.item:nth-child(6){top:480px}
