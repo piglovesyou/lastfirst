@@ -43,6 +43,8 @@ _.mixin
     _.setCookies 
       token: ''
       expires: new Date(_.now() - 60 * 60 * 1000).toString()
+  trimHTML: (htmlText) ->
+    htmlText.replace(/(<\/.+?>)[\s\S]*?(<)/g, "$1$2")
 
 
 

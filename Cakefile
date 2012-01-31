@@ -27,9 +27,10 @@ FILES = addPath 'resources', [
 
   'client/googleimagesearch.coffee'
   'client/ui/abstractcomponent.coffee'
-  'client/ui/wordlist.coffee'
   'client/ui/word.coffee'
-  'client/ui/message.coffee'
+  'client/ui/blankword.coffee'
+  'client/ui/wordlist.coffee'
+  'client/ui/message.joffee'
   'client/ui/time.coffee'
 
   'client/init.coffee'

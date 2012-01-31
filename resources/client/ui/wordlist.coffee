@@ -4,23 +4,27 @@
 class WordList extends AbstractComponent
 
   # public
+  blankWord: null
   constructor: ->
-    inner = """
-    <div class="inner">
-      <div class="image"></div>
-      <div class="label">
-        <div id="post-form">
-        	<form id="post" action="javascript:void(0)" method="POST">
-        		<input name="content" type="text">
-            <input style="display:none" type="submit" />
-        	</form>
-        </div>
-        <div class="please-login yeah">(Please login.)</div> 
-      </div>
-    </div>
-    """.replace(/(<\/.+?>)[\s\S]*?(<)/g, "$1$2")
-    @blankElmInner = $(inner)
-    @blankElm = $('<div class="word word-blank" style="display:none"></div>').append @blankElmInner
+    # @blankElmInner = $(_.trimHTML("""
+    # <div class="inner">
+    #   <div class="image"></div>
+    #   <div class="label">
+    #     <div id="post-form">
+    #     	<form id="post" action="javascript:void(0)" method="POST">
+    #     		<input name="content" type="text">
+    #         <input style="display:none" type="submit" />
+    #     	</form>
+    #     </div>
+    #     <div class="please-login yeah">(Please login.)</div> 
+    #   </div>
+    # </div>
+    # """))
+    # @blankElm = $('''
+    #   <div class="word word-blank" style="display:none"></div>
+    #   ''').append @blankElmInner
+    @blankWord = BlankWord.getInstance()
+    @blankWord.render()
 
   empty: () ->
     for word in @wordInstances_
@@ -54,6 +58,7 @@ class WordList extends AbstractComponent
     @lastWord_.elementInner.bind 'click', @onClickLastWord_
 
 
+
   # private
   onEnterLastWordTimer_: null
   onLeaveBlankTimer_: null
@@ -61,24 +66,11 @@ class WordList extends AbstractComponent
   lastWord_: null
 
   onClickLastWord_: =>
-    window.clearTimeout @onEnterLastWordTimer_
-    @onEnterLastWordTimer_ = _.delay =>
-      @element.prepend @blankElm
-      @blankElm.fadeIn()
-      @blankElmInner
-        .bind('mouseenter', @onMouseEnterBlankElm_)
-        .bind('mouseleave', @onMouseleaveBlankElm_)
-        .find('input[type="text"]').val('').focus()
-      Time.getInstance().hide()
-    , 400
-
-  onMouseEnterBlankElm_: => window.clearTimeout @onLeaveBlankTimer_
-  onMouseleaveBlankElm_: =>
-    window.clearTimeout @onLeaveBlankTimer_
-    @onLeaveBlankTimer_ = _.delay =>
-      @blankElmInner.unbind('mouseleave')
-      @blankElm.hide().remove()
-    , 3000
+    @blankWord.element
+      .prependTo(@element)
+      .fadeIn()
+    @blankWord.attachEvents()
+    Time.getInstance().hide()
 
 _.addSingletonGetter(WordList)
 

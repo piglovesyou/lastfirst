@@ -3,7 +3,7 @@
  Extends underscore with word validation function.
 */
 
-var $indicator_, $msgBox_, AbstractComponent, BrowserType, CSS_PREFIX, ImageSearcher, Message, Time, Word, WordList, currentDocs_, delayTimerId_, imageSearcher, message, postLocked_, socket, socketInit, time, userId_, words;
+var $indicator_, $msgBox_, AbstractComponent, BlankWord, BrowserType, CSS_PREFIX, ImageSearcher, Message, Time, Word, WordList, currentDocs_, delayTimerId_, imageSearcher, message, postLocked_, socket, socketInit, time, userId_, words;
 var __slice = Array.prototype.slice, __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; }, __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
 (function() {
@@ -136,6 +136,9 @@ _.mixin({
       token: '',
       expires: new Date(_.now() - 60 * 60 * 1000).toString()
     });
+  },
+  trimHTML: function(htmlText) {
+    return htmlText.replace(/(<\/.+?>)[\s\S]*?(<)/g, "$1$2");
   },
   padString: function(str, howmany, padStr) {
     var diff, pad;
@@ -414,14 +417,11 @@ WordList = (function() {
 
   __extends(WordList, AbstractComponent);
 
+  WordList.prototype.blankWord = null;
+
   function WordList() {
-    this.onMouseleaveBlankElm_ = __bind(this.onMouseleaveBlankElm_, this);
-    this.onMouseEnterBlankElm_ = __bind(this.onMouseEnterBlankElm_, this);
-    this.onClickLastWord_ = __bind(this.onClickLastWord_, this);
-    var inner;
-    inner = "<div class=\"inner\">\n  <div class=\"image\"></div>\n  <div class=\"label\">\n    <div id=\"post-form\">\n    	<form id=\"post\" action=\"javascript:void(0)\" method=\"POST\">\n    		<input name=\"content\" type=\"text\">\n        <input style=\"display:none\" type=\"submit\" />\n    	</form>\n    </div>\n    <div class=\"please-login yeah\">(Please login.)</div> \n  </div>\n</div>".replace(/(<\/.+?>)[\s\S]*?(<)/g, "$1$2");
-    this.blankElmInner = $(inner);
-    this.blankElm = $('<div class="word word-blank" style="display:none"></div>').append(this.blankElmInner);
+    this.onClickLastWord_ = __bind(this.onClickLastWord_, this);    this.blankWord = BlankWord.getInstance();
+    this.blankWord.render();
   }
 
   WordList.prototype.empty = function() {
@@ -487,27 +487,9 @@ WordList = (function() {
   WordList.prototype.lastWord_ = null;
 
   WordList.prototype.onClickLastWord_ = function() {
-    var _this = this;
-    window.clearTimeout(this.onEnterLastWordTimer_);
-    return this.onEnterLastWordTimer_ = _.delay(function() {
-      _this.element.prepend(_this.blankElm);
-      _this.blankElm.fadeIn();
-      _this.blankElmInner.bind('mouseenter', _this.onMouseEnterBlankElm_).bind('mouseleave', _this.onMouseleaveBlankElm_).find('input[type="text"]').val('').focus();
-      return Time.getInstance().hide();
-    }, 400);
-  };
-
-  WordList.prototype.onMouseEnterBlankElm_ = function() {
-    return window.clearTimeout(this.onLeaveBlankTimer_);
-  };
-
-  WordList.prototype.onMouseleaveBlankElm_ = function() {
-    var _this = this;
-    window.clearTimeout(this.onLeaveBlankTimer_);
-    return this.onLeaveBlankTimer_ = _.delay(function() {
-      _this.blankElmInner.unbind('mouseleave');
-      return _this.blankElm.hide().remove();
-    }, 3000);
+    this.blankWord.element.prependTo(this.element).fadeIn();
+    this.blankWord.attachEvents();
+    return Time.getInstance().hide();
   };
 
   return WordList;
@@ -758,6 +740,70 @@ Time = (function() {
 })();
 
 _.addSingletonGetter(Time);
+
+BlankWord = (function() {
+
+  __extends(BlankWord, AbstractComponent);
+
+  function BlankWord() {
+    this.onFocus_ = __bind(this.onFocus_, this);
+    this.onMouseleaveBlankElm_ = __bind(this.onMouseleaveBlankElm_, this);
+    this.onMouseEnterBlankElm_ = __bind(this.onMouseEnterBlankElm_, this);
+    BlankWord.__super__.constructor.apply(this, arguments);
+  }
+
+  BlankWord.prototype.render = function() {
+    if (this.isInDocument) return;
+    BlankWord.__super__.render.call(this);
+    this.textElm_ = $("<input name=\"content\" type=\"text\">");
+    this.formElm_ = $(_.trimHTML("<form id=\"post\" action=\"javascript:void(0)\" method=\"POST\">\n  <input style=\"display:none\" type=\"submit\" />\n</form>")).prepend(this.textElm_);
+    this.innerElm_ = $(_.trimHTML("<div class=\"inner\">\n  <div class=\"image\"></div>\n  <div class=\"label\">\n    <div id=\"post-form\"></div>\n    <div class=\"please-login yeah\">(Please login.)</div> \n  </div>\n</div>"));
+    this.innerElm_.find('#post-form').append(this.formElm_);
+    return this.element = $("<div class=\"word word-blank\" style=\"display:none\"></div>").append(this.innerElm_);
+  };
+
+  BlankWord.prototype.attachEvents = function() {
+    this.textElm_.bind('focus', this.onFocus_).focus();
+    return this.innerElm_.bind('mouseenter', this.onMouseEnterBlankElm_).bind('mouseleave', this.onMouseleaveBlankElm_);
+  };
+
+  BlankWord.prototype.detatchEvents = function() {
+    this.textElm_.unbind();
+    return this.innerElm_.unbind();
+  };
+
+  BlankWord.prototype.innerElm_ = null;
+
+  BlankWord.prototype.formElm_ = null;
+
+  BlankWord.prototype.textElm_ = null;
+
+  BlankWord.prototype.onEnterLastWordTimer_ = null;
+
+  BlankWord.prototype.onLeaveBlankTimer_ = null;
+
+  BlankWord.prototype.onMouseEnterBlankElm_ = function() {
+    return window.clearTimeout(this.onLeaveBlankTimer_);
+  };
+
+  BlankWord.prototype.onMouseleaveBlankElm_ = function() {
+    var _this = this;
+    window.clearTimeout(this.onLeaveBlankTimer_);
+    return this.onLeaveBlankTimer_ = _.delay(function() {
+      _this.detatchEvents();
+      return _this.element.hide().remove();
+    }, 3000);
+  };
+
+  BlankWord.prototype.onFocus_ = function() {
+    return console.log('focused..');
+  };
+
+  return BlankWord;
+
+})();
+
+_.addSingletonGetter(BlankWord);
 
 /*
  Global accessor to the base info
