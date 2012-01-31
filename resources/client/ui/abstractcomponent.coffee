@@ -9,7 +9,11 @@
     component.dispose()         
 ###
 class AbstractComponent
+
+  # public
   element: null
+  isInDocument: false
+
   getElement: () ->
     @element
   isInDocument: false

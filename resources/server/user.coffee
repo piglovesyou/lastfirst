@@ -12,21 +12,8 @@ users = require('./users').getInstance()
  Class for user.
 ###
 class User
-  socket: null
-  id: ''
-  token: ''
-  isValid_: false
-  isValid: () -> @isValid_
-  setValid: (valid) -> @isValid_ = valid
-
-  # private
-  validateOK_: (@id) ->
-    @isValid_ = true
-    users.add(this)
-    @socket.emit 'validated nicely!', userId: @id
-    # @updateWords()
-
   # public
+  socket: null
   constructor: (@socket) ->
     return false  if not @socket
     @updateWords()
@@ -49,6 +36,19 @@ class User
           @socket.emit 'need login'
   updateWords: ->
     updateWords(@socket)
+
+
+  # private
+  id: ''
+  token: ''
+  isValid: false
+
+  validateOK_: (@id) ->
+    @isValid = true
+    users.add(this)
+    @socket.emit 'validated nicely!', userId: @id
+    # @updateWords()
+
 
 exports.User = User
 

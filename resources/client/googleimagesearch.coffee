@@ -26,6 +26,7 @@ class ImageSearcher
   googleImageSearch_: null
   hasCallback_: null
   onSearchCompleteCallback_: null
+
   hasScriptLoaded_: ->
     window.google and
     window.google.search and

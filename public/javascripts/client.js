@@ -364,6 +364,8 @@ AbstractComponent = (function() {
 
   AbstractComponent.prototype.element = null;
 
+  AbstractComponent.prototype.isInDocument = false;
+
   AbstractComponent.prototype.getElement = function() {
     return this.element;
   };
@@ -412,18 +414,10 @@ WordList = (function() {
 
   __extends(WordList, AbstractComponent);
 
-  WordList.prototype.onEnterLastWordTimer = null;
-
-  WordList.prototype.onLeaveBlankTimer = null;
-
-  WordList.prototype.wordInstances_ = [];
-
-  WordList.prototype.lastWord_ = null;
-
   function WordList() {
-    this.onMouseleaveBlankElm = __bind(this.onMouseleaveBlankElm, this);
-    this.onMouseEnterBlankElm = __bind(this.onMouseEnterBlankElm, this);
-    this.onClickLastWord = __bind(this.onClickLastWord, this);
+    this.onMouseleaveBlankElm_ = __bind(this.onMouseleaveBlankElm_, this);
+    this.onMouseEnterBlankElm_ = __bind(this.onMouseEnterBlankElm_, this);
+    this.onClickLastWord_ = __bind(this.onClickLastWord_, this);
     var inner;
     inner = "<div class=\"inner\">\n  <div class=\"image\"></div>\n  <div class=\"label\">\n    <div id=\"post-form\">\n    	<form id=\"post\" action=\"javascript:void(0)\" method=\"POST\">\n    		<input name=\"content\" type=\"text\">\n        <input style=\"display:none\" type=\"submit\" />\n    	</form>\n    </div>\n    <div class=\"please-login yeah\">(Please login.)</div> \n  </div>\n</div>".replace(/(<\/.+?>)[\s\S]*?(<)/g, "$1$2");
     this.blankElmInner = $(inner);
@@ -481,28 +475,36 @@ WordList = (function() {
   WordList.prototype.setAsLastWord = function(lastWord_) {
     this.lastWord_ = lastWord_;
     this.lastWord_.element.addClass("last-post");
-    return this.lastWord_.elementInner.bind('click', this.onClickLastWord);
+    return this.lastWord_.elementInner.bind('click', this.onClickLastWord_);
   };
 
-  WordList.prototype.onClickLastWord = function() {
+  WordList.prototype.onEnterLastWordTimer_ = null;
+
+  WordList.prototype.onLeaveBlankTimer_ = null;
+
+  WordList.prototype.wordInstances_ = [];
+
+  WordList.prototype.lastWord_ = null;
+
+  WordList.prototype.onClickLastWord_ = function() {
     var _this = this;
-    window.clearTimeout(this.onEnterLastWordTimer);
-    return this.onEnterLastWordTimer = _.delay(function() {
+    window.clearTimeout(this.onEnterLastWordTimer_);
+    return this.onEnterLastWordTimer_ = _.delay(function() {
       _this.element.prepend(_this.blankElm);
       _this.blankElm.fadeIn();
-      _this.blankElmInner.bind('mouseenter', _this.onMouseEnterBlankElm).bind('mouseleave', _this.onMouseleaveBlankElm).find('input[type="text"]').val('').focus();
+      _this.blankElmInner.bind('mouseenter', _this.onMouseEnterBlankElm_).bind('mouseleave', _this.onMouseleaveBlankElm_).find('input[type="text"]').val('').focus();
       return Time.getInstance().hide();
     }, 400);
   };
 
-  WordList.prototype.onMouseEnterBlankElm = function() {
-    return window.clearTimeout(this.onLeaveBlankTimer);
+  WordList.prototype.onMouseEnterBlankElm_ = function() {
+    return window.clearTimeout(this.onLeaveBlankTimer_);
   };
 
-  WordList.prototype.onMouseleaveBlankElm = function() {
+  WordList.prototype.onMouseleaveBlankElm_ = function() {
     var _this = this;
-    window.clearTimeout(this.onLeaveBlankTimer);
-    return this.onLeaveBlankTimer = _.delay(function() {
+    window.clearTimeout(this.onLeaveBlankTimer_);
+    return this.onLeaveBlankTimer_ = _.delay(function() {
       _this.blankElmInner.unbind('mouseleave');
       return _this.blankElm.hide().remove();
     }, 3000);
@@ -537,48 +539,47 @@ Word = (function() {
   }
 
   Word.prototype.canRender = function() {
-    return !!(this.id && this.content && this.createdBy && this.createdAt && this.liked);
+    return !!(!this.isInDocument && this.id && this.content && this.createdBy && this.createdAt && this.liked);
   };
 
   Word.prototype.render = function() {
     var i, image, label, likeButtonElm, likeText, likedElm, text, title, titleElm, userId, _i, _len, _ref;
-    if (this.canRender()) {
-      Word.__super__.render.call(this);
-      this.element.empty();
-      text = '';
-      userId = _.getUserId();
-      image = $("<div class='image'>\n<img src=\"/images/spacer.gif\" width=\"188\" height=\"188\" />\n</div>");
-      label = $("<div class='label'></div>");
-      title = this.content;
-      if (_.isEndsN(this.content)) title += '*';
-      titleElm = $("<span class='titleElm' title='" + this.createdAt + "'>" + title + "</span>");
-      label.append(titleElm);
-      if (!_.isEmpty(this.liked)) {
-        likeText = '';
-        _ref = this.liked;
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          i = _ref[_i];
-          likeText += '6';
-        }
-        likedElm = $("<span class='liked i'>" + likeText + "</span>");
-        label.append(likedElm);
+    if (!this.canRender()) return;
+    Word.__super__.render.call(this);
+    this.element.empty();
+    text = '';
+    userId = _.getUserId();
+    image = $("<div class='image'>\n<img src=\"/images/spacer.gif\" width=\"188\" height=\"188\" />\n</div>");
+    label = $("<div class='label'></div>");
+    title = this.content;
+    if (_.isEndsN(this.content)) title += '*';
+    titleElm = $("<span class='titleElm' title='" + this.createdAt + "'>" + title + "</span>");
+    label.append(titleElm);
+    if (!_.isEmpty(this.liked)) {
+      likeText = '';
+      _ref = this.liked;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        i = _ref[_i];
+        likeText += '6';
       }
-      if (userId && userId !== this.createdBy && !_.include(this.liked, userId)) {
-        likeButtonElm = $("<span class='like i' title='like it'>6</span>").bind('click', this.sendLike);
-        label.append(likeButtonElm);
-      }
-      this.elementInner = $("<div class='inner'></div>").append(image).append(label);
-      this.element.append(this.elementInner);
-      if (this.isLastPost) {
-        WordList.getInstance().setAsLastWord(this);
-      } else {
-        this.element.removeClass("last-post");
-      }
-      if (userId === this.createdBy) {
-        return this.element.addClass("your-post");
-      } else {
-        return this.element.removeClass("your-post");
-      }
+      likedElm = $("<span class='liked i'>" + likeText + "</span>");
+      label.append(likedElm);
+    }
+    if (userId && userId !== this.createdBy && !_.include(this.liked, userId)) {
+      likeButtonElm = $("<span class='like i' title='like it'>6</span>").bind('click', this.sendLike);
+      label.append(likeButtonElm);
+    }
+    this.elementInner = $("<div class='inner'></div>").append(image).append(label);
+    this.element.append(this.elementInner);
+    if (this.isLastPost) {
+      WordList.getInstance().setAsLastWord(this);
+    } else {
+      this.element.removeClass("last-post");
+    }
+    if (userId === this.createdBy) {
+      return this.element.addClass("your-post");
+    } else {
+      return this.element.removeClass("your-post");
     }
   };
 
@@ -625,10 +626,6 @@ Message = (function() {
     Message.__super__.constructor.apply(this, arguments);
   }
 
-  Message.prototype.createMsg_ = function(className, str) {
-    return $("<span class=\'" + className + "\' style='display:none'></span>").text(str).prependTo(this.element).fadeIn();
-  };
-
   Message.prototype.decorate = function(elmSelector) {
     return Message.__super__.decorate.call(this, elmSelector);
   };
@@ -647,6 +644,10 @@ Message = (function() {
     return _.delay(function() {
       return msgElm.fadeOut();
     }, 25 * 1000);
+  };
+
+  Message.prototype.createMsg_ = function(className, str) {
+    return $("<span class=\'" + className + "\' style='display:none'></span>").text(str).prependTo(this.element).fadeIn();
   };
 
   return Message;
@@ -669,18 +670,6 @@ Time = (function() {
     Time.__super__.constructor.apply(this, arguments);
   }
 
-  Time.prototype.shortTickElm = null;
-
-  Time.prototype.longTickElm = null;
-
-  Time.prototype.titleElm = null;
-
-  Time.prototype.height = 0;
-
-  Time.prototype.hideTimer = null;
-
-  Time.prototype.hoverTimer = null;
-
   Time.prototype.render = function() {
     Time.__super__.render.call(this);
     this.element = $("<div class=\"time\" style=\"display:none\"><div class=\"time-arrow\"></div><div class=\"time-bg\"><div class=\"time-round clearfix\"><div class=\"time-label\"><div class=\"time-label-twelve\">12</div><div class=\"time-label-three\">3</div><div class=\"time-label-six\">6</div><div class=\"time-label-nine\">9</div></div><div class=\"time-tick\"><div class=\"time-tick-short\"></div><div class=\"time-tick-long\"></div></div><div class=\"time-tick-center\"></div></div><div class=\"time-title\"><div class=\"time-title-content\"></div></div></div></div>");
@@ -688,9 +677,9 @@ Time = (function() {
     this.element.css({
       'margin-top': this.element.height() / -2
     });
-    this.shortTickElm = $('.time-tick-short', this.element);
-    this.longTickElm = $('.time-tick-long', this.element);
-    return this.titleElm = $('.time-title-content', this.element);
+    this.shortTickElm_ = $('.time-tick-short', this.element);
+    this.longTickElm_ = $('.time-tick-long', this.element);
+    return this.titleElm_ = $('.time-title-content', this.element);
   };
 
   Time.prototype.attachElement = function(elm, time) {
@@ -702,17 +691,17 @@ Time = (function() {
     minuteDeg = this.getMinuteDeg_(date);
     pos = {};
     return $(elm).bind('mouseover', function() {
-      return _this.hoverTimer = _.delay(function() {
+      return _this.hoverTimer_ = _.delay(function() {
         var span;
-        _this.clearTimers();
+        _this.clearTimers_();
         span = $('.label span:last-child', elm);
         pos = span.offset();
         pos.top += span.height() / 2;
         pos.left += span.width();
-        window.clearTimeout(_this.hideTimer);
-        _this.setRotate_(_this.shortTickElm, hourDeg);
-        _this.setRotate_(_this.longTickElm, minuteDeg);
-        _this.titleElm.html(_this.createTitleHTML(date));
+        window.clearTimeout(_this.hideTimer_);
+        _this.setRotate_(_this.shortTickElm_, hourDeg);
+        _this.setRotate_(_this.longTickElm_, minuteDeg);
+        _this.titleElm_.html(_this.createTitleHTML_(date));
         return _this.element.css({
           top: pos.top,
           left: pos.left
@@ -722,24 +711,34 @@ Time = (function() {
   };
 
   Time.prototype.hideAfterDelay = function() {
-    this.clearTimers();
-    return this.hideTimer = _.delay(this.hide, 3000);
+    this.clearTimers_();
+    return this.hideTimer_ = _.delay(this.hide, 3000);
   };
 
   Time.prototype.hide = function() {
     return this.element.fadeOut();
   };
 
-  Time.prototype.createTitleHTML = function(date) {
+  Time.prototype.shortTickElm_ = null;
+
+  Time.prototype.longTickElm_ = null;
+
+  Time.prototype.titleElm_ = null;
+
+  Time.prototype.hideTimer_ = null;
+
+  Time.prototype.hoverTimer_ = null;
+
+  Time.prototype.createTitleHTML_ = function(date) {
     var digits, niceDate;
     digits = _.padString(date.getHours(), 2) + ':' + _.padString(date.getMinutes(), 2);
     niceDate = _.niceDate(date);
     return "<span class=\"time-title-digits\">" + digits + "</span><br />\n<span class=\"time-title-nice\">" + niceDate + "</span>";
   };
 
-  Time.prototype.clearTimers = function() {
-    window.clearTimeout(this.hoverTimer);
-    return window.clearTimeout(this.hideTimer);
+  Time.prototype.clearTimers_ = function() {
+    window.clearTimeout(this.hoverTimer_);
+    return window.clearTimeout(this.hideTimer_);
   };
 
   Time.prototype.setRotate_ = function(elm, deg) {

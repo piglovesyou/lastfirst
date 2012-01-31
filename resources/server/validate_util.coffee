@@ -24,7 +24,7 @@ exports.postedWord = (user, users, post, lastDoc, postLocked) ->
       not post.createdBy          or
       _.isEmpty(post.createdBy)
     RESULT_TYPE.IS_NOT_VALID_POST
-  else if not user.isValid()
+  else if not user.isValid
     RESULT_TYPE.IS_INVALID_USER
   else if users.isPenaltyUser(user.id)
     RESULT_TYPE.IS_PENALTY_USER

@@ -2,11 +2,8 @@
  Singleton class for words.
 ###
 class WordList extends AbstractComponent
-  onEnterLastWordTimer: null
-  onLeaveBlankTimer: null
-  wordInstances_: []
-  lastWord_: null
 
+  # public
   constructor: ->
     inner = """
     <div class="inner">
@@ -50,29 +47,35 @@ class WordList extends AbstractComponent
   getLastWord: () ->
     @wordInstances_[0]
 
-
   # used by Word instance.
   # @param {Word} @lastWord_
   setAsLastWord: (@lastWord_) ->
     @lastWord_.element.addClass("last-post")
-    @lastWord_.elementInner.bind 'click', @onClickLastWord
+    @lastWord_.elementInner.bind 'click', @onClickLastWord_
 
-  onClickLastWord: =>
-    window.clearTimeout @onEnterLastWordTimer
-    @onEnterLastWordTimer = _.delay =>
+
+  # private
+  onEnterLastWordTimer_: null
+  onLeaveBlankTimer_: null
+  wordInstances_: []
+  lastWord_: null
+
+  onClickLastWord_: =>
+    window.clearTimeout @onEnterLastWordTimer_
+    @onEnterLastWordTimer_ = _.delay =>
       @element.prepend @blankElm
       @blankElm.fadeIn()
       @blankElmInner
-        .bind('mouseenter', @onMouseEnterBlankElm)
-        .bind('mouseleave', @onMouseleaveBlankElm)
+        .bind('mouseenter', @onMouseEnterBlankElm_)
+        .bind('mouseleave', @onMouseleaveBlankElm_)
         .find('input[type="text"]').val('').focus()
       Time.getInstance().hide()
     , 400
 
-  onMouseEnterBlankElm: => window.clearTimeout @onLeaveBlankTimer
-  onMouseleaveBlankElm: =>
-    window.clearTimeout @onLeaveBlankTimer
-    @onLeaveBlankTimer = _.delay =>
+  onMouseEnterBlankElm_: => window.clearTimeout @onLeaveBlankTimer_
+  onMouseleaveBlankElm_: =>
+    window.clearTimeout @onLeaveBlankTimer_
+    @onLeaveBlankTimer_ = _.delay =>
       @blankElmInner.unbind('mouseleave')
       @blankElm.hide().remove()
     , 3000

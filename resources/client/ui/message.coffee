@@ -3,13 +3,6 @@
 ###
 class Message extends AbstractComponent
 
-  # private
-  createMsg_: (className, str) ->
-    $("<span class=\'#{className}\' style='display:none'></span>")
-      .text(str)
-      .prependTo(@element)
-      .fadeIn()
-
   # public
   decorate: (elmSelector) ->  # @override
     super(elmSelector)
@@ -25,8 +18,16 @@ class Message extends AbstractComponent
       msgElm.fadeOut()
     , 25 * 1000
 
+  # private
+  createMsg_: (className, str) ->
+    $("<span class=\'#{className}\' style='display:none'></span>")
+      .text(str)
+      .prependTo(@element)
+      .fadeIn()
 
+_.addSingletonGetter(Message)
 
+      
 #     importantMessageTimer = null
 #     messageTimer = null
 # 
@@ -83,6 +84,3 @@ class Message extends AbstractComponent
 #     @messageElm_.unbind()
 #     super()
 
-_.addSingletonGetter(Message)
-
-      

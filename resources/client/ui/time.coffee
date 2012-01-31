@@ -2,13 +2,8 @@
  Singleton class for time.
 ###
 class Time extends AbstractComponent
-  shortTickElm: null
-  longTickElm: null
-  titleElm: null
-  height: 0
-  hideTimer: null
-  hoverTimer: null
 
+  # public
   render: () ->
     super()
     @element = $("""
@@ -18,9 +13,9 @@ class Time extends AbstractComponent
     @element.css
       'margin-top': @element.height()/-2
 
-    @shortTickElm = $('.time-tick-short', @element)
-    @longTickElm = $('.time-tick-long', @element)
-    @titleElm = $('.time-title-content', @element)
+    @shortTickElm_ = $('.time-tick-short', @element)
+    @longTickElm_ = $('.time-tick-long', @element)
+    @titleElm_ = $('.time-title-content', @element)
 
   attachElement: (elm, time) ->
     elm = $(elm)
@@ -31,17 +26,17 @@ class Time extends AbstractComponent
 
     $(elm)
       .bind 'mouseover', () =>
-        @hoverTimer = _.delay =>
-          @clearTimers()
+        @hoverTimer_ = _.delay =>
+          @clearTimers_()
           span = $('.label span:last-child', elm)
           pos = span.offset()
           pos.top += span.height() / 2
           pos.left += span.width()
 
-          window.clearTimeout(@hideTimer)
-          @setRotate_ @shortTickElm, hourDeg
-          @setRotate_ @longTickElm, minuteDeg
-          @titleElm.html(@createTitleHTML(date))
+          window.clearTimeout(@hideTimer_)
+          @setRotate_ @shortTickElm_, hourDeg
+          @setRotate_ @longTickElm_, minuteDeg
+          @titleElm_.html(@createTitleHTML_(date))
           @element.css
             top: pos.top
             left: pos.left
@@ -50,12 +45,20 @@ class Time extends AbstractComponent
       .bind 'mouseout', @hideAfterDelay
 
   hideAfterDelay: =>
-    @clearTimers()
-    @hideTimer = _.delay @hide, 3000
+    @clearTimers_()
+    @hideTimer_ = _.delay @hide, 3000
   hide: =>
     @element.fadeOut()
 
-  createTitleHTML: (date) ->
+
+  # private
+  shortTickElm_: null
+  longTickElm_: null
+  titleElm_: null
+  hideTimer_: null
+  hoverTimer_: null
+
+  createTitleHTML_: (date) ->
     digits =
       _.padString(date.getHours(), 2) + ':' +
       _.padString(date.getMinutes(), 2)
@@ -64,10 +67,9 @@ class Time extends AbstractComponent
     <span class="time-title-digits">#{digits}</span><br />
     <span class="time-title-nice">#{niceDate}</span>
     """
-
-  clearTimers: ->
-    window.clearTimeout(@hoverTimer)
-    window.clearTimeout(@hideTimer)
+  clearTimers_: ->
+    window.clearTimeout(@hoverTimer_)
+    window.clearTimeout(@hideTimer_)
 
   setRotate_: (elm, deg) ->
     elm.css(_.getCssPrefix() + 'transform',  "rotate(#{deg}deg)")
@@ -77,6 +79,7 @@ class Time extends AbstractComponent
 
   getMinuteDeg_: (date) ->
     Math.floor(360 / 60 * date.getMinutes())
+
 
 _.addSingletonGetter(Time)
 
