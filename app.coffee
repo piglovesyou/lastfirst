@@ -168,6 +168,50 @@ oauthQuery =
 oauthUrl = 'https://accounts.google.com/o/oauth2/auth?' +
     querystring.stringify(oauthQuery)
 
+
+
+
+
+
+
+
+
+
+
+
+###
+{
+  "modules": [{
+    "name": "search",
+    "version": "1",
+    "callback": "googleLoaderCallback",
+    "nocss": "true"
+  }]
+} & key = ABQIAAAAr - Cx3wzTD_6B2XuJpn - M5xTJQa0g3IQ9GZqIMmInSLzwtGDKaBTvG9Zrc - usz3rywefs092_UQbBRw
+###
+
+
+
+googleLoaderParam = JSON.stringify
+  "modules": [
+    "name": "search"
+    "version": "1"
+    # "callback": "myGoogleLoader.loaded"
+    "nocss": "true"
+  ]
+googleLoaderParam = """
+  #{googleLoaderParam}&key=#{SECRET.GOOGLE_LOADER_KEY}
+  """
+console.log "\n======================================\n"
+console.log googleLoaderParam
+googleLoaderParam = "autoload=#{encodeURIComponent googleLoaderParam}"
+
+
+
+
+
+
+
 # GET requests.
 app.get '/', (req, res) ->
   res.render 'index',
@@ -175,6 +219,7 @@ app.get '/', (req, res) ->
     oauthUrl: oauthUrl
     isProduction: SECRET.IS_PRODUCTION
     noAuthForDev: NO_AUTH_FOR_DEV
+    googleLoaderParam: googleLoaderParam
 
 app.get '/about', (req, res) ->
   res.render 'about',

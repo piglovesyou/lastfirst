@@ -3,7 +3,7 @@
  Extends underscore with word validation function.
 */
 
-var $indicator_, $msgBox_, AbstractComponent, BrowserType, CSS_PREFIX, Message, Time, Word, WordList, currentDocs_, delayTimerId_, message, postLocked_, socket, socketInit, time, userId_, words;
+var $indicator_, $msgBox_, AbstractComponent, BrowserType, CSS_PREFIX, ImageSearcher, Message, Time, Word, WordList, currentDocs_, delayTimerId_, imageSearcher, message, postLocked_, socket, socketInit, time, userId_, words;
 var __slice = Array.prototype.slice, __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; }, __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
 (function() {
@@ -291,6 +291,61 @@ _.mixin({
     };
   })()
 });
+
+/*
+ First time when `execute' run, create google.search.ImageSearch instance.
+ Just Ignore when `execute' method run AND google.search not yet loaded.
+*/
+
+ImageSearcher = (function() {
+
+  function ImageSearcher() {
+    if (this.hasScriptLoaded_()) this.createImageSearchInstance_();
+  }
+
+  ImageSearcher.prototype.execute = function(searchString) {
+    if (this.canExecute_()) return imageSearch.execute(searchString);
+  };
+
+  ImageSearcher.prototype.get = function() {
+    return this.googleImageSearch_;
+  };
+
+  ImageSearcher.prototype.setCallback = function(fn) {
+    if (this.googleImageSearch_ && !this.hasCallback_) {
+      this.hasCallback_ = true;
+      return this.googleImageSearch_.setSearchCompleteCallback(this, fn, [this]);
+    }
+  };
+
+  ImageSearcher.prototype.googleImageSearch_ = null;
+
+  ImageSearcher.prototype.hasCallback_ = null;
+
+  ImageSearcher.prototype.onSearchCompleteCallback_ = null;
+
+  ImageSearcher.prototype.hasScriptLoaded_ = function() {
+    return window.google && window.google.search && window.google.search.ImageSearch;
+  };
+
+  ImageSearcher.prototype.canExecute_ = function() {
+    if (!this.hasScriptLoaded_() || !this.hasCallback_) {} else if (!this.googleImageSearch_) {
+      this.createImageSearchInstance_();
+    }
+    return this.googleImageSearch_ && this.hasCallback_;
+  };
+
+  ImageSearcher.prototype.createImageSearchInstance_ = function() {
+    return this.googleImageSearch_ = new google.search.ImageSearch();
+  };
+
+  return ImageSearcher;
+
+})();
+
+_.addSingletonGetter(ImageSearcher);
+
+imageSearcher = ImageSearcher.getInstance();
 
 /*
  Abstract class to manage DOM components.

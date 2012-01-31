@@ -3,7 +3,7 @@
  Include libraries.
 */
 
-var NO_AUTH_FOR_DEV, OAuth, SECRET, User, Word, Words, app, express, getLastDoc, io, nib, oauthQuery, oauthScopes, oauthUrl, querystring, stylus, updateWords, url, users, validateResult, validateUtil, _, _ref;
+var NO_AUTH_FOR_DEV, OAuth, SECRET, User, Word, Words, app, express, getLastDoc, googleLoaderParam, io, nib, oauthQuery, oauthScopes, oauthUrl, querystring, stylus, updateWords, url, users, validateResult, validateUtil, _, _ref;
 
 SECRET = require('secret-strings').LAST_FIRST;
 
@@ -197,12 +197,42 @@ oauthQuery = {
 
 oauthUrl = 'https://accounts.google.com/o/oauth2/auth?' + querystring.stringify(oauthQuery);
 
+/*
+{
+  "modules": [{
+    "name": "search",
+    "version": "1",
+    "callback": "googleLoaderCallback",
+    "nocss": "true"
+  }]
+} & key = ABQIAAAAr - Cx3wzTD_6B2XuJpn - M5xTJQa0g3IQ9GZqIMmInSLzwtGDKaBTvG9Zrc - usz3rywefs092_UQbBRw
+*/
+
+googleLoaderParam = JSON.stringify({
+  "modules": [
+    {
+      "name": "search",
+      "version": "1",
+      "nocss": "true"
+    }
+  ]
+});
+
+googleLoaderParam = "" + googleLoaderParam + "&key=" + SECRET.GOOGLE_LOADER_KEY;
+
+console.log("\n======================================\n");
+
+console.log(googleLoaderParam);
+
+googleLoaderParam = "autoload=" + (encodeURIComponent(googleLoaderParam));
+
 app.get('/', function(req, res) {
   return res.render('index', {
     title: 'LastFirstApp',
     oauthUrl: oauthUrl,
     isProduction: SECRET.IS_PRODUCTION,
-    noAuthForDev: NO_AUTH_FOR_DEV
+    noAuthForDev: NO_AUTH_FOR_DEV,
+    googleLoaderParam: googleLoaderParam
   });
 });
 

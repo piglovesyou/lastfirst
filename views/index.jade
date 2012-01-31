@@ -2,6 +2,8 @@
 
 - var onclick = 'javascript:window.open("' + oauthUrl + '", "oauth", "width=700, height=400, top=200, left=600, menubar=no, toolbar=no, scrollbars=yes");'
 
+// #content
+
 
 
 .toolbar
@@ -9,9 +11,9 @@
     a(href='/about')= title
   .buttons
     // a(href='#') @stakamur
+    // a#login-link-twitter(href='#') twitter-login
     a#login-link(style='display:none', href='javascript:void(0)', onclick=onclick) Log in
     a#logout-link(style='display:none', href='javascript:void(0)', onclick='if (window.confirm(\'Are you sure to log out?\')) {_.clearCookies();location.href="/";}') Log out
-    // a#login-link-twitter(href='#') twitter-login
   .message
 
 
@@ -28,5 +30,44 @@
 //     input(type='submit', name='GO!')
 //     img#indicator(src='/images/spacer.gif',width='16',height='16')
 
+
 .word-list 
-  
+
+
+// script(src='https://www.google.com/jsapi?key=!{googleLoaderKey}}')
+// script
+//   console.log(google);
+//   //<![CDATA[
+// 
+// 
+//   function OnLoad() {
+//     var imageSearch = new google.search.ImageSearch();
+//     imageSearch.setSearchCompleteCallback( this, SearchComplete, [ imageSearch ] );
+//     imageSearch.execute( 'HONDA' );
+//   }
+//   function SearchComplete( searcher ) {
+//       // 結果オブジェクトを取得する
+//       var results = searcher.results;
+//       console.log('SearchComplete', searcher);
+// 
+//       if( results && ( 0 < results.length ) ) {
+//           var content = document.getElementById( 'content' );
+// 
+//           // 情報を取得する
+//           for( var i = 0; i < results.length; i++ )
+//           {
+//               // 画像のファイル名
+//               var title = document.createElement( 'p' );
+//               title.appendChild( document.createTextNode( results[ i ].title ) );
+// 
+//               // サムネイル画像のURL
+//               var image = document.createElement( 'img' );
+//               image.src = results[ i ].tbUrl;
+// 
+//               content.appendChild( title );
+//               content.appendChild( image );
+//           }
+//       }
+//   }
+//   google.load("search", "1");
+//   google.setOnLoadCallback(OnLoad);

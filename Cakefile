@@ -21,9 +21,11 @@ addPath = (path, files) ->
 #   'jquery-1.7.min.js'
 # ]
 FILES = addPath 'resources', [
+
   'share/ext_validate.coffee'
   'client/utils.coffee'
 
+  'client/googleimagesearch.coffee'
   'client/ui/abstractcomponent.coffee'
   'client/ui/wordlist.coffee'
   'client/ui/word.coffee'
