@@ -13,13 +13,15 @@ class ImageSearcher
       @createImageSearchInstance_()
   execute: (searchString) ->
     if @canExecute_()
-      imageSearch.execute(searchString)
-  get: -> @googleImageSearch_
+      @googleImageSearch_.execute(searchString)
   setCallback: (fn) ->
     # I can use this only one time
+    @createImageSearchInstance_()  unless @googleImageSearch_
     if @googleImageSearch_ and not @hasCallback_
       @hasCallback_ = true
-      @googleImageSearch_.setSearchCompleteCallback(@, fn, [@])
+      @googleImageSearch_.setSearchCompleteCallback(@googleImageSearch_, fn, [@googleImageSearch_])
+  # setImageElm: (@targetImageElm_) ->
+    
 
 
   # private
@@ -39,12 +41,24 @@ class ImageSearcher
     @googleImageSearch_ and @hasCallback_
   createImageSearchInstance_: ->
     @googleImageSearch_ = new google.search.ImageSearch()
+    @googleImageSearch_.setRestriction(
+      google.search.Search.RESTRICT_SAFESEARCH,
+      google.search.Search.SAFESEARCH_OFF)
+    @googleImageSearch_.setRestriction(
+      google.search.ImageSearch.RESTRICT_RIGHTS,
+      google.search.ImageSearch.RIGHTS_REUSE)
+    # @googleImageSearch_.setRestriction(
+    #   google.search.ImageSearch.RESTRICT_IMAGESIZE,
+    #   google.search.ImageSearch.IMAGESIZE_SMALL)
+    # @googleImageSearch_.setRestriction(
+    #   google.search.ImageSearch.RESTRICT_COLORFILTER,
+    #   google.search.ImageSearch.COLOR_WHITE)
 
 
 
 
 _.addSingletonGetter(ImageSearcher)
 
-imageSearcher = ImageSearcher.getInstance()
+ImageSearcher.getInstance()
 
 

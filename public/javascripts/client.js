@@ -3,7 +3,7 @@
  Extends underscore with word validation function.
 */
 
-var $indicator_, $msgBox_, AbstractComponent, BlankWord, BrowserType, CSS_PREFIX, ImageSearcher, Message, Time, Word, WordList, currentDocs_, delayTimerId_, imageSearcher, message, postLocked_, socket, socketInit, time, userId_, words;
+var $indicator_, $msgBox_, AbstractComponent, BlankWord, BrowserType, CSS_PREFIX, ImageSearcher, Message, Time, Word, WordList, currentDocs_, delayTimerId_, message, postLocked_, socket, socketInit, time, userId_, words;
 var __slice = Array.prototype.slice, __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; }, __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
 (function() {
@@ -139,6 +139,14 @@ _.mixin({
   },
   trimHTML: function(htmlText) {
     return htmlText.replace(/(<\/.+?>)[\s\S]*?(<)/g, "$1$2");
+  },
+  escapeHTML: function(text) {
+    console.log(arguments);
+    if (text.indexOf('<')) text.replace(/</g, '');
+    if (text.indexOf('>')) text.replace(/>/g, '');
+    if (text.indexOf('&')) text.replace(/&/g, '');
+    if (text.indexOf('"')) text.replace(/"/g, '');
+    return text;
   },
   padString: function(str, howmany, padStr) {
     var diff, pad;
@@ -307,17 +315,14 @@ ImageSearcher = (function() {
   }
 
   ImageSearcher.prototype.execute = function(searchString) {
-    if (this.canExecute_()) return imageSearch.execute(searchString);
-  };
-
-  ImageSearcher.prototype.get = function() {
-    return this.googleImageSearch_;
+    if (this.canExecute_()) return this.googleImageSearch_.execute(searchString);
   };
 
   ImageSearcher.prototype.setCallback = function(fn) {
+    if (!this.googleImageSearch_) this.createImageSearchInstance_();
     if (this.googleImageSearch_ && !this.hasCallback_) {
       this.hasCallback_ = true;
-      return this.googleImageSearch_.setSearchCompleteCallback(this, fn, [this]);
+      return this.googleImageSearch_.setSearchCompleteCallback(this.googleImageSearch_, fn, [this.googleImageSearch_]);
     }
   };
 
@@ -339,7 +344,9 @@ ImageSearcher = (function() {
   };
 
   ImageSearcher.prototype.createImageSearchInstance_ = function() {
-    return this.googleImageSearch_ = new google.search.ImageSearch();
+    this.googleImageSearch_ = new google.search.ImageSearch();
+    this.googleImageSearch_.setRestriction(google.search.Search.RESTRICT_SAFESEARCH, google.search.Search.SAFESEARCH_OFF);
+    return this.googleImageSearch_.setRestriction(google.search.ImageSearch.RESTRICT_RIGHTS, google.search.ImageSearch.RIGHTS_REUSE);
   };
 
   return ImageSearcher;
@@ -348,7 +355,7 @@ ImageSearcher = (function() {
 
 _.addSingletonGetter(ImageSearcher);
 
-imageSearcher = ImageSearcher.getInstance();
+ImageSearcher.getInstance();
 
 /*
  Abstract class to manage DOM components.
@@ -408,6 +415,207 @@ AbstractComponent = (function() {
   return AbstractComponent;
 
 })();
+
+/*
+ Class for a word.
+*/
+
+Word = (function() {
+
+  __extends(Word, AbstractComponent);
+
+  function Word(data, isLastPost) {
+    this.isLastPost = isLastPost;
+    this.sendLike = __bind(this.sendLike, this);
+    this.notAsLastWord = __bind(this.notAsLastWord, this);
+    this.id = data._id;
+    this.content = data.content;
+    this.createdBy = data.createdBy;
+    this.createdAt = data.createdAt;
+    this.liked = data.liked;
+    this.words_ = null;
+    this.wasAttachedAsLastWord = false;
+    this.imageSearcher_ = new ImageSearcher();
+    if (this.canRender()) this.element = $('<div class="word"></div>');
+  }
+
+  Word.prototype.canRender = function() {
+    return !!(!this.isInDocument && this.id && this.content && this.createdBy && this.createdAt && this.liked);
+  };
+
+  Word.prototype.render = function() {
+    var i, image, label, likeButtonElm, likeText, likedElm, text, title, titleElm, userId, _i, _len, _ref;
+    if (!this.canRender()) return;
+    Word.__super__.render.call(this);
+    this.element.empty();
+    text = '';
+    userId = _.getUserId();
+    image = $("<div class='image loading'></div>");
+    this.imageSearcher_.setCallback(function(searcher) {
+      if (searcher && searcher.results && !_.isEmpty(searcher.results && searcher.results[0] && searcher.results[0].url)) {
+        return image.removeClass('loading').css({
+          'background-image': "url(" + searcher.results[0].url + ")"
+        });
+      } else {
+        return image.text('no image');
+      }
+    });
+    this.imageSearcher_.execute(this.content);
+    label = $("<div class='label'></div>");
+    title = this.content;
+    if (_.isEndsN(this.content)) title += '*';
+    titleElm = $("<span class='titleElm' title='" + this.createdAt + "'>" + title + "</span>");
+    label.append(titleElm);
+    if (!_.isEmpty(this.liked)) {
+      likeText = '';
+      _ref = this.liked;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        i = _ref[_i];
+        likeText += '6';
+      }
+      likedElm = $("<span class='liked i'>" + likeText + "</span>");
+      label.append(likedElm);
+    }
+    if (userId && userId !== this.createdBy && !_.include(this.liked, userId)) {
+      likeButtonElm = $("<span class='like i' title='like it'>6</span>").bind('click', this.sendLike);
+      label.append(likeButtonElm);
+    }
+    this.elementInner = $("<div class='inner'></div>").append(image).append(label);
+    this.element.append(this.elementInner);
+    if (this.isLastPost) {
+      WordList.getInstance().setAsLastWord(this);
+    } else {
+      this.element.removeClass("last-post");
+    }
+    if (userId === this.createdBy) {
+      return this.element.addClass("your-post");
+    } else {
+      return this.element.removeClass("your-post");
+    }
+  };
+
+  Word.prototype.notAsLastWord = function() {
+    this.element.removeClass("last-post");
+    if (this.wasAttachedAsLastWord) {
+      this.elementInner.unbind('mouseenter');
+      this.elementInner.unbind('mouseleave');
+      return this.wasAttachedAsLastWord = false;
+    }
+  };
+
+  Word.prototype.attachTime = function(time) {
+    this.time = time;
+    return this.time.attachElement(this.element, this.createdAt);
+  };
+
+  Word.prototype.sendLike = function(e) {
+    var socket;
+    socket = _.getSocket();
+    if (socket) {
+      return socket.emit('like', {
+        wordId: this.id,
+        userId: _.getUserId()
+      });
+    }
+  };
+
+  return Word;
+
+})();
+
+_.addSingletonGetter(Word);
+
+BlankWord = (function() {
+
+  __extends(BlankWord, AbstractComponent);
+
+  function BlankWord() {
+    this.onMouseleaveBlankElm_ = __bind(this.onMouseleaveBlankElm_, this);
+    this.onMouseEnterBlankElm_ = __bind(this.onMouseEnterBlankElm_, this);
+    this.onSearchComplete_ = __bind(this.onSearchComplete_, this);
+    this.sendSearchRequest = __bind(this.sendSearchRequest, this);
+    this.onKeyup_ = __bind(this.onKeyup_, this);    BlankWord.__super__.constructor.call(this);
+    this.imageSearcher_ = new ImageSearcher();
+  }
+
+  BlankWord.prototype.render = function() {
+    if (this.isInDocument) return;
+    BlankWord.__super__.render.call(this);
+    this.textElm_ = $("<input name=\"content\" type=\"text\">");
+    this.formElm_ = $(_.trimHTML("<form id=\"post\" action=\"javascript:void(0)\" method=\"POST\">\n  <input style=\"display:none\" type=\"submit\" />\n</form>")).prepend(this.textElm_);
+    this.imageElm_ = $("<div class=\"image\"></div>");
+    this.innerElm_ = $(_.trimHTML("<div class=\"inner\">\n  <div class=\"label\">\n    <div id=\"post-form\"></div>\n    <div class=\"please-login yeah\">(Please login.)</div> \n  </div>\n</div>"));
+    this.innerElm_.prepend(this.imageElm_).find('#post-form').append(this.formElm_);
+    return this.element = $("<div class=\"word word-blank\" style=\"display:none\"></div>").append(this.innerElm_);
+  };
+
+  BlankWord.prototype.attachEvents = function() {
+    this.textElm_.bind('keyup text', this.onKeyup_).val('').focus();
+    this.innerElm_.bind('mouseenter', this.onMouseEnterBlankElm_).bind('mouseleave', this.onMouseleaveBlankElm_);
+    ImageSearcher.getInstance().setCallback(this.onSearchComplete_);
+    return this.imageElm_.removeAttr('style');
+  };
+
+  BlankWord.prototype.detatchEvents = function() {
+    this.textElm_.unbind();
+    return this.innerElm_.unbind();
+  };
+
+  BlankWord.prototype.imageSearcher_ = null;
+
+  BlankWord.prototype.innerElm_ = null;
+
+  BlankWord.prototype.formElm_ = null;
+
+  BlankWord.prototype.textElm_ = null;
+
+  BlankWord.prototype.onEnterLastWordTimer_ = null;
+
+  BlankWord.prototype.onLeaveBlankTimer_ = null;
+
+  BlankWord.prototype.beforeSearchRequestTimer_ = null;
+
+  BlankWord.prototype.onKeyup_ = function() {
+    window.clearTimeout(this.beforeSearchRequestTimer_);
+    return this.beforeSearchRequestTimer_ = _.delay(this.sendSearchRequest, 800);
+  };
+
+  BlankWord.prototype.sendSearchRequest = function() {
+    var str;
+    this.imageElm_.removeAttr('style').addClass('loading');
+    str = _.escapeHTML(this.textElm_.val());
+    if (!_.isEmpty(str)) return ImageSearcher.getInstance().execute(str);
+  };
+
+  BlankWord.prototype.onSearchComplete_ = function(searcher) {
+    this.imageElm_.removeClass('loading');
+    if (searcher && searcher.results && !_.isEmpty(searcher.results && searcher.results[0] && searcher.results[0].url)) {
+      return this.imageElm_.css({
+        'background-image': "url(" + searcher.results[0].url + ")"
+      });
+    } else {
+      return image.text('no image');
+    }
+  };
+
+  BlankWord.prototype.onMouseEnterBlankElm_ = function() {
+    return window.clearTimeout(this.onLeaveBlankTimer_);
+  };
+
+  BlankWord.prototype.onMouseleaveBlankElm_ = function() {
+    var _this = this;
+    window.clearTimeout(this.onLeaveBlankTimer_);
+    return this.onLeaveBlankTimer_ = _.delay(function() {
+      _this.detatchEvents();
+      return _this.element.hide().remove();
+    }, 3000);
+  };
+
+  return BlankWord;
+
+})();
+
+_.addSingletonGetter(BlankWord);
 
 /*
  Singleton class for words.
@@ -497,104 +705,6 @@ WordList = (function() {
 })();
 
 _.addSingletonGetter(WordList);
-
-/*
- Class for a word.
-*/
-
-Word = (function() {
-
-  __extends(Word, AbstractComponent);
-
-  function Word(data, isLastPost) {
-    this.isLastPost = isLastPost;
-    this.sendLike = __bind(this.sendLike, this);
-    this.notAsLastWord = __bind(this.notAsLastWord, this);
-    this.id = data._id;
-    this.content = data.content;
-    this.createdBy = data.createdBy;
-    this.createdAt = data.createdAt;
-    this.liked = data.liked;
-    this.words_ = null;
-    this.wasAttachedAsLastWord = false;
-    if (this.canRender()) this.element = $('<div class="word"></div>');
-  }
-
-  Word.prototype.canRender = function() {
-    return !!(!this.isInDocument && this.id && this.content && this.createdBy && this.createdAt && this.liked);
-  };
-
-  Word.prototype.render = function() {
-    var i, image, label, likeButtonElm, likeText, likedElm, text, title, titleElm, userId, _i, _len, _ref;
-    if (!this.canRender()) return;
-    Word.__super__.render.call(this);
-    this.element.empty();
-    text = '';
-    userId = _.getUserId();
-    image = $("<div class='image'>\n<img src=\"/images/spacer.gif\" width=\"188\" height=\"188\" />\n</div>");
-    label = $("<div class='label'></div>");
-    title = this.content;
-    if (_.isEndsN(this.content)) title += '*';
-    titleElm = $("<span class='titleElm' title='" + this.createdAt + "'>" + title + "</span>");
-    label.append(titleElm);
-    if (!_.isEmpty(this.liked)) {
-      likeText = '';
-      _ref = this.liked;
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        i = _ref[_i];
-        likeText += '6';
-      }
-      likedElm = $("<span class='liked i'>" + likeText + "</span>");
-      label.append(likedElm);
-    }
-    if (userId && userId !== this.createdBy && !_.include(this.liked, userId)) {
-      likeButtonElm = $("<span class='like i' title='like it'>6</span>").bind('click', this.sendLike);
-      label.append(likeButtonElm);
-    }
-    this.elementInner = $("<div class='inner'></div>").append(image).append(label);
-    this.element.append(this.elementInner);
-    if (this.isLastPost) {
-      WordList.getInstance().setAsLastWord(this);
-    } else {
-      this.element.removeClass("last-post");
-    }
-    if (userId === this.createdBy) {
-      return this.element.addClass("your-post");
-    } else {
-      return this.element.removeClass("your-post");
-    }
-  };
-
-  Word.prototype.notAsLastWord = function() {
-    this.element.removeClass("last-post");
-    if (this.wasAttachedAsLastWord) {
-      this.elementInner.unbind('mouseenter');
-      this.elementInner.unbind('mouseleave');
-      return this.wasAttachedAsLastWord = false;
-    }
-  };
-
-  Word.prototype.attachTime = function(time) {
-    this.time = time;
-    return this.time.attachElement(this.element, this.createdAt);
-  };
-
-  Word.prototype.sendLike = function(e) {
-    var socket;
-    socket = _.getSocket();
-    if (socket) {
-      return socket.emit('like', {
-        wordId: this.id,
-        userId: _.getUserId()
-      });
-    }
-  };
-
-  return Word;
-
-})();
-
-_.addSingletonGetter(Word);
 
 /*
  ingleton class for showing messages.
@@ -740,70 +850,6 @@ Time = (function() {
 })();
 
 _.addSingletonGetter(Time);
-
-BlankWord = (function() {
-
-  __extends(BlankWord, AbstractComponent);
-
-  function BlankWord() {
-    this.onFocus_ = __bind(this.onFocus_, this);
-    this.onMouseleaveBlankElm_ = __bind(this.onMouseleaveBlankElm_, this);
-    this.onMouseEnterBlankElm_ = __bind(this.onMouseEnterBlankElm_, this);
-    BlankWord.__super__.constructor.apply(this, arguments);
-  }
-
-  BlankWord.prototype.render = function() {
-    if (this.isInDocument) return;
-    BlankWord.__super__.render.call(this);
-    this.textElm_ = $("<input name=\"content\" type=\"text\">");
-    this.formElm_ = $(_.trimHTML("<form id=\"post\" action=\"javascript:void(0)\" method=\"POST\">\n  <input style=\"display:none\" type=\"submit\" />\n</form>")).prepend(this.textElm_);
-    this.innerElm_ = $(_.trimHTML("<div class=\"inner\">\n  <div class=\"image\"></div>\n  <div class=\"label\">\n    <div id=\"post-form\"></div>\n    <div class=\"please-login yeah\">(Please login.)</div> \n  </div>\n</div>"));
-    this.innerElm_.find('#post-form').append(this.formElm_);
-    return this.element = $("<div class=\"word word-blank\" style=\"display:none\"></div>").append(this.innerElm_);
-  };
-
-  BlankWord.prototype.attachEvents = function() {
-    this.textElm_.bind('focus', this.onFocus_).focus();
-    return this.innerElm_.bind('mouseenter', this.onMouseEnterBlankElm_).bind('mouseleave', this.onMouseleaveBlankElm_);
-  };
-
-  BlankWord.prototype.detatchEvents = function() {
-    this.textElm_.unbind();
-    return this.innerElm_.unbind();
-  };
-
-  BlankWord.prototype.innerElm_ = null;
-
-  BlankWord.prototype.formElm_ = null;
-
-  BlankWord.prototype.textElm_ = null;
-
-  BlankWord.prototype.onEnterLastWordTimer_ = null;
-
-  BlankWord.prototype.onLeaveBlankTimer_ = null;
-
-  BlankWord.prototype.onMouseEnterBlankElm_ = function() {
-    return window.clearTimeout(this.onLeaveBlankTimer_);
-  };
-
-  BlankWord.prototype.onMouseleaveBlankElm_ = function() {
-    var _this = this;
-    window.clearTimeout(this.onLeaveBlankTimer_);
-    return this.onLeaveBlankTimer_ = _.delay(function() {
-      _this.detatchEvents();
-      return _this.element.hide().remove();
-    }, 3000);
-  };
-
-  BlankWord.prototype.onFocus_ = function() {
-    return console.log('focused..');
-  };
-
-  return BlankWord;
-
-})();
-
-_.addSingletonGetter(BlankWord);
 
 /*
  Global accessor to the base info

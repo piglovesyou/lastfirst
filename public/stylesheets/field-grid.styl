@@ -42,8 +42,13 @@ HUNDRED_PERCENT = 100%
     border 1px #ccc solid
     width itemWidth - 2px
     height itemWidth - 2px
+    line-height itemWidth
+    text-align center
     border-radius (itemWidth / 2)
     overflow hidden
+    background transparent center center no-repeat
+    &.loading
+      background-image url(/images/loading_l.gif) 
   & .label
     line-height 1.6
 

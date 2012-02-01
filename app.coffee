@@ -227,6 +227,7 @@ app.get '/about', (req, res) ->
     oauthUrl: oauthUrl
     isProduction: SECRET.IS_PRODUCTION
     noAuthForDev: NO_AUTH_FOR_DEV
+    googleLoaderParam: googleLoaderParam
 
 # dev
 app.get '/dev', (req, res) ->

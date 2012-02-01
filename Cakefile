@@ -25,12 +25,12 @@ FILES = addPath 'resources', [
   'share/ext_validate.coffee'
   'client/utils.coffee'
 
-  'client/googleimagesearch.coffee'
+  'client/imagesearcher.coffee'
   'client/ui/abstractcomponent.coffee'
   'client/ui/word.coffee'
   'client/ui/blankword.coffee'
   'client/ui/wordlist.coffee'
-  'client/ui/message.joffee'
+  'client/ui/message.coffee'
   'client/ui/time.coffee'
 
   'client/init.coffee'

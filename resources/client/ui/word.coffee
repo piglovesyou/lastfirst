@@ -12,6 +12,7 @@ class Word extends AbstractComponent
     @liked = data.liked
     @words_ = null  # @type {WordList}
     @wasAttachedAsLastWord = false
+    @imageSearcher_ = new ImageSearcher()
     if @canRender()
       @element = $('<div class="word"></div>')
 
@@ -27,10 +28,21 @@ class Word extends AbstractComponent
     userId = _.getUserId()
 
     image = $("""
-      <div class='image'>
-      <img src="/images/spacer.gif" width="188" height="188" />
-      </div>
+      <div class='image loading'></div>
       """)
+    @imageSearcher_.setCallback (searcher) ->
+      if searcher and
+         searcher.results and
+         not _.isEmpty searcher.results and
+         searcher.results[0] and
+         searcher.results[0].url
+        image
+          .removeClass('loading')
+          .css('background-image': "url(#{searcher.results[0].url})")
+      else
+        image.text('no image')
+    @imageSearcher_.execute @content
+
     label = $("<div class='label'></div>")
 
     title = @content

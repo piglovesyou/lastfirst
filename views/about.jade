@@ -1,18 +1,29 @@
 
 h1= title
-p Thank you for your interest in LastFirst.
+p Thank you for visiting LastFirstApp.
 
 h2 Rules
 ul
-  li Post HIRAGANA against the last post.
-  li You can post only to the someone's post. Not yours.
-  li If you make a mistake, you may not post for about an hour.
-h2 About authenticate with Google
-p I request you to auth with Google in order to:
+  li Same as a traditional last-first.
+  li Only HIRAGANA can be used.
+  li You cannot reply to your post.
+  li If you make a mistake, you get penalty.
+h2 Authentication
+p Please loging with google account in order to:
 ul
   li confirm you are a human.
-  li know which post is your's.
-p Currently, I don't use your any info besides Google account id.
-p
-  a(href='/') Back go top page.
+  li know which one is the post you posted.
+p Currently, LastFirstApp doesn't use your info BESIDES google account id, which is stored as hashed md5.
+h2 Image
+ul
+  li LastFirstApp DON'T STORE images searched by Google Image Search API.
+  li LastFirstApp filters search result by REUSABLE right.
+
+h2 Credit
+ul
+  li Node and Node's excellent npm packages (see package.json on github)
+  li Underscore.js, jQuery, Headjs for client side
+  li Google Image Search API
+
+a(href='/') Back go top page.
 

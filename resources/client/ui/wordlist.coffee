@@ -6,23 +6,6 @@ class WordList extends AbstractComponent
   # public
   blankWord: null
   constructor: ->
-    # @blankElmInner = $(_.trimHTML("""
-    # <div class="inner">
-    #   <div class="image"></div>
-    #   <div class="label">
-    #     <div id="post-form">
-    #     	<form id="post" action="javascript:void(0)" method="POST">
-    #     		<input name="content" type="text">
-    #         <input style="display:none" type="submit" />
-    #     	</form>
-    #     </div>
-    #     <div class="please-login yeah">(Please login.)</div> 
-    #   </div>
-    # </div>
-    # """))
-    # @blankElm = $('''
-    #   <div class="word word-blank" style="display:none"></div>
-    #   ''').append @blankElmInner
     @blankWord = BlankWord.getInstance()
     @blankWord.render()
 

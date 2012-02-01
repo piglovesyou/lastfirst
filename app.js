@@ -241,7 +241,8 @@ app.get('/about', function(req, res) {
     title: 'LastFirstApp - about',
     oauthUrl: oauthUrl,
     isProduction: SECRET.IS_PRODUCTION,
-    noAuthForDev: NO_AUTH_FOR_DEV
+    noAuthForDev: NO_AUTH_FOR_DEV,
+    googleLoaderParam: googleLoaderParam
   });
 });
 

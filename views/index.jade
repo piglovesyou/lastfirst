@@ -1,5 +1,4 @@
 
-
 - var onclick = 'javascript:window.open("' + oauthUrl + '", "oauth", "width=700, height=400, top=200, left=600, menubar=no, toolbar=no, scrollbars=yes");'
 
 // #content
@@ -31,7 +30,9 @@
 //     img#indicator(src='/images/spacer.gif',width='16',height='16')
 
 
-.word-list 
+.word-list
+  | Loading recent words...
+  img(src="/images/loading.gif")
 
 
 // script(src='https://www.google.com/jsapi?key=!{googleLoaderKey}}')
