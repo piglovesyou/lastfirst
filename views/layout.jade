@@ -17,6 +17,7 @@ html
     //   });
 
 
+    script(src="https://www.google.com/jsapi?" + googleLoaderParam)
     script(src='/javascripts/libs/head.load.min.js')
     script
       // Loading scripts by head.js.
@@ -45,7 +46,6 @@ html
       // For developing setting.
       window.noAuthForDev = !{noAuthForDev}
 
-    script(src="https://www.google.com/jsapi?" + googleLoaderParam)
     - if (isProduction)
       include google-analytics
 

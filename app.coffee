@@ -136,8 +136,7 @@ io.sockets.on 'connection', (socket) ->
         unless err
           liked = word.liked
           if _.include(liked, userId)
-            socket.emit 'error message',
-              message: 'you bad boy.'
+            socket.emit 'error message', message: 'you bad boy.'
           else
             word.liked.push(userId)
             Words.update {_id: wordId}, {liked: liked}, null, () ->
@@ -202,8 +201,6 @@ googleLoaderParam = JSON.stringify
 googleLoaderParam = """
   #{googleLoaderParam}&key=#{SECRET.GOOGLE_LOADER_KEY}
   """
-console.log "\n======================================\n"
-console.log googleLoaderParam
 googleLoaderParam = "autoload=#{encodeURIComponent googleLoaderParam}"
 
 

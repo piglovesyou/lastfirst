@@ -220,10 +220,6 @@ googleLoaderParam = JSON.stringify({
 
 googleLoaderParam = "" + googleLoaderParam + "&key=" + SECRET.GOOGLE_LOADER_KEY;
 
-console.log("\n======================================\n");
-
-console.log(googleLoaderParam);
-
 googleLoaderParam = "autoload=" + (encodeURIComponent(googleLoaderParam));
 
 app.get('/', function(req, res) {

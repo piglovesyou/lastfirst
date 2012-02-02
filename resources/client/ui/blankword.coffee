@@ -10,7 +10,7 @@ class BlankWord extends AbstractComponent
     super()
 
     @textElm_ = $("""
-      <input name="content" type="text">
+      <input name="content" type="text" maxlength="7">
       """)
     @formElm_ = $(_.trimHTML("""
       <form id="post" action="javascript:void(0)" method="POST">
@@ -65,19 +65,26 @@ class BlankWord extends AbstractComponent
     @beforeSearchRequestTimer_ = _.delay @sendSearchRequest, 800
 
   sendSearchRequest: =>
-    @imageElm_.removeAttr('style').addClass('loading')
-    str = _.escapeHTML(@textElm_.val())
+    str = @textElm_.val()
     unless _.isEmpty(str)
+      @imageElm_.removeAttr('style').addClass('loading')
+      str = _.escapeHTML(str)
       ImageSearcher.getInstance().execute(str)
 
   onSearchComplete_: (searcher) =>
-    @imageElm_.removeClass 'loading'
     if searcher and
        searcher.results and
        not _.isEmpty searcher.results and
        searcher.results[0] and
        searcher.results[0].url
-      @imageElm_.css 'background-image': "url(#{searcher.results[0].url})"
+      $("<img/>").load =>
+        @imageElm_
+          .css
+            'background-image': "url(#{searcher.results[0].url})"
+          .removeClass('loading')
+      .error =>
+        @imageElm_.text('no image').removeClass('loading')
+      .attr('src': searcher.results[0].url)
     else
       image.text('no image')
 

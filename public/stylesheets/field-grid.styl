@@ -42,11 +42,13 @@ HUNDRED_PERCENT = 100%
     border 1px #ccc solid
     width itemWidth - 2px
     height itemWidth - 2px
-    line-height itemWidth
-    text-align center
     border-radius (itemWidth / 2)
     overflow hidden
+    color #ddd
+    font-weight bold
+    text-align center
     background transparent center center no-repeat
+    line-height itemWidth
     &.loading
       background-image url(/images/loading_l.gif) 
   & .label
@@ -54,7 +56,7 @@ HUNDRED_PERCENT = 100%
 
 .your-post
   & .titleElm::before
-    content: '* '
+    content: '*'
 
 
 
@@ -69,6 +71,15 @@ blankElmBorderWidth = 3px
   & .image
     height itemWidth - (blankElmBorderWidth * 2)
     border blankElmBorderWidth #ccc dashed
+  & input[type=text]
+    width 8em
+    margin 2px auto
+    box-shadow none
+    border none
+    text-align center
+    background-color #f3f3f3
+    &:focus
+      background-color #ececec
 
 .not-logged-in #post-form
   display none

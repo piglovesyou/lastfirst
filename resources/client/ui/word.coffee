@@ -36,9 +36,13 @@ class Word extends AbstractComponent
          not _.isEmpty searcher.results and
          searcher.results[0] and
          searcher.results[0].url
-        image
-          .removeClass('loading')
-          .css('background-image': "url(#{searcher.results[0].url})")
+        $("<img/>").load =>
+          image
+            .css('background-image': "url(#{searcher.results[0].url})")
+            .removeClass('loading')
+        .error =>
+          image.text('no image').removeClass('loading')
+        .attr('src': searcher.results[0].url)
       else
         image.text('no image')
     @imageSearcher_.execute @content
@@ -51,6 +55,7 @@ class Word extends AbstractComponent
 
     label.append(titleElm)
 
+    # TODO: currently `like' not updating
     if not _.isEmpty(@liked)
       likeText = ''
       likeText += '6' for i in @liked

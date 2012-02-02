@@ -452,9 +452,16 @@ Word = (function() {
     userId = _.getUserId();
     image = $("<div class='image loading'></div>");
     this.imageSearcher_.setCallback(function(searcher) {
+      var _this = this;
       if (searcher && searcher.results && !_.isEmpty(searcher.results && searcher.results[0] && searcher.results[0].url)) {
-        return image.removeClass('loading').css({
-          'background-image': "url(" + searcher.results[0].url + ")"
+        return $("<img/>").load(function() {
+          return image.css({
+            'background-image': "url(" + searcher.results[0].url + ")"
+          }).removeClass('loading');
+        }).error(function() {
+          return image.text('no image').removeClass('loading');
+        }).attr({
+          'src': searcher.results[0].url
         });
       } else {
         return image.text('no image');
@@ -541,7 +548,7 @@ BlankWord = (function() {
   BlankWord.prototype.render = function() {
     if (this.isInDocument) return;
     BlankWord.__super__.render.call(this);
-    this.textElm_ = $("<input name=\"content\" type=\"text\">");
+    this.textElm_ = $("<input name=\"content\" type=\"text\" maxlength=\"7\">");
     this.formElm_ = $(_.trimHTML("<form id=\"post\" action=\"javascript:void(0)\" method=\"POST\">\n  <input style=\"display:none\" type=\"submit\" />\n</form>")).prepend(this.textElm_);
     this.imageElm_ = $("<div class=\"image\"></div>");
     this.innerElm_ = $(_.trimHTML("<div class=\"inner\">\n  <div class=\"label\">\n    <div id=\"post-form\"></div>\n    <div class=\"please-login yeah\">(Please login.)</div> \n  </div>\n</div>"));
@@ -582,16 +589,25 @@ BlankWord = (function() {
 
   BlankWord.prototype.sendSearchRequest = function() {
     var str;
-    this.imageElm_.removeAttr('style').addClass('loading');
-    str = _.escapeHTML(this.textElm_.val());
-    if (!_.isEmpty(str)) return ImageSearcher.getInstance().execute(str);
+    str = this.textElm_.val();
+    if (!_.isEmpty(str)) {
+      this.imageElm_.removeAttr('style').addClass('loading');
+      str = _.escapeHTML(str);
+      return ImageSearcher.getInstance().execute(str);
+    }
   };
 
   BlankWord.prototype.onSearchComplete_ = function(searcher) {
-    this.imageElm_.removeClass('loading');
+    var _this = this;
     if (searcher && searcher.results && !_.isEmpty(searcher.results && searcher.results[0] && searcher.results[0].url)) {
-      return this.imageElm_.css({
-        'background-image': "url(" + searcher.results[0].url + ")"
+      return $("<img/>").load(function() {
+        return _this.imageElm_.css({
+          'background-image': "url(" + searcher.results[0].url + ")"
+        }).removeClass('loading');
+      }).error(function() {
+        return _this.imageElm_.text('no image').removeClass('loading');
+      }).attr({
+        'src': searcher.results[0].url
       });
     } else {
       return image.text('no image');
