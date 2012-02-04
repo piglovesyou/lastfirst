@@ -421,13 +421,17 @@ AbstractComponent = (function() {
 */
 
 Word = (function() {
+  var labelElm, renderLike_, userId;
 
   __extends(Word, AbstractComponent);
+
+  userId = null;
 
   function Word(data, isLastPost) {
     this.isLastPost = isLastPost;
     this.sendLike = __bind(this.sendLike, this);
     this.notAsLastWord = __bind(this.notAsLastWord, this);
+    userId = _.getUserId();
     this.id = data._id;
     this.content = data.content;
     this.createdBy = data.createdBy;
@@ -443,13 +447,14 @@ Word = (function() {
     return !!(!this.isInDocument && this.id && this.content && this.createdBy && this.createdAt && this.liked);
   };
 
+  labelElm = null;
+
   Word.prototype.render = function() {
-    var i, image, label, likeButtonElm, likeText, likedElm, text, title, titleElm, userId, _i, _len, _ref;
+    var i, image, likeButtonElm, likeText, likedElm, text, title, titleElm, _i, _len, _ref;
     if (!this.canRender()) return;
     Word.__super__.render.call(this);
     this.element.empty();
     text = '';
-    userId = _.getUserId();
     image = $("<div class='image loading'></div>");
     this.imageSearcher_.setCallback(function(searcher) {
       var _this = this;
@@ -468,11 +473,11 @@ Word = (function() {
       }
     });
     this.imageSearcher_.execute(this.content);
-    label = $("<div class='label'></div>");
+    labelElm = $("<div class='label'></div>");
     title = this.content;
     if (_.isEndsN(this.content)) title += '*';
     titleElm = $("<span class='titleElm' title='" + this.createdAt + "'>" + title + "</span>");
-    label.append(titleElm);
+    labelElm.append(titleElm);
     if (!_.isEmpty(this.liked)) {
       likeText = '';
       _ref = this.liked;
@@ -481,13 +486,14 @@ Word = (function() {
         likeText += '6';
       }
       likedElm = $("<span class='liked i'>" + likeText + "</span>");
-      label.append(likedElm);
+      labelElm.append(likedElm);
     }
     if (userId && userId !== this.createdBy && !_.include(this.liked, userId)) {
       likeButtonElm = $("<span class='like i' title='like it'>6</span>").bind('click', this.sendLike);
-      label.append(likeButtonElm);
+      labelElm.append(likeButtonElm);
     }
-    this.elementInner = $("<div class='inner'></div>").append(image).append(label);
+    renderLike_();
+    this.elementInner = $("<div class='inner'></div>").append(image).append(labelElm);
     this.element.append(this.elementInner);
     if (this.isLastPost) {
       WordList.getInstance().setAsLastWord(this);
@@ -524,6 +530,10 @@ Word = (function() {
         userId: _.getUserId()
       });
     }
+  };
+
+  renderLike_ = function() {
+    return console.log(this.content);
   };
 
   return Word;

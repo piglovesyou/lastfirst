@@ -1,0 +1,85 @@
+
+/* word.styl */
+
+
+.word-list 
+  position relative
+  margin 38px auto
+  clear both
+  margin-left itemHorizontalMargin
+  margin-right itemHorizontalMargin
+
+
+.word
+  position absolute
+  text-align center
+  width itemWidth
+  transition top .4s, left .4s
+  &:nth-child(1)
+    cursor: pointer
+  &:nth-child(1):hover
+    opacity: .8
+
+  & .inner
+    position absolute
+    width itemWidth
+    height itemHeight
+    left (HUNDRED_PERCENT / -2)
+  & .image
+    border 1px #ccc solid
+    width itemWidth - 2px
+    height itemWidth - 2px
+    border-radius (itemWidth / 2)
+    overflow hidden
+    color #ddd
+    font-weight bold
+    text-align center
+    background transparent center center no-repeat
+    line-height itemWidth
+    &.loading
+      background-image url(/images/loading_l.gif) 
+  & .label
+    line-height 1.6
+
+.your-post
+  & .titleElm::before
+    content: '*'
+
+
+
+
+
+blankElmBorderWidth = 3px
+
+.word-blank
+  opacity 1
+  transition none
+  cursor pointer
+  & .image
+    height itemWidth - (blankElmBorderWidth * 2)
+    border blankElmBorderWidth #ccc dashed
+  & input[type=text]
+    width 8em
+    margin 2px auto
+    box-shadow none
+    border none
+    text-align center
+    background-color #f3f3f3
+    &:focus
+      background-color #ececec
+
+.not-logged-in #post-form
+  display none
+.logged-in .please-login
+  display none
+
+
+
+
+
+
+
+
+
+
+

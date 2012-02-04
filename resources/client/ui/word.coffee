@@ -4,7 +4,9 @@
 class Word extends AbstractComponent
 
   # public
+  userId = null
   constructor: (data, @isLastPost) ->
+    userId = _.getUserId()
     @id = data._id
     @content = data.content
     @createdBy = data.createdBy
@@ -19,13 +21,13 @@ class Word extends AbstractComponent
   canRender: () ->
     !!(not @isInDocument and @id and @content and @createdBy and @createdAt and @liked)
 
+  labelElm = null
   render: () ->
     return  if not @canRender()
 
     super()
     @element.empty()
     text = ''
-    userId = _.getUserId()
 
     image = $("""
       <div class='image loading'></div>
@@ -47,28 +49,29 @@ class Word extends AbstractComponent
         image.text('no image')
     @imageSearcher_.execute @content
 
-    label = $("<div class='label'></div>")
+    labelElm = $("<div class='label'></div>")
 
     title = @content
     title += '*' if _.isEndsN(@content)
     titleElm = $("<span class='titleElm' title='#{@createdAt}'>#{title}</span>")
 
-    label.append(titleElm)
+    labelElm.append(titleElm)
 
     # TODO: currently `like' not updating
     if not _.isEmpty(@liked)
       likeText = ''
       likeText += '6' for i in @liked
       likedElm = $("<span class='liked i'>#{likeText}</span>")
-      label.append(likedElm)
+      labelElm.append(likedElm)
 
     if userId and userId isnt @createdBy and not _.include(@liked, userId)
       likeButtonElm = $("<span class='like i' title='like it'>6</span>")
         .bind 'click', @sendLike
-      label.append(likeButtonElm)
+      labelElm.append(likeButtonElm)
+    renderLike_()
 
     @elementInner = $("<div class='inner'></div>")
-      .append(image).append(label)
+      .append(image).append(labelElm)
     @element.append @elementInner
 
     if @isLastPost
@@ -101,6 +104,18 @@ class Word extends AbstractComponent
         userId: _.getUserId()
 
   # private
+  renderLike_ = ->
+    console.log @content
+    # if not _.isEmpty(@liked)
+    #   likeText = ''
+    #   likeText += '6' for i in @liked
+    #   likedElm = $("<span class='liked i'>#{likeText}</span>")
+    #   labelElm.append(likedElm)
+
+    # if userId and userId isnt @createdBy and not _.include(@liked, userId)
+    #   likeButtonElm = $("<span class='like i' title='like it'>6</span>")
+    #     .bind 'click', @sendLike
+    #   labelElm.append(likeButtonElm)
   
 _.addSingletonGetter(Word)
 
