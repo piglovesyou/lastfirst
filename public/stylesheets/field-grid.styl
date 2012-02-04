@@ -1,31 +1,20 @@
 
 /* field-grid.styl */
 
-/*
- Can't I use them in media-query declaration?
- windowSizeMin = 750px
- windowSizeMid = 750px
- windowSizeMax = 750px
-*/
-
-HUNDRED = 100%
-itemHeight = 240px
 grid-positioning(COL, MAX=12) 
   ROW = MAX/COL
-  half = (HUNDRED / COL)
+  half = (HUNDRED_PERCENT / COL)
   quater = (half / 2)
 
-  for index in 0...MAX
+  for index in 0..MAX
     if index % COL == 0
       more = '+'+ (index+1)
       .word:nth-child(n{more})
         top (itemHeight*index / COL)
-    if index % ROW == 0
-      i = index / ROW
-      n = COL
-      more = (COL - i - 1)
-      .word:nth-child({n}n-{more})
-        left HUNDRED - (half*i + quater)
+  for index in 0...COL
+    more = COL - index - 1
+    .word:nth-child({COL}n-{more})
+      left HUNDRED_PERCENT - (half*index + quater)
 
 @media only screen and (max-width: 749px)
   grid-positioning(2)
@@ -33,7 +22,9 @@ grid-positioning(COL, MAX=12)
 @media only screen and (min-width: 750px) and (max-width: 999px)
   grid-positioning(3)
 
-@media only screen and (min-width: 1000px)
+@media only screen and (min-width: 1000px) and (max-width: 1249px)
   grid-positioning(4)
 
-
+@media only screen and (min-width: 1250px)
+  grid-positioning(5)
+  

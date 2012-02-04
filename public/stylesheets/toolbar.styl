@@ -1,0 +1,33 @@
+
+/* toolbar.styl */
+
+.toolbar
+  clearfix()
+  box-shadow-depth()
+  padding 0 10px
+  background-color BG_DARK
+  line-height 28px
+  & a
+    color #fff
+    text-decoration none
+  & a:hover
+    text-decoration underline
+
+  & .logo
+    float left
+    font-weight bold
+    margin-right 24px
+    & a
+      color #999
+  & .buttons
+    float right
+    & a
+      margin-left 8px
+  & .message
+    overflow ellipsis
+    & .msg-important
+      padding 2px 1px
+      background-color #f22
+      color: #fff
+    & .msg-general
+      color: #fff

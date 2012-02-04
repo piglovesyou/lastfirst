@@ -7,17 +7,19 @@ global-reset()
 
 
 
+// Common variables.
 BG_DARK = #222
 FONT_COLOR_ON_DARK = #fff
+HUNDRED_PERCENT = 100%
 
 
 
+// General setting.
 @font-face
   font-family: 'Dingbats2SamplerOT'
   src: url('Dingbats2SamplerOT.otf') format('opentype')
 .i
   font-family: 'Dingbats2SamplerOT'
-
 html
 body
 .wrapper
@@ -26,9 +28,9 @@ body
   overflow-x hidden
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif
   color #555
-
 a
   color: #00B7FF
+
 
 
 #post-form #indicator
@@ -53,44 +55,13 @@ a
 
 @import time
 
+@import toolbar
 
-.toolbar
-  clearfix()
-  box-shadow-depth()
-  padding 0 10px
-  background-color BG_DARK
-  line-height 28px
-  & a
-    color #fff
-    text-decoration none
-  & a:hover
-    text-decoration underline
-
-  & .logo
-    float left
-    font-weight bold
-    margin-right 24px
-    & a
-      color #999
-  & .buttons
-    float right
-    & a
-      margin-left 8px
-  & .message
-    overflow ellipsis
-    & .msg-important
-      padding 2px 1px
-      background-color #f22
-      color: #fff
-    & .msg-general
-      color: #fff
 
 
 itemWidth = 190px
 itemHeight = 240px
 itemHorizontalMargin = 30px
-
-HUNDRED_PERCENT = 100%
 
 @import field-grid
 
