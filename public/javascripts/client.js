@@ -517,8 +517,8 @@ Word = (function() {
 
   Word.prototype.renderLike = function(liked) {
     this.liked = liked;
-    this.likedElm.remove();
-    this.likeButtonElm.unbind().remove();
+    if (this.likedElm) this.likedElm.remove();
+    if (this.likeButtonElm) this.likeButtonElm.unbind().remove();
     return this.renderLike_();
   };
 

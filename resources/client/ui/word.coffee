@@ -91,8 +91,8 @@ class Word extends AbstractComponent
         wordId: @id
         userId: _.getUserId()
   renderLike: (@liked) ->
-    @likedElm.remove()
-    @likeButtonElm.unbind().remove()
+    @likedElm.remove()  if @likedElm
+    @likeButtonElm.unbind().remove()  if @likeButtonElm
     @renderLike_()
 
   # private
