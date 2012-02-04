@@ -60,10 +60,9 @@ _.mixin
 
 
 # variables of DOM/jQuery manipulation
-$msgBox_ = null
-postLocked_ = false
-$indicator_ = null
-_.mixin
+# $msgBox_ = null
+# postLocked_ = false
+# _.mixin
   # isLocked: () ->
   #   postLocked_
   # disableForm: (lock, withoutIndicator) ->
@@ -76,8 +75,7 @@ _.mixin
   #   # unless withoutIndicator
   #   #   _.showIndicator(lock)
 # DOM functions.
-delayTimerId_ = null
-_.mixin
+# _.mixin
   # hideWaitSecMessage: () ->
   #   $('#wait-sec-message').hide()
   # showIndicator: (show) ->
@@ -96,17 +94,17 @@ _.mixin
   # showPostForm: () ->
   #  _.hideWaitSecMessage()
   #  $('#post-form').show()
-  setUserIdToHiddenInput: () ->
-    $('#user-id-input').val(_.getUserId())
-  showMessage: (str) ->
-    window.clearTimeout(delayTimerId_) if delayTimerId_
-    $msgBox = $msgBox_ || ($msgBox_ = $('#msg-box').click (e) ->
-      $(this).fadeOut()
-    )
-    $msgBox.text(str).fadeIn()
-    delayTimerId_ = _.delay () ->
-      $msgBox.fadeOut()
-    ,8888
+  # setUserIdToHiddenInput: () ->
+  #   $('#user-id-input').val(_.getUserId())
+  # showMessage: (str) ->
+  #   window.clearTimeout(delayTimerId_) if delayTimerId_
+  #   $msgBox = $msgBox_ || ($msgBox_ = $('#msg-box').click (e) ->
+  #     $(this).fadeOut()
+  #   )
+  #   $msgBox.text(str).fadeIn()
+  #   delayTimerId_ = _.delay () ->
+  #     $msgBox.fadeOut()
+  #   ,8888
 
       
 
@@ -132,7 +130,7 @@ socketInit = () ->
   socket.on 'validated nicely!', (data) ->
     id = data.userId
     _.setUserId(id)
-    _.setUserIdToHiddenInput(id)
+    # _.setUserIdToHiddenInput(id)
     message.show('Authorized fine.')
     _.hideLoginLink()
     $('#logout-link').show()
@@ -160,7 +158,7 @@ socketInit = () ->
   socket.on 'update like', (data) ->
     word = words.get(data._id)
     if word
-      word.liked = data.liked
+      word.renderLike data.liked
       word.render()
       if word.createdBy is _.getUserId()
         message.showImportant('Somebody liked your post, "' + word.content + '"')

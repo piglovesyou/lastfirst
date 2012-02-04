@@ -3,7 +3,7 @@
  Extends underscore with word validation function.
 */
 
-var $indicator_, $msgBox_, AbstractComponent, BlankWord, BrowserType, CSS_PREFIX, ImageSearcher, Message, Time, Word, WordList, currentDocs_, delayTimerId_, message, postLocked_, socket, socketInit, time, userId_, words;
+var AbstractComponent, BlankWord, BrowserType, CSS_PREFIX, ImageSearcher, Message, Time, Word, WordList, currentDocs_, message, socket, socketInit, time, userId_, words;
 var __slice = Array.prototype.slice, __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; }, __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
 (function() {
@@ -421,7 +421,7 @@ AbstractComponent = (function() {
 */
 
 Word = (function() {
-  var labelElm, renderLike_, userId;
+  var userId;
 
   __extends(Word, AbstractComponent);
 
@@ -447,10 +447,8 @@ Word = (function() {
     return !!(!this.isInDocument && this.id && this.content && this.createdBy && this.createdAt && this.liked);
   };
 
-  labelElm = null;
-
   Word.prototype.render = function() {
-    var i, image, likeButtonElm, likeText, likedElm, text, title, titleElm, _i, _len, _ref;
+    var image, text, title, titleElm;
     if (!this.canRender()) return;
     Word.__super__.render.call(this);
     this.element.empty();
@@ -473,27 +471,13 @@ Word = (function() {
       }
     });
     this.imageSearcher_.execute(this.content);
-    labelElm = $("<div class='label'></div>");
+    this.labelElm = $("<div class='label'></div>");
     title = this.content;
     if (_.isEndsN(this.content)) title += '*';
     titleElm = $("<span class='titleElm' title='" + this.createdAt + "'>" + title + "</span>");
-    labelElm.append(titleElm);
-    if (!_.isEmpty(this.liked)) {
-      likeText = '';
-      _ref = this.liked;
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        i = _ref[_i];
-        likeText += '6';
-      }
-      likedElm = $("<span class='liked i'>" + likeText + "</span>");
-      labelElm.append(likedElm);
-    }
-    if (userId && userId !== this.createdBy && !_.include(this.liked, userId)) {
-      likeButtonElm = $("<span class='like i' title='like it'>6</span>").bind('click', this.sendLike);
-      labelElm.append(likeButtonElm);
-    }
-    renderLike_();
-    this.elementInner = $("<div class='inner'></div>").append(image).append(labelElm);
+    this.labelElm.append(titleElm);
+    this.renderLike_();
+    this.elementInner = $("<div class='inner'></div>").append(image).append(this.labelElm);
     this.element.append(this.elementInner);
     if (this.isLastPost) {
       WordList.getInstance().setAsLastWord(this);
@@ -532,8 +516,29 @@ Word = (function() {
     }
   };
 
-  renderLike_ = function() {
-    return console.log(this.content);
+  Word.prototype.renderLike = function(liked) {
+    this.liked = liked;
+    this.likedElm.remove();
+    this.likeButtonElm.unbind().remove();
+    return this.renderLike_();
+  };
+
+  Word.prototype.renderLike_ = function() {
+    var i, likeText, _i, _len, _ref;
+    if (!_.isEmpty(this.liked)) {
+      likeText = '';
+      _ref = this.liked;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        i = _ref[_i];
+        likeText += '6';
+      }
+      this.likedElm = $("<span class='liked i'>" + likeText + "</span>");
+      this.labelElm.append(this.likedElm);
+    }
+    if (userId && userId !== this.createdBy && !_.include(this.liked, userId)) {
+      this.likeButtonElm = $("<span class='like i' title='like it'>6</span>").bind('click', this.sendLike);
+      return this.labelElm.append(this.likeButtonElm);
+    }
   };
 
   return Word;
@@ -553,6 +558,7 @@ BlankWord = (function() {
     this.sendSearchRequest = __bind(this.sendSearchRequest, this);
     this.onKeyup_ = __bind(this.onKeyup_, this);    BlankWord.__super__.constructor.call(this);
     this.imageSearcher_ = new ImageSearcher();
+    this.sendSearchRequest = _.debounce(this.sendSearchRequest, 800);
   }
 
   BlankWord.prototype.render = function() {
@@ -586,15 +592,10 @@ BlankWord = (function() {
 
   BlankWord.prototype.textElm_ = null;
 
-  BlankWord.prototype.onEnterLastWordTimer_ = null;
-
-  BlankWord.prototype.onLeaveBlankTimer_ = null;
-
-  BlankWord.prototype.beforeSearchRequestTimer_ = null;
+  BlankWord.prototype.hideTimer_ = null;
 
   BlankWord.prototype.onKeyup_ = function() {
-    window.clearTimeout(this.beforeSearchRequestTimer_);
-    return this.beforeSearchRequestTimer_ = _.delay(this.sendSearchRequest, 800);
+    return this.sendSearchRequest();
   };
 
   BlankWord.prototype.sendSearchRequest = function() {
@@ -625,13 +626,13 @@ BlankWord = (function() {
   };
 
   BlankWord.prototype.onMouseEnterBlankElm_ = function() {
-    return window.clearTimeout(this.onLeaveBlankTimer_);
+    return window.clearTimeout(this.hideTimer_);
   };
 
   BlankWord.prototype.onMouseleaveBlankElm_ = function() {
     var _this = this;
-    window.clearTimeout(this.onLeaveBlankTimer_);
-    return this.onLeaveBlankTimer_ = _.delay(function() {
+    window.clearTimeout(this.hideTimer_);
+    return this.hideTimer_ = _.delay(function() {
       _this.detatchEvents();
       return _this.element.hide().remove();
     }, 3000);
@@ -712,10 +713,6 @@ WordList = (function() {
     return this.lastWord_.elementInner.bind('click', this.onClickLastWord_);
   };
 
-  WordList.prototype.onEnterLastWordTimer_ = null;
-
-  WordList.prototype.onLeaveBlankTimer_ = null;
-
   WordList.prototype.wordInstances_ = [];
 
   WordList.prototype.lastWord_ = null;
@@ -790,7 +787,7 @@ Time = (function() {
 
   Time.prototype.render = function() {
     Time.__super__.render.call(this);
-    this.element = $("<div class=\"time\" style=\"display:none\"><div class=\"time-arrow\"></div><div class=\"time-bg\"><div class=\"time-round clearfix\"><div class=\"time-label\"><div class=\"time-label-twelve\">12</div><div class=\"time-label-three\">3</div><div class=\"time-label-six\">6</div><div class=\"time-label-nine\">9</div></div><div class=\"time-tick\"><div class=\"time-tick-short\"></div><div class=\"time-tick-long\"></div></div><div class=\"time-tick-center\"></div></div><div class=\"time-title\"><div class=\"time-title-content\"></div></div></div></div>");
+    this.element = $(_.trimHTML("<div class=\"time\" style=\"display:none\">\n  <div class=\"time-arrow\"></div>\n  <div class=\"time-bg\"> \n    <div class=\"time-round clearfix\">\n      <div class=\"time-label\">\n        <div class=\"time-label-twelve\">12</div>\n        <div class=\"time-label-three\">3</div>\n        <div class=\"time-label-six\">6</div>\n        <div class=\"time-label-nine\">9</div>\n      </div>\n      <div class=\"time-tick\">\n        <div class=\"time-tick-short\"></div>\n        <div class=\"time-tick-long\"></div>\n      </div>\n      <div class=\"time-tick-center\"></div>\n    </div>\n    <div class=\"time-title\">\n      <div class=\"time-title-content\"></div>\n    </div>\n  </div>\n</div>"));
     $('body').append(this.element);
     this.element.css({
       'margin-top': this.element.height() / -2
@@ -809,7 +806,7 @@ Time = (function() {
     minuteDeg = this.getMinuteDeg_(date);
     pos = {};
     return $(elm).bind('mouseover', function() {
-      return _this.hoverTimer_ = _.delay(function() {
+      return _this.showTimer_ = _.delay(function() {
         var span;
         _this.clearTimers_();
         span = $('.label span:last-child', elm);
@@ -845,7 +842,7 @@ Time = (function() {
 
   Time.prototype.hideTimer_ = null;
 
-  Time.prototype.hoverTimer_ = null;
+  Time.prototype.showTimer_ = null;
 
   Time.prototype.createTitleHTML_ = function(date) {
     var digits, niceDate;
@@ -855,7 +852,7 @@ Time = (function() {
   };
 
   Time.prototype.clearTimers_ = function() {
-    window.clearTimeout(this.hoverTimer_);
+    window.clearTimeout(this.showTimer_);
     return window.clearTimeout(this.hideTimer_);
   };
 
@@ -932,38 +929,12 @@ _.mixin({
  Initialize a page.
 */
 
-$msgBox_ = null;
-
-postLocked_ = false;
-
-$indicator_ = null;
-
-_.mixin;
-
-delayTimerId_ = null;
-
-_.mixin;
-
 _.mixin({
   showLoginLink: function() {
     return $('#login-link').show();
   },
   hideLoginLink: function() {
     return $('#login-link').hide();
-  },
-  setUserIdToHiddenInput: function() {
-    return $('#user-id-input').val(_.getUserId());
-  },
-  showMessage: function(str) {
-    var $msgBox;
-    if (delayTimerId_) window.clearTimeout(delayTimerId_);
-    $msgBox = $msgBox_ || ($msgBox_ = $('#msg-box').click(function(e) {
-      return $(this).fadeOut();
-    }));
-    $msgBox.text(str).fadeIn();
-    return delayTimerId_ = _.delay(function() {
-      return $msgBox.fadeOut();
-    }, 8888);
   }
 });
 
@@ -994,7 +965,6 @@ socketInit = function() {
     var id;
     id = data.userId;
     _.setUserId(id);
-    _.setUserIdToHiddenInput(id);
     message.show('Authorized fine.');
     _.hideLoginLink();
     $('#logout-link').show();
@@ -1017,7 +987,7 @@ socketInit = function() {
     var word;
     word = words.get(data._id);
     if (word) {
-      word.liked = data.liked;
+      word.renderLike(data.liked);
       word.render();
       if (word.createdBy === _.getUserId()) {
         return message.showImportant('Somebody liked your post, "' + word.content + '"');

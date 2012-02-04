@@ -5,6 +5,7 @@ class BlankWord extends AbstractComponent
   constructor: ->
     super()
     @imageSearcher_ = new ImageSearcher()
+    @sendSearchRequest = _.debounce @sendSearchRequest, 800
   render: ->
     return  if @isInDocument
     super()
@@ -55,14 +56,11 @@ class BlankWord extends AbstractComponent
   innerElm_: null
   formElm_: null
   textElm_: null
-  onEnterLastWordTimer_: null
-  onLeaveBlankTimer_: null
-  beforeSearchRequestTimer_: null
+  hideTimer_: null
 
 
   onKeyup_: =>
-    window.clearTimeout @beforeSearchRequestTimer_
-    @beforeSearchRequestTimer_ = _.delay @sendSearchRequest, 800
+    @sendSearchRequest()
 
   sendSearchRequest: =>
     str = @textElm_.val()
@@ -89,11 +87,11 @@ class BlankWord extends AbstractComponent
       image.text('no image')
 
 
-  onMouseEnterBlankElm_: => window.clearTimeout @onLeaveBlankTimer_
+  onMouseEnterBlankElm_: => window.clearTimeout @hideTimer_
 
   onMouseleaveBlankElm_: =>
-    window.clearTimeout @onLeaveBlankTimer_
-    @onLeaveBlankTimer_ = _.delay =>
+    window.clearTimeout @hideTimer_
+    @hideTimer_ = _.delay =>
       @detatchEvents()
       @element.hide().remove()
     , 3000

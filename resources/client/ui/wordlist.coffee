@@ -43,8 +43,6 @@ class WordList extends AbstractComponent
 
 
   # private
-  onEnterLastWordTimer_: null
-  onLeaveBlankTimer_: null
   wordInstances_: []
   lastWord_: null
 

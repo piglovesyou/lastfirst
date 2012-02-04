@@ -6,9 +6,29 @@ class Time extends AbstractComponent
   # public
   render: () ->
     super()
-    @element = $("""
-      <div class="time" style="display:none"><div class="time-arrow"></div><div class="time-bg"><div class="time-round clearfix"><div class="time-label"><div class="time-label-twelve">12</div><div class="time-label-three">3</div><div class="time-label-six">6</div><div class="time-label-nine">9</div></div><div class="time-tick"><div class="time-tick-short"></div><div class="time-tick-long"></div></div><div class="time-tick-center"></div></div><div class="time-title"><div class="time-title-content"></div></div></div></div>
-    """)
+    @element = $(_.trimHTML("""
+      <div class="time" style="display:none">
+        <div class="time-arrow"></div>
+        <div class="time-bg"> 
+          <div class="time-round clearfix">
+            <div class="time-label">
+              <div class="time-label-twelve">12</div>
+              <div class="time-label-three">3</div>
+              <div class="time-label-six">6</div>
+              <div class="time-label-nine">9</div>
+            </div>
+            <div class="time-tick">
+              <div class="time-tick-short"></div>
+              <div class="time-tick-long"></div>
+            </div>
+            <div class="time-tick-center"></div>
+          </div>
+          <div class="time-title">
+            <div class="time-title-content"></div>
+          </div>
+        </div>
+      </div>
+    """))
     $('body').append(@element)
     @element.css
       'margin-top': @element.height()/-2
@@ -26,7 +46,7 @@ class Time extends AbstractComponent
 
     $(elm)
       .bind 'mouseover', () =>
-        @hoverTimer_ = _.delay =>
+        @showTimer_ = _.delay =>
           @clearTimers_()
           span = $('.label span:last-child', elm)
           pos = span.offset()
@@ -56,7 +76,7 @@ class Time extends AbstractComponent
   longTickElm_: null
   titleElm_: null
   hideTimer_: null
-  hoverTimer_: null
+  showTimer_: null
 
   createTitleHTML_: (date) ->
     digits =
@@ -68,7 +88,7 @@ class Time extends AbstractComponent
     <span class="time-title-nice">#{niceDate}</span>
     """
   clearTimers_: ->
-    window.clearTimeout(@hoverTimer_)
+    window.clearTimeout(@showTimer_)
     window.clearTimeout(@hideTimer_)
 
   setRotate_: (elm, deg) ->
