@@ -39,8 +39,10 @@
 
   _.mixin
     isValidWord: (str) ->
-      if _.isString(str) and /^[あ-ん|ー]+$/.test(str) and
-          /^[^を]+$/.test(str) and !/っ$/.test(str)
+      if _.isString(str) and
+         /^[あ-ん|ー]+$/.test(str) and
+         /^[^を]+$/.test(str) and
+         !/っ$/.test(str)
         return _.all str.split(''), (letter, index, array) ->
           if index is 0
             return /^[^ゃゅょ|^っ|^ー]$/.test(letter)

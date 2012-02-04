@@ -28,7 +28,7 @@ class Word extends AbstractComponent
     @element.empty()
     text = ''
 
-    image = $("""
+    imageElm = $("""
       <div class='image loading'></div>
       """)
     @imageSearcher_.setCallback (searcher) ->
@@ -38,14 +38,14 @@ class Word extends AbstractComponent
          searcher.results[0] and
          searcher.results[0].url
         $("<img/>").load =>
-          image
+          imageElm
             .css('background-image': "url(#{searcher.results[0].url})")
             .removeClass('loading')
         .error =>
-          image.text('no image').removeClass('loading')
+          imageElm.text('no image').removeClass('loading')
         .attr('src': searcher.results[0].url)
       else
-        image.text('no image')
+        imageElm.text('no image')
     @imageSearcher_.execute @content
 
     @labelElm = $("<div class='label'></div>")
@@ -56,22 +56,10 @@ class Word extends AbstractComponent
 
     @labelElm.append(titleElm)
 
-    # TODO: currently `like' not updating
-    # if not _.isEmpty(@liked)
-    #   likeText = ''
-    #   likeText += '6' for i in @liked
-    #   likedElm = $("<span class='liked i'>#{likeText}</span>")
-    #   @labelElm.append(likedElm)
-
-    # if userId and userId isnt @createdBy and not _.include(@liked, userId)
-    #   likeButtonElm = $("<span class='like i' title='like it'>6</span>")
-    #     .bind 'click', @sendLike
-    #   @labelElm.append(likeButtonElm)
-    
     @renderLike_()
 
     @elementInner = $("<div class='inner'></div>")
-      .append(image).append(@labelElm)
+      .append(imageElm).append(@labelElm)
     @element.append @elementInner
 
     if @isLastPost

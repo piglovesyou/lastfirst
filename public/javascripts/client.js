@@ -141,7 +141,6 @@ _.mixin({
     return htmlText.replace(/(<\/.+?>)[\s\S]*?(<)/g, "$1$2");
   },
   escapeHTML: function(text) {
-    console.log(arguments);
     if (text.indexOf('<')) text.replace(/</g, '');
     if (text.indexOf('>')) text.replace(/>/g, '');
     if (text.indexOf('&')) text.replace(/&/g, '');
@@ -448,26 +447,26 @@ Word = (function() {
   };
 
   Word.prototype.render = function() {
-    var image, text, title, titleElm;
+    var imageElm, text, title, titleElm;
     if (!this.canRender()) return;
     Word.__super__.render.call(this);
     this.element.empty();
     text = '';
-    image = $("<div class='image loading'></div>");
+    imageElm = $("<div class='image loading'></div>");
     this.imageSearcher_.setCallback(function(searcher) {
       var _this = this;
       if (searcher && searcher.results && !_.isEmpty(searcher.results && searcher.results[0] && searcher.results[0].url)) {
         return $("<img/>").load(function() {
-          return image.css({
+          return imageElm.css({
             'background-image': "url(" + searcher.results[0].url + ")"
           }).removeClass('loading');
         }).error(function() {
-          return image.text('no image').removeClass('loading');
+          return imageElm.text('no image').removeClass('loading');
         }).attr({
           'src': searcher.results[0].url
         });
       } else {
-        return image.text('no image');
+        return imageElm.text('no image');
       }
     });
     this.imageSearcher_.execute(this.content);
@@ -477,7 +476,7 @@ Word = (function() {
     titleElm = $("<span class='titleElm' title='" + this.createdAt + "'>" + title + "</span>");
     this.labelElm.append(titleElm);
     this.renderLike_();
-    this.elementInner = $("<div class='inner'></div>").append(image).append(this.labelElm);
+    this.elementInner = $("<div class='inner'></div>").append(imageElm).append(this.labelElm);
     this.element.append(this.elementInner);
     if (this.isLastPost) {
       WordList.getInstance().setAsLastWord(this);
@@ -547,6 +546,10 @@ Word = (function() {
 
 _.addSingletonGetter(Word);
 
+/*
+ Class for form area of wordList.
+*/
+
 BlankWord = (function() {
 
   __extends(BlankWord, AbstractComponent);
@@ -558,7 +561,7 @@ BlankWord = (function() {
     this.sendSearchRequest = __bind(this.sendSearchRequest, this);
     this.onKeyup_ = __bind(this.onKeyup_, this);    BlankWord.__super__.constructor.call(this);
     this.imageSearcher_ = new ImageSearcher();
-    this.sendSearchRequest = _.debounce(this.sendSearchRequest, 800);
+    this.onKeyup_ = _.debounce(this.onKeyup_, 800);
   }
 
   BlankWord.prototype.render = function() {
@@ -595,17 +598,15 @@ BlankWord = (function() {
   BlankWord.prototype.hideTimer_ = null;
 
   BlankWord.prototype.onKeyup_ = function() {
-    return this.sendSearchRequest();
-  };
-
-  BlankWord.prototype.sendSearchRequest = function() {
     var str;
     str = this.textElm_.val();
-    if (!_.isEmpty(str)) {
-      this.imageElm_.removeAttr('style').addClass('loading');
-      str = _.escapeHTML(str);
-      return ImageSearcher.getInstance().execute(str);
-    }
+    if (_.isValidWord(str)) return this.sendSearchRequest(str);
+  };
+
+  BlankWord.prototype.sendSearchRequest = function(str) {
+    this.imageElm_.removeAttr('style').addClass('loading');
+    str = _.escapeHTML(str);
+    return ImageSearcher.getInstance().execute(str);
   };
 
   BlankWord.prototype.onSearchComplete_ = function(searcher) {

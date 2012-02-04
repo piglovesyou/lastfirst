@@ -46,7 +46,6 @@ _.mixin
   trimHTML: (htmlText) ->
     htmlText.replace(/(<\/.+?>)[\s\S]*?(<)/g, "$1$2")
   escapeHTML: (text) ->
-    console.log arguments
     text.replace(/</g, '')  if text.indexOf '<'
     text.replace(/>/g, '')  if text.indexOf '>'
     text.replace(/&/g, '')  if text.indexOf '&'

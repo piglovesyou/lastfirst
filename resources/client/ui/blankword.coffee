@@ -1,11 +1,13 @@
-
+###
+ Class for form area of wordList.
+###
 class BlankWord extends AbstractComponent
 
   # public
   constructor: ->
     super()
     @imageSearcher_ = new ImageSearcher()
-    @sendSearchRequest = _.debounce @sendSearchRequest, 800
+    @onKeyup_ = _.debounce @onKeyup_, 800
   render: ->
     return  if @isInDocument
     super()
@@ -21,7 +23,6 @@ class BlankWord extends AbstractComponent
     @imageElm_ = $("""
         <div class="image"></div>
         """)
-    # ImageSearcher.setImageElm @imageElm_
     @innerElm_ = $(_.trimHTML("""
       <div class="inner">
         <div class="label">
@@ -42,13 +43,9 @@ class BlankWord extends AbstractComponent
       .bind('mouseleave', @onMouseleaveBlankElm_)
     ImageSearcher.getInstance().setCallback @onSearchComplete_
     @imageElm_.removeAttr('style')
-    # @formElm_
-    # @innerElm_
   detatchEvents: ->
     @textElm_.unbind()
     @innerElm_.unbind()
-    # @formElm_
-    # @innerElm_
 
 
   # private
@@ -60,14 +57,14 @@ class BlankWord extends AbstractComponent
 
 
   onKeyup_: =>
-    @sendSearchRequest()
-
-  sendSearchRequest: =>
     str = @textElm_.val()
-    unless _.isEmpty(str)
-      @imageElm_.removeAttr('style').addClass('loading')
-      str = _.escapeHTML(str)
-      ImageSearcher.getInstance().execute(str)
+    if _.isValidWord(str)
+      @sendSearchRequest(str)  
+
+  sendSearchRequest: (str) =>
+    @imageElm_.removeAttr('style').addClass('loading')
+    str = _.escapeHTML(str)
+    ImageSearcher.getInstance().execute(str)
 
   onSearchComplete_: (searcher) =>
     if searcher and
