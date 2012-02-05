@@ -16,7 +16,8 @@ class ImageSearcher
       @googleImageSearch_.execute(searchString)
   setCallback: (fn) ->
     # I can use this only one time
-    @createImageSearchInstance_()  unless @googleImageSearch_
+    if not @googleImageSearch_ and @hasScriptLoaded_()
+      @createImageSearchInstance_()  
     if @googleImageSearch_ and not @hasCallback_
       @hasCallback_ = true
       @googleImageSearch_.setSearchCompleteCallback(@googleImageSearch_, fn, [@googleImageSearch_])

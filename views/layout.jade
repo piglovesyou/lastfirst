@@ -17,7 +17,6 @@ html
     //   });
 
 
-    script(src="https://www.google.com/jsapi?" + googleLoaderParam)
     script(src='/javascripts/libs/head.load.min.js')
     script
       // Loading scripts by head.js.
@@ -26,25 +25,19 @@ html
         '/socket.io/socket.io.js'
       , '/javascripts/libs/underscore-min.js'
       , '/javascripts/libs/jquery-1.7.min.js'
-      , clientjs, function () {
-        var googleLoaderCallback = function () {
-          console.log('search?', google.search);
-        };
-      });
+      , clientjs);
 
       // Just for watching google module loading.
       // Loading autoload script must be after this code.
-      // var myGoogleLoader = {
+      // var myGoogle = {
       //   isLoaded: false,
-      //   loaded: function () {
+      //   onLoaded: function () {
       //     this.isLoaded = true;
-      //     console.log('search?', google.search, this.isLoaded);
       //   }
       // };
-      // Am I want this..?
-
       // For developing setting.
       window.noAuthForDev = !{noAuthForDev}
+    script(src="https://www.google.com/jsapi?" + googleLoaderParam)
 
     - if (isProduction)
       include google-analytics

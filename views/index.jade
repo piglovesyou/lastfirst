@@ -34,41 +34,6 @@
   | Loading recent words...
   img(src="/images/loading.gif")
 
-
-// script(src='https://www.google.com/jsapi?key=!{googleLoaderKey}}')
-// script
-//   console.log(google);
-//   //<![CDATA[
-// 
-// 
-//   function OnLoad() {
-//     var imageSearch = new google.search.ImageSearch();
-//     imageSearch.setSearchCompleteCallback( this, SearchComplete, [ imageSearch ] );
-//     imageSearch.execute( 'HONDA' );
-//   }
-//   function SearchComplete( searcher ) {
-//       // 結果オブジェクトを取得する
-//       var results = searcher.results;
-//       console.log('SearchComplete', searcher);
-// 
-//       if( results && ( 0 < results.length ) ) {
-//           var content = document.getElementById( 'content' );
-// 
-//           // 情報を取得する
-//           for( var i = 0; i < results.length; i++ )
-//           {
-//               // 画像のファイル名
-//               var title = document.createElement( 'p' );
-//               title.appendChild( document.createTextNode( results[ i ].title ) );
-// 
-//               // サムネイル画像のURL
-//               var image = document.createElement( 'img' );
-//               image.src = results[ i ].tbUrl;
-// 
-//               content.appendChild( title );
-//               content.appendChild( image );
-//           }
-//       }
-//   }
-//   google.load("search", "1");
-//   google.setOnLoadCallback(OnLoad);
+.google-branding
+  | Image Search powered by 
+  img(src='https://www.google.com/uds/css/small-logo.png')

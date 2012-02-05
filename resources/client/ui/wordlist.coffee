@@ -52,6 +52,7 @@ class WordList extends AbstractComponent
       .fadeIn()
     @blankWord.attachEvents()
     Time.getInstance().hide()
+    false
 
 _.addSingletonGetter(WordList)
 

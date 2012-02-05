@@ -29,12 +29,16 @@ class BlankWord extends AbstractComponent
           <div id="post-form"></div>
           <div class="please-login yeah">(Please login.)</div> 
         </div>
+        <div class="blank-word-google-branding">
+          <span>powered by </span>
+          <img src="https://www.google.com/uds/css/small-logo.png"/>
+        </div>
       </div>
       """))
     @innerElm_.prepend(@imageElm_).find('#post-form').append(@formElm_)
     @element = $("""
       <div class="word word-blank" style="display:none"></div>
-    """).append @innerElm_
+    """).append(@innerElm_)
     
   attachEvents: ->
     @textElm_.bind('keyup text', @onKeyup_).val('').focus()
@@ -42,7 +46,7 @@ class BlankWord extends AbstractComponent
       .bind('mouseenter', @onMouseEnterBlankElm_)
       .bind('mouseleave', @onMouseleaveBlankElm_)
     ImageSearcher.getInstance().setCallback @onSearchComplete_
-    @imageElm_.removeAttr('style')
+    @imageElm_.removeAttr('style').empty()
   detatchEvents: ->
     @textElm_.unbind()
     @innerElm_.unbind()
@@ -73,10 +77,10 @@ class BlankWord extends AbstractComponent
        searcher.results[0] and
        searcher.results[0].url
       $("<img/>").load =>
-        @imageElm_
-          .css
-            'background-image': "url(#{searcher.results[0].url})"
-          .removeClass('loading')
+        imageInnerElm = $("""
+        <span class="image-inner" style="background-image:url(#{searcher.results[0].url})"></span>
+        """)
+        @imageElm_.removeClass('loading').empty().append(imageInnerElm)
       .error =>
         @imageElm_.text('no image').removeClass('loading')
       .attr('src': searcher.results[0].url)

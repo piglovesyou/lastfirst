@@ -318,7 +318,9 @@ ImageSearcher = (function() {
   };
 
   ImageSearcher.prototype.setCallback = function(fn) {
-    if (!this.googleImageSearch_) this.createImageSearchInstance_();
+    if (!this.googleImageSearch_ && this.hasScriptLoaded_()) {
+      this.createImageSearchInstance_();
+    }
     if (this.googleImageSearch_ && !this.hasCallback_) {
       this.hasCallback_ = true;
       return this.googleImageSearch_.setSearchCompleteCallback(this.googleImageSearch_, fn, [this.googleImageSearch_]);
@@ -452,14 +454,15 @@ Word = (function() {
     Word.__super__.render.call(this);
     this.element.empty();
     text = '';
-    imageElm = $("<div class='image loading'></div>");
+    imageElm = $("<div class=\"image loading\"></div>");
     this.imageSearcher_.setCallback(function(searcher) {
+      var aElm, result;
       var _this = this;
       if (searcher && searcher.results && !_.isEmpty(searcher.results && searcher.results[0] && searcher.results[0].url)) {
+        result = searcher.results[0];
+        aElm = $("<a class=\"image-inner\" href=\"" + result.originalContextUrl + "\" title=\"" + result.titleNoFormatting + "\"\nstyle=\"background-image:url(" + result.url + ")\" target=\"_blank\">" + result.title + "</a>");
         return $("<img/>").load(function() {
-          return imageElm.css({
-            'background-image': "url(" + searcher.results[0].url + ")"
-          }).removeClass('loading');
+          return imageElm.removeClass('loading').append(aElm);
         }).error(function() {
           return imageElm.text('no image').removeClass('loading');
         }).attr({
@@ -570,7 +573,7 @@ BlankWord = (function() {
     this.textElm_ = $("<input name=\"content\" type=\"text\" maxlength=\"7\">");
     this.formElm_ = $(_.trimHTML("<form id=\"post\" action=\"javascript:void(0)\" method=\"POST\">\n  <input style=\"display:none\" type=\"submit\" />\n</form>")).prepend(this.textElm_);
     this.imageElm_ = $("<div class=\"image\"></div>");
-    this.innerElm_ = $(_.trimHTML("<div class=\"inner\">\n  <div class=\"label\">\n    <div id=\"post-form\"></div>\n    <div class=\"please-login yeah\">(Please login.)</div> \n  </div>\n</div>"));
+    this.innerElm_ = $(_.trimHTML("<div class=\"inner\">\n  <div class=\"label\">\n    <div id=\"post-form\"></div>\n    <div class=\"please-login yeah\">(Please login.)</div> \n  </div>\n  <div class=\"blank-word-google-branding\">\n    <span>powered by </span>\n    <img src=\"https://www.google.com/uds/css/small-logo.png\"/>\n  </div>\n</div>"));
     this.innerElm_.prepend(this.imageElm_).find('#post-form').append(this.formElm_);
     return this.element = $("<div class=\"word word-blank\" style=\"display:none\"></div>").append(this.innerElm_);
   };
@@ -579,7 +582,7 @@ BlankWord = (function() {
     this.textElm_.bind('keyup text', this.onKeyup_).val('').focus();
     this.innerElm_.bind('mouseenter', this.onMouseEnterBlankElm_).bind('mouseleave', this.onMouseleaveBlankElm_);
     ImageSearcher.getInstance().setCallback(this.onSearchComplete_);
-    return this.imageElm_.removeAttr('style');
+    return this.imageElm_.removeAttr('style').empty();
   };
 
   BlankWord.prototype.detatchEvents = function() {
@@ -613,9 +616,9 @@ BlankWord = (function() {
     var _this = this;
     if (searcher && searcher.results && !_.isEmpty(searcher.results && searcher.results[0] && searcher.results[0].url)) {
       return $("<img/>").load(function() {
-        return _this.imageElm_.css({
-          'background-image': "url(" + searcher.results[0].url + ")"
-        }).removeClass('loading');
+        var imageInnerElm;
+        imageInnerElm = $("<span class=\"image-inner\" style=\"background-image:url(" + searcher.results[0].url + ")\"></span>");
+        return _this.imageElm_.removeClass('loading').empty().append(imageInnerElm);
       }).error(function() {
         return _this.imageElm_.text('no image').removeClass('loading');
       }).attr({
@@ -721,7 +724,8 @@ WordList = (function() {
   WordList.prototype.onClickLastWord_ = function() {
     this.blankWord.element.prependTo(this.element).fadeIn();
     this.blankWord.attachEvents();
-    return Time.getInstance().hide();
+    Time.getInstance().hide();
+    return false;
   };
 
   return WordList;

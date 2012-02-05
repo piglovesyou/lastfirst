@@ -29,7 +29,7 @@ class Word extends AbstractComponent
     text = ''
 
     imageElm = $("""
-      <div class='image loading'></div>
+      <div class="image loading"></div>
       """)
     @imageSearcher_.setCallback (searcher) ->
       if searcher and
@@ -37,10 +37,15 @@ class Word extends AbstractComponent
          not _.isEmpty searcher.results and
          searcher.results[0] and
          searcher.results[0].url
+        result = searcher.results[0]
+        aElm = $("""
+          <a class="image-inner" href="#{result.originalContextUrl}" title="#{result.titleNoFormatting}"
+          style="background-image:url(#{result.url})" target="_blank">#{result.title}</a>
+        """)
         $("<img/>").load =>
           imageElm
-            .css('background-image': "url(#{searcher.results[0].url})")
             .removeClass('loading')
+            .append(aElm)
         .error =>
           imageElm.text('no image').removeClass('loading')
         .attr('src': searcher.results[0].url)

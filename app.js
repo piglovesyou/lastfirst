@@ -197,17 +197,6 @@ oauthQuery = {
 
 oauthUrl = 'https://accounts.google.com/o/oauth2/auth?' + querystring.stringify(oauthQuery);
 
-/*
-{
-  "modules": [{
-    "name": "search",
-    "version": "1",
-    "callback": "googleLoaderCallback",
-    "nocss": "true"
-  }]
-} & key = ABQIAAAAr - Cx3wzTD_6B2XuJpn - M5xTJQa0g3IQ9GZqIMmInSLzwtGDKaBTvG9Zrc - usz3rywefs092_UQbBRw
-*/
-
 googleLoaderParam = JSON.stringify({
   "modules": [
     {

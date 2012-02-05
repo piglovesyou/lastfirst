@@ -123,6 +123,7 @@ socketInit = () ->
       word.attachTime(time)
       words.push(word)
 
+
   socket.on 'need login', () ->
     message.show('Expired. Need another login.')
     _.showLoginLink()

@@ -15,10 +15,6 @@
   text-align center
   width itemWidth
   transition top .4s, left .4s
-  &:nth-child(1)
-    cursor: pointer
-  &:nth-child(1):hover
-    opacity: .8
 
   & .inner
     position absolute
@@ -38,6 +34,25 @@
     line-height itemWidth
     &.loading
       background-image url(/images/loading_l.gif) 
+      & .image-inner
+      & .image-inner:hover
+        opacity .2
+    & .image-inner
+      border-radius (itemWidth / 2)
+      background transparent center center no-repeat
+      display block
+      widht HUNDRED_PERCENT
+      height HUNDRED_PERCENT
+      line-height itemWidth*1.7
+      font-size 65%
+      text-align left
+      text-indent 4em
+      color #ddd
+      color rgba(255,255,255,.7)
+      text-decoration none
+      transition opacity .15s
+      &:hover
+        opacity .8
   & .label
     line-height 1.6
 
@@ -49,12 +64,14 @@
 blankElmBorderWidth = 3px
 
 .word-blank
-  opacity 1
   transition none
   cursor pointer
   & .image
     height itemWidth - (blankElmBorderWidth * 2)
     border blankElmBorderWidth #ccc dashed
+    & .image-inner
+      &:hover
+        opacity 1
   & input[type=text]
     width 8em
     margin 2px auto
@@ -64,6 +81,11 @@ blankElmBorderWidth = 3px
     background-color #f3f3f3
     &:focus
       background-color #ececec
+.blank-word-google-branding
+  color #999
+  font-size 64%
+  & img
+    vertical-align bottom
 
 .not-logged-in #post-form
   display none
