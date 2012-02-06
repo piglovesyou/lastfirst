@@ -469,7 +469,7 @@ Word = (function() {
           'src': searcher.results[0].url
         });
       } else {
-        return imageElm.text('no image');
+        return imageElm.text('no image').removeClass('loading');
       }
     });
     this.imageSearcher_.execute(this.content);

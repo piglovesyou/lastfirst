@@ -50,7 +50,7 @@ class Word extends AbstractComponent
           imageElm.text('no image').removeClass('loading')
         .attr('src': searcher.results[0].url)
       else
-        imageElm.text('no image')
+        imageElm.text('no image').removeClass('loading')
     @imageSearcher_.execute @content
 
     @labelElm = $("<div class='label'></div>")
