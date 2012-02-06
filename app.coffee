@@ -11,7 +11,7 @@ url = require 'url'
 querystring = require 'querystring'
 stylus = require 'stylus'
 nib = require 'nib'
-{OAuth} = require 'oauth'
+# {OAuth} = require 'oauth'
 
 
 
@@ -212,24 +212,28 @@ app.get '/about', (req, res) ->
     isProduction: SECRET.IS_PRODUCTION
     noAuthForDev: NO_AUTH_FOR_DEV
     googleLoaderParam: googleLoaderParam
-
-# dev
-app.get '/dev', (req, res) ->
-  res.render 'dev',
-    isProduction: true
-    title: 'dev'
-
-# dev2
-app.get '/dev2', (req, res) ->
-  res.render 'dev2',
-    isProduction: true
-    title: 'dev'
+    layout: false
 
 app.get '/oauth2callback', (req, res) ->
   token = req.query.code
   res.render 'oauth2callback'
     layout: false
     title: 'LastFirstApp'
+
+
+
+
+
+# For development
+app.get '/dev', (req, res) ->
+  res.render 'dev',
+    isProduction: true
+    title: 'dev'
+app.get '/dev2', (req, res) ->
+  res.render 'dev2',
+    isProduction: true
+    title: 'dev'
+
 
 app.listen SECRET.PORT
 

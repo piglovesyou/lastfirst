@@ -10,11 +10,15 @@
   margin-right itemHorizontalMargin
 
 
+
 .word
   position absolute
   text-align center
   width itemWidth
   transition top .4s, left .4s
+
+  &.last-post .titleElm
+    animation anime1 1.4s linear .8s 10 alternate
 
   & .inner
     position absolute
@@ -27,7 +31,7 @@
     height itemWidth - 2px
     border-radius (itemWidth / 2)
     overflow hidden
-    color #ddd
+    color #ccc
     font-weight bold
     text-align center
     background transparent center center no-repeat
@@ -55,6 +59,12 @@
         opacity .8
   & .label
     line-height 1.6
+    & .titleElm
+      cursor pointer
+      padding 1px 3px
+      border-radius 3px
+      &:hover
+        text-decoration underline
 
 .your-post
   & .titleElm::before
@@ -93,3 +103,6 @@ blankElmBorderWidth = 3px
   display none
 
 
+@keyframes anime1
+  50%
+    color #fff

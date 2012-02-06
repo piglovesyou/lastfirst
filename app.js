@@ -3,7 +3,7 @@
  Include libraries.
 */
 
-var NO_AUTH_FOR_DEV, OAuth, SECRET, User, Word, Words, app, express, getLastDoc, googleLoaderParam, io, nib, oauthQuery, oauthScopes, oauthUrl, querystring, stylus, updateWords, url, users, validateResult, validateUtil, _, _ref;
+var NO_AUTH_FOR_DEV, SECRET, User, Word, Words, app, express, getLastDoc, googleLoaderParam, io, nib, oauthQuery, oauthScopes, oauthUrl, querystring, stylus, updateWords, url, users, validateResult, validateUtil, _, _ref;
 
 SECRET = require('secret-strings').LAST_FIRST;
 
@@ -20,8 +20,6 @@ querystring = require('querystring');
 stylus = require('stylus');
 
 nib = require('nib');
-
-OAuth = require('oauth').OAuth;
 
 /*
  DB setting.
@@ -227,7 +225,17 @@ app.get('/about', function(req, res) {
     oauthUrl: oauthUrl,
     isProduction: SECRET.IS_PRODUCTION,
     noAuthForDev: NO_AUTH_FOR_DEV,
-    googleLoaderParam: googleLoaderParam
+    googleLoaderParam: googleLoaderParam,
+    layout: false
+  });
+});
+
+app.get('/oauth2callback', function(req, res) {
+  var token;
+  token = req.query.code;
+  return res.render('oauth2callback', {
+    layout: false,
+    title: 'LastFirstApp'
   });
 });
 
@@ -242,15 +250,6 @@ app.get('/dev2', function(req, res) {
   return res.render('dev2', {
     isProduction: true,
     title: 'dev'
-  });
-});
-
-app.get('/oauth2callback', function(req, res) {
-  var token;
-  token = req.query.code;
-  return res.render('oauth2callback', {
-    layout: false,
-    title: 'LastFirstApp'
   });
 });
 

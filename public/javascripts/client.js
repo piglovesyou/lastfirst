@@ -625,7 +625,7 @@ BlankWord = (function() {
         'src': searcher.results[0].url
       });
     } else {
-      return image.text('no image');
+      return this.imageElm_.text('no image').removeClass('loading');
     }
   };
 
@@ -970,7 +970,7 @@ socketInit = function() {
     var id;
     id = data.userId;
     _.setUserId(id);
-    message.show('Authorized fine.');
+    message.show('Click the last word to post. ↓');
     _.hideLoginLink();
     $('#logout-link').show();
     $('body').addClass('logged-in').removeClass('not-logged-in');

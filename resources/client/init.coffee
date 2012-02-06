@@ -132,7 +132,7 @@ socketInit = () ->
     id = data.userId
     _.setUserId(id)
     # _.setUserIdToHiddenInput(id)
-    message.show('Authorized fine.')
+    message.show('Click the last word to post. ↓')
     _.hideLoginLink()
     $('#logout-link').show()
     # _.showPostForm()

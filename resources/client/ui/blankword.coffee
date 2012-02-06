@@ -85,7 +85,7 @@ class BlankWord extends AbstractComponent
         @imageElm_.text('no image').removeClass('loading')
       .attr('src': searcher.results[0].url)
     else
-      image.text('no image')
+      @imageElm_.text('no image').removeClass('loading')
 
 
   onMouseEnterBlankElm_: => window.clearTimeout @hideTimer_

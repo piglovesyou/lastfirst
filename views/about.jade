@@ -1,29 +1,53 @@
+!!!
+html
+  head
+    title= title
+    meta(name="viewport", content="width=device-width,initial-scale=1.0,user-scalable=no,maximum-scale=1")
 
-h1= title
-p Thank you for visiting LastFirstApp.
+    - if (isProduction)
+      include google-analytics
+  body
+    h1= title
+    p
+      | Thank you for visiting
+      a(href="/") LastFirstApp
+      | .
 
-h2 Rules
-ul
-  li Same as a traditional last-first.
-  li Only HIRAGANA can be used.
-  li You cannot reply to your post.
-  li If you make a mistake, you get penalty.
-h2 Authentication
-p Please loging with google account in order to:
-ul
-  li confirm you are a human.
-  li know which one is the post you posted.
-p Currently, LastFirstApp doesn't use your info BESIDES google account id, which is stored as hashed md5.
-h2 Image
-ul
-  li LastFirstApp DON'T STORE images searched by Google Image Search API.
-  li LastFirstApp filters search result by REUSABLE right.
+    h2 Rules
+    ul
+      li Same as a traditional last-first.
+      li Only HIRAGANA can be used.
+      li You cannot reply to your post.
+      li If you make a mistake, you get penalty.
+    h2 Browsers
+    ul
+      li Please use latest firefox or chrome.
+    h2 Motivation
+    p Someone said, "any of the web services is the same" on my tumblr dashboard.
+    p "After all, web services just provide response to people in a room. <b>What to respond is not important</b>. People make a small action, wait for response as being excited, and receive a reaction (larger, better). Don't you think it's similer to this: someone in a room knocks on a wall and waits. Waiting for a while and he/she feels nice to hear the sound of response, `knock knock'."
+    p I really does. I really feel happy to get a response when I'm in my room especially at middle of the night. And I start to think the kind of response is not much important as well.
+    p This, LastFirstApp is my experimental website, on which anybody make an action. I'll be glad if you feel excited to wait for a responce after your post.
 
-h2 Credit
-ul
-  li Node and Node's excellent npm packages (see package.json on github)
-  li Underscore.js, jQuery, Headjs for client side
-  li Google Image Search API
 
-a(href='/') Back go top page.
+    h2 Authentication
+    p Please loging with google account in order to:
+    ul
+      li confirm you are a human.
+      li know which one is the post you posted.
+    p Currently, LastFirstApp doesn't use your info BESIDES google account id, which is stored as hashed md5.
+    h2 Images
+    ul
+      li LastFirstApp DON'T STORE images searched by Google Image Search API.
+      li LastFirstApp filters search result by REUSABLE right.
 
+    h2 Credit
+    ul
+      li Node and Node's excellent npm packages (see package.json on github)
+      li Underscore.js, jQuery, Headjs for client side 
+      li Google Image Search API
+      li And all of the programmers on opensource coding
+
+    a(href='/') Back to LastFirstApp
+
+    p 
+      a(href="stakam.net") stakam.net
